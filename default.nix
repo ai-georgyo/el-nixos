@@ -10,7 +10,7 @@ let
   fetch = import ./lib/sources.nix { inherit (bootPkgs) fetchurl; inherit lock rpmsLock; };
 
   # stage0 buildroot machinery (docs/stage0.md)
-  stage0 = import ./bootstrap { pkgs = bootPkgs; inherit lock; };
+  stage0 = import ./bootstrap { pkgs = bootPkgs; inherit lock; inherit (fetch) officialRpms; };
 
   # milestone 1: the glibc SRPM rebuilt in stage0 (docs/glibc.md)
   glibc = import ./packages/glibc.nix {

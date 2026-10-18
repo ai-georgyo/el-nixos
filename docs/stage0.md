@@ -25,6 +25,7 @@ binary-package names an SRPM produces are only *selected* at build time (by
 | `srpmPassA.<srpm-name>` | the pass-A builds of the macro packages |
 | `rpms.<binary-name>` | `rpmTree`: one binary RPM's payload as an FHS tree, `allowedReferences = [ ]` |
 | `tests.{toolchain,toolchainFull,macros,whichRpms,whichTree}` | acceptance tests (output: `report.txt`) |
+| `kernelHeadersBuild`, `rpms.kernel-headers`, `buildrootKernel`, `buildrootFullKernelHeaders`, `tests.{kernelHeaders,kernelHeadersBuildroot,toolchainKernelHeaders}` | Rocky kernel-headers from the kernel SRPM (headers-only rpmbuild) — see [kernel-headers.md](kernel-headers.md) |
 | `buildStage0 { srpm = "<name>"; ... }` | helper: build any lock SRPM in stage0-full |
 | `mkRoot { name, kernelHeaders ? <stage0>, extraTrees ? [ ] }` | a root layer like `buildroot` with other kernel headers (`null` = none, install an RPM on top) and/or extra FHS trees; the toolchain is not rebuilt |
 | `fullRpms` | the rpm specs stage0-full installs (rocky-release + pass-B macro packages), for `mkBuildroot` on a `mkRoot` |
@@ -408,9 +409,12 @@ Provides, file list, file digests and modes).
   headers, then drop `%_annobin_gcc_plugin %{nil}`.
 * The glibc SRPM is built (milestone 1): see [glibc.md](glibc.md) for its
   buildroot (`mkRoot` + `glibcBuildDeps` + `fullRpms`) and results.
-* Kernel headers: swap in Rocky's kernel-headers — for glibc via
-  `default.nix`'s `kernelHeadersRpm` (an RPM installed into the glibc
-  buildroot); for the toolchain via `kernelHeaders` (rebuilds gcc).
+* Kernel headers: Rocky's kernel-headers RPM is built (`kernelHeadersBuild`,
+  see [kernel-headers.md](kernel-headers.md)) and installed into the glibc
+  buildroot with rpm (registered in the rpmdb); `buildrootFullKernelHeaders`
+  is stage0-full with it instead of nixpkgs' headers. The stage0 *toolchain*
+  still uses nixpkgs' 6.18 headers (swapping would rebuild glibc/gcc for no
+  shipped benefit).
 * `mkBuildroot` cannot represent deletions of lower-layer files (fails
   loudly); later stages installing with scriptlets may need a "flatten" mode.
 * Later stages: `rpm --root` installs with `installFlags = [ ]` (deps +

@@ -1,7 +1,9 @@
 # Research: kernel-headers from the Rocky kernel SRPM
 
-Status: research notes (track "kernel headers"), 2026-10-18. Nothing here is
-wired into the flake yet.
+Status: research notes (track "kernel headers"), 2026-10-18. Implemented since:
+see [../kernel-headers.md](../kernel-headers.md) (`stage0.kernelHeadersBuild`;
+in stage0 the nixpkgs-rpm pitfalls of §2 do not apply, `%py3_shebang_fix` needed
+python3-rpm-macros, configchecks on works).
 
 Inputs examined:
 

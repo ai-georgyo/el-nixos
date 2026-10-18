@@ -4,6 +4,7 @@
 { pkgs                    # nixpkgs (bootstrap only)
 , lock                    # parsed lock/rocky-<rel>/srpms.json
 , kernelHeaders ? null    # FHS tree with usr/include/{linux,asm,...}; default: nixpkgs linuxHeaders
+, officialRpms ? null     # lib/sources.nix officialRpms (verification checks only)
 }:
 let
   inherit (pkgs) lib;
@@ -119,17 +120,62 @@ let
   # c) an arch-dependent C package with the full Rocky flags + debuginfo
   which = buildSrpm { srpm = "which"; buildroot = buildrootFull; };
 
-  srpmBuilds = { rocky-release = release; inherit which; } // macros;
+  # d) Rocky kernel-headers: real rpmbuild of the kernel SRPM, headers only
+  #    (packages/kernel-headers.nix, docs/kernel-headers.md)
+  kernelHeadersPkg = import ../packages/kernel-headers.nix {
+    inherit pkgs lib' rpm;
+    buildroot = buildrootFull;
+    macroRpms = [
+      { from = macros.python-rpm-macros; names = [ "python-rpm-macros" "python3-rpm-macros" ]; }
+      { from = macros.kernel-srpm-macros; names = [ "kernel-rpm-macros" ]; }
+    ];
+    officialRpm = if officialRpms != null then officialRpms."kernel-headers.x86_64" else null;
+  };
+  kernelHeadersBuild = kernelHeadersPkg.build;
+
+  # e) stage0-full with Rocky's kernel-headers *instead of* nixpkgs' headers.
+  #    Installing the RPM on top of buildrootFull would leave the 21 headers
+  #    that exist only in nixpkgs' 6.18 headers behind (a layer cannot delete
+  #    lower files).  So: the same root assembled without nixpkgs' headers
+  #    (only /usr/include differs; the toolchain derivations are untouched),
+  #    the unchanged release/macro layers of buildrootFull stacked on it (none
+  #    of them touches /usr/include), then kernel-headers installed with rpm
+  #    -- registered in the rpmdb, as glibc.spec's `rpm -ql kernel-headers`
+  #    needs.  docs/kernel-headers.md.
+  rootLayerNoKh = import ./root.nix {
+    inherit pkgs rpm debugedit tools; fhsTrees = [ glibc binutils gcc ]; name = "stage0-root-nokh";
+  };
+  buildrootFullKernelHeaders = mkBuildroot {
+    name = "stage0-full-kernel-headers";
+    base = buildrootFull // { layers = [ rootLayerNoKh ] ++ lib.tail buildrootFull.layers; };
+    rpms = [ kernelHeadersPkg.rpmSpec ];
+  };
+
+  srpmBuilds = { rocky-release = release; inherit which; kernel = kernelHeadersBuild; } // macros;
 
   # binary rpm name -> extracted tree (d)
   produces = {
     rocky-release = [ "rocky-release" "rocky-repos" "rocky-gpg-keys" "rocky-sb-certs" ];
     which = [ "which" ];
+    kernel = [ "kernel-headers" ];
   } // lib.mapAttrs (n: v: v.names) macroSrpms;
   rpms = lib.foldl' (acc: s: acc // lib.genAttrs produces.${s} (name: rpmTree { build = srpmBuilds.${s}; inherit name; }))
     { } (builtins.attrNames produces);
 
-  tests = import ./tests { inherit pkgs lib' buildroot buildrootFull which rpms; };
+  tests = import ./tests { inherit pkgs lib' buildroot buildrootFull which rpms; }
+    // {
+      kernelHeadersBuildroot = lib'.runInBuildroot {
+        name = "stage0-test-kernel-headers-buildroot";
+        buildroot = buildrootFullKernelHeaders;
+        script = builtins.readFile ./tests/kernel-headers.sh;
+      };
+      # the full toolchain acceptance test again, on the Rocky headers
+      toolchainKernelHeaders = lib'.runInBuildroot {
+        name = "stage0-test-toolchain-kernel-headers";
+        buildroot = buildrootFullKernelHeaders;
+        script = builtins.readFile ./tests/toolchain.sh;
+      };
+    } // lib.optionalAttrs (officialRpms != null) { kernelHeaders = kernelHeadersPkg.check; };
 
   # ---------------------------------------------------------------- package roots
   # A root layer like `buildroot` (same toolchain, rpm, nixpkgs tools, /etc)
@@ -154,6 +200,11 @@ in
 {
   inherit binutils gccPass1 glibc sysroot gcc rpm debugedit;
   kernelHeaders = kh;
+  # Rocky kernel-headers (buildSrpm result of the kernel SRPM, headers only);
+  # for mkBuildroot: rpms = [ { from = kernelHeadersBuild; names = [ "kernel-headers" ]; } ]
+  inherit kernelHeadersBuild;
+  inherit (kernelHeadersPkg) buildrootKernel;
+  inherit buildrootFullKernelHeaders;
   inherit buildroot buildrootRelease buildrootFullA buildrootFull;
   srpm = srpmBuilds;
   srpmPassA = macrosA;
