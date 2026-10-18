@@ -19,27 +19,45 @@ Usage (from the repository root; needs nix and the flake):
    re-queries SRPMs whose lock entry changed.
 3. The results are folded into lock/rocky-<rel>/subpackages.json; SRPMs not
    selected keep their previous entry (dropped if the lock no longer has
-   them at that EVR).
+   them at that EVR).  So does a selected SRPM whose result is not in the
+   store with --no-build: only collected results replace entries.
+
+Every entry (and failure) records ``lockgen``, the hash of the query
+derivation that produced it.  --stale evaluates all queries and selects
+the SRPMs whose entry is missing, has another EVR, failed to build, or came
+from another derivation (lockgen buildroot, query script, SRPM or the
+bootstrap nixpkgs changed).  After a run, regenerate builddeps.json and
+order.json (``python3 -I tools/update-lock.py --derived-only``): builddeps
+resolves BuildRequires against the unshipped names.
 
 Per SRPM (one line each, sorted keys):
 
     "<srpm>": {"evr": "<[E:]V-R>",
+               "lockgen": "<hash of the nn.lockgen.subpackages.<srpm> .drv>",
                "names": [...],          # spec order, rpmspec -q --builtrpms, debug packages excluded
                "debug": [...],          # -debuginfo/-debugsource/-debuginfo-common-* names
                "noarch": [...],         # names built as noarch (the rest: x86_64)
                "shipped": {"<name>": true|false},   # in rpms.json bySrpm
                "prefix": "<name>",      # the subpackage compiled with %_prefix = $out
-               "prefixRule": "eponymous" | "libs" | "usr-files" | "first",
-               "usrFiles": {...},       # prefixRule usr-files: /usr file counts of the shipped names
+               "prefixRule": "eponymous" | "libs" | "stem" | "stem-libs" | "usr-files" | "first",
+               "usrFiles": {...},       # prefixRule usr-files/first: /usr file counts of the shipped names
                "notBuilt": [...],       # declared %package without %files (if any;
                                         # "notBuiltUnknown": true if that query failed)
                "shippedMissing": [...], # shipped from this SRPM but not built by the spec (if any)
                "exclusiveArch": [...], "excludeArch": [...]}   # (if any)
 
-Prefix rule: the eponymous subpackage, else ``<srpm>-libs``, else the
-shipped subpackage owning most /usr files in the official filelists (ties:
-spec order), else the first name.  Failures go to ``"failed": {"<srpm>":
-{"evr", "kind": "rpmspec"|"build"|"evr", "errors"}}`` instead of aborting.
+Prefix rule (choose_prefix): the eponymous subpackage, else ``<srpm>-libs``,
+else the same two for the SRPM name without its version (python3.12 ->
+python3), else the shipped subpackage owning most /usr files in the
+official filelists (ties: spec order) that is not a -test/-doc/-javadoc/
+-devel/... one, else the first name.  Failures go to ``"failed": {"<srpm>":
+{"evr", "lockgen", "kind": "rpmspec"|"build"|"evr", "errors"}}`` instead of
+aborting.
+
+Top level: ``duplicateNames`` = {"<name>": [srpms]} for names more than one
+SRPM builds (rubygem-racc: ruby builds it unshipped, rubygem-racc ships it);
+the ``rpm.<name>`` alias should point at the SRPM whose ``shipped`` is true.
+``filelists`` = the filelists.xml checksums the shipped/prefix data came from.
 """
 
 import argparse
@@ -61,6 +79,11 @@ import lock_filelists  # noqa: E402
 SYSTEM = "x86_64-linux"
 DEBUG = re.compile(r"-debug(info|source)$|-debuginfo-common-")
 DEFAULT_BUILD_ARGS = ["--cores", "6", "--max-jobs", "2"]
+# subpackages the /usr-files rule avoids: development files only if nothing
+# else ships /usr files (header-only libraries), docs/tests only as a last resort
+DOC_TEST = re.compile(r"-(tests?|testsuite|test-suite|docs?|doc-[^/]+|javadocs?|apidocs?|"
+                      r"manual|examples?|demos?)$")
+NOT_PREFIX = re.compile(DOC_TEST.pattern + r"|-(devel|static|headers)$")
 
 
 def log(*a):
@@ -74,6 +97,11 @@ def lock_evr(e):
 def nix_json(args):
     r = subprocess.run(["nix"] + args, stdout=subprocess.PIPE, check=True)
     return json.loads(r.stdout)
+
+
+def drv_hash(drv):
+    """/nix/store/<hash>-name.drv -> <hash>."""
+    return os.path.basename(drv).split("-", 1)[0]
 
 
 def lockgen_attr(flake, what):
@@ -106,18 +134,47 @@ def build(paths, build_args, log_file):
         log("subpackages: nix build exited %d (failed queries are recorded)" % r.returncode)
 
 
+def stems(srpm):
+    """The SRPM name with trailing version parts removed, longest first:
+    python3.12 -> python3, python; postgresql16 -> postgresql."""
+    out, s = [], srpm
+    while True:
+        t = re.sub(r"\.\d+$", "", s)
+        if t == s:
+            t = re.sub(r"(?<=[A-Za-z])\d+$", "", s)
+        if t == s or not t:
+            return out
+        out.append(t)
+        s = t
+
+
 def choose_prefix(srpm, names, shipped_keys, summary):
-    """(prefix, rule, usrFiles or None) -- design §3.1."""
+    """(prefix, rule, usrFiles or None) -- design §3.1, extended: the
+    eponymous subpackage, else <srpm>-libs, else the same for the SRPM name
+    without its version (python3.12 -> python3, python3-libs), else the
+    shipped subpackage with most /usr files that is not a test/doc/devel
+    one (NOT_PREFIX; -devel/-static/-headers only if nothing else ships
+    /usr files, docs/tests only if even those do not), else the first name
+    (again preferring non-NOT_PREFIX names)."""
     if srpm in names:
         return srpm, "eponymous", None
     if srpm + "-libs" in names:
         return srpm + "-libs", "libs", None
+    for st in stems(srpm):
+        if st in names:
+            return st, "stem", None
+        if st + "-libs" in names:
+            return st + "-libs", "stem-libs", None
     counts = {n: summary.get(shipped_keys[n], {}).get("usr", 0)
               for n in names if n in shipped_keys}
-    if counts and max(counts.values()) > 0:
-        best = max(names, key=lambda n: (counts.get(n, -1), -names.index(n)))
-        return best, "usr-files", counts
-    return names[0], "first", counts or None
+    for pool in ([n for n in names if not NOT_PREFIX.search(n)],
+                 [n for n in names if not DOC_TEST.search(n)], names):
+        c = [n for n in pool if counts.get(n, 0) > 0]
+        if c:
+            best = max(c, key=lambda n: (counts[n], -names.index(n)))
+            return best, "usr-files", counts
+    pool = [n for n in names if not NOT_PREFIX.search(n)] or names
+    return pool[0], "first", counts or None
 
 
 def derive(srpm, e, bysrpm_keys, rpms, summary):
@@ -168,16 +225,28 @@ def entry_from_raw(raw, bysrpm_keys, rpms, summary):
     return derive(srpm, e, bysrpm_keys, rpms, summary), None
 
 
-def make_doc(release, srpms, res, failed, rpm_versions):
+def duplicate_names(res):
+    """{name: [srpms]} for subpackage names built by more than one SRPM."""
+    by = {}
+    for s, e in sorted(res.items()):
+        for n in e["names"]:
+            by.setdefault(n, []).append(s)
+    return {n: ss for n, ss in sorted(by.items()) if len(ss) > 1}
+
+
+def make_doc(release, srpms, res, failed, rpm_versions, summary):
     return {
         "format": 1,
         "release": release,
         "target": "x86_64",
         "rpm": sorted(rpm_versions),
         "generator": "nn.lockgen.subpackages: rpmspec -q --builtrpms --target x86_64 "
-                     "--define 'distcore <dist of the locked release>' in stage0-full + *-rpm-macros",
+                     "--define 'distcore <dist of the locked release>' in stage0-full + *-rpm-macros "
+                     "+ macros.rust-srpm",
         "coverage": {"srpms": len(srpms), "ok": len(res), "failed": len(failed),
                      "missing": len(srpms) - len(res) - len(failed)},
+        "duplicateNames": duplicate_names(res),
+        "filelists": lock_filelists.provenance(summary),
         "srpms": dict(sorted(res.items())),
         "failed": dict(sorted(failed.items())),
     }
@@ -199,7 +268,7 @@ def refresh(lockdir, release, rpms_doc, summary):
            if n in srpms and e["evr"] == lock_evr(srpms[n])}
     failed = {n: e for n, e in old["failed"].items()
               if n in srpms and e["evr"] == lock_evr(srpms[n])}
-    doc = make_doc(release, srpms, res, failed, set(old["rpm"]))
+    doc = make_doc(release, srpms, res, failed, set(old["rpm"]), summary)
     UL.write_text(p, UL.dump_one_per_line(doc))
     log("refreshed %s: %s" % (p, json.dumps(doc["coverage"], sort_keys=True)))
     return doc["coverage"]["missing"]
@@ -214,8 +283,20 @@ def selftest():
         (("krb5", ["krb5-devel", "krb5-libs"], {}, {}), ("krb5-libs", "libs")),
         (("a", ["a-x", "a-y", "a-z"], keys, summary), ("a-y", "usr-files")),
         (("a", ["a-z", "a-w"], {}, {}), ("a-z", "first")),
+        (("a", ["a-y-devel", "a-z"], {}, {}), ("a-z", "first")),
+        (("python3.12", ["python3", "python3-libs", "python3-test"], {}, {}), ("python3", "stem")),
+        (("foo2.4", ["foo-libs", "foo-devel"], {}, {}), ("foo-libs", "stem-libs")),
+        (("a", ["a-test", "a-x"], {"a-test": "t", "a-x": "x"}, {"t": {"usr": 99}, "x": {"usr": 2}}),
+         ("a-x", "usr-files")),
+        (("a", ["a-test", "a-x"], {"a-test": "t", "a-x": "x"}, {"t": {"usr": 99}}),
+         ("a-test", "usr-files")),
+        (("a", ["a-doc", "a-devel"], {"a-doc": "t", "a-devel": "x"}, {"t": {"usr": 99}, "x": {"usr": 2}}),
+         ("a-devel", "usr-files")),
     ]
     bad = 0
+    if stems("mariadb10.11") != ["mariadb10", "mariadb"] or stems("java-21-openjdk"):
+        log("FAIL stems(%r)" % stems("mariadb10.11"))
+        bad += 1
     for args, want in cases:
         got = choose_prefix(*args)[:2]
         if got != want:
@@ -240,7 +321,10 @@ def main(argv=None):
     ap.add_argument("--seed", action="store_true", help="select nn.lockgen.seed")
     ap.add_argument("--all", action="store_true", help="select every SRPM of the lock")
     ap.add_argument("--stale", action="store_true",
-                    help="select SRPMs without an up-to-date entry (and build failures)")
+                    help="select SRPMs without an entry from the current query derivation "
+                         "(or another EVR, or a build failure)")
+    ap.add_argument("--allow-missing-filelists", action="store_true",
+                    help="warn instead of failing when the filelists do not match the lock")
     ap.add_argument("--no-build", action="store_true",
                     help="only collect results that are already in the store")
     ap.add_argument("--log", help="append nix build output to this file")
@@ -270,21 +354,32 @@ def main(argv=None):
     if args.all:
         sel.update(srpms)
     if args.stale:
+        # every query is evaluated: an entry is stale when its derivation changed
+        log("subpackages: evaluating all %d lockgen derivations (--stale)" % len(srpms))
+        paths = eval_paths(args.flake, srpms)
         for n, e in srpms.items():
             cur = old["srpms"].get(n) or old["failed"].get(n)
-            if cur is None or cur["evr"] != lock_evr(e) or cur.get("kind") == "build":
+            if (cur is None or cur["evr"] != lock_evr(e) or cur.get("kind") == "build"
+                    or cur.get("lockgen") != drv_hash(paths[n]["drv"])):
                 sel.add(n)
+        paths = {n: paths[n] for n in sel}
     if not sel:
-        log("nothing selected (names, --seed, --all or --stale)")
-        return 2
+        log("nothing selected (names, --seed, --all or --stale): up to date")
+        return 0 if args.stale else 2
 
-    log("subpackages: evaluating %d lockgen derivations" % len(sel))
-    paths = eval_paths(args.flake, sel)
+    if not args.stale:
+        log("subpackages: evaluating %d lockgen derivations" % len(sel))
+        paths = eval_paths(args.flake, sel)
     if not args.no_build:
         build(paths, build_args, args.log)
 
     cache = args.cache_dir or os.path.join(".cache", "repodata", args.release)
-    summary = lock_filelists.file_summary(UL, rpms_doc, cache)
+    try:
+        summary = lock_filelists.file_summary(UL, rpms_doc, cache,
+                                              allow_missing=args.allow_missing_filelists)
+    except lock_filelists.FilelistsError as e:
+        log("error: %s (subpackages.json not written; the query results stay in the store)" % e)
+        return 1
     by_srpm = rpms_doc["bySrpm"]
     rpms = rpms_doc["rpms"]
 
@@ -299,14 +394,16 @@ def main(argv=None):
     rpm_versions = set(old.get("rpm") or [])
     counts = {"ok": 0, "rpmspec": 0, "evr": 0, "build": 0, "notBuilt": 0}
     for n in sorted(sel):
+        out = paths[n]["out"]
+        lockgen = drv_hash(paths[n]["drv"])
+        if not os.path.exists(out) and args.no_build:
+            # nothing collected: the previous entry (if any) stays
+            counts["notBuilt"] += 1
+            continue
         res.pop(n, None)
         failed.pop(n, None)
-        out = paths[n]["out"]
         if not os.path.exists(out):
-            if args.no_build:
-                counts["notBuilt"] += 1
-                continue
-            failed[n] = {"evr": lock_evr(srpms[n]), "kind": "build",
+            failed[n] = {"evr": lock_evr(srpms[n]), "kind": "build", "lockgen": lockgen,
                          "errors": {"nix": {"rc": 1, "stderr": [
                              "nix build of %s failed (nix log %s)" % (os.path.basename(paths[n]["drv"]),
                                                                        paths[n]["drv"])]}}}
@@ -317,6 +414,7 @@ def main(argv=None):
         if raw.get("rpm"):
             rpm_versions.add(raw["rpm"])
         e, fail = entry_from_raw(raw, by_srpm.get(n, []), rpms, summary)
+        (e or fail)["lockgen"] = lockgen
         if e is not None:
             res[n] = e
             counts["ok"] += 1
@@ -324,10 +422,12 @@ def main(argv=None):
             failed[n] = fail
             counts[fail["kind"]] += 1
 
-    doc = make_doc(args.release, srpms, res, failed, rpm_versions)
+    doc = make_doc(args.release, srpms, res, failed, rpm_versions, summary)
     UL.write_text(out_path, UL.dump_one_per_line(doc))
     log("subpackages: this run: %s" % json.dumps(counts, sort_keys=True))
     log("wrote %s: %s" % (out_path, json.dumps(doc["coverage"], sort_keys=True)))
+    log("builddeps.json/order.json use the unshipped names: refresh them with "
+        "python3 -I tools/update-lock.py --derived-only")
     return 0
 
 

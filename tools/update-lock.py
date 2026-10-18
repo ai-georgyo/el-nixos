@@ -51,9 +51,12 @@ deps.json.gz (NOT read by Nix; input for tools/resolve-buildrequires.py)
 Derived files (docs/nix-native-design.md §3.2, §8.2; skipped with
 --no-derived, regenerated alone from the committed lock with --derived-only):
 
-builddeps.json  per SRPM the direct providers of every BuildRequire, providers
-                tagged tool/lib/macro from the official filelists.xml
-                (tools/lock_builddeps.py, tools/lock_filelists.py)
+builddeps.json  per SRPM the direct providers of every BuildRequire (published
+                RPMs, else unshipped subpackages from subpackages.json),
+                providers tagged tool/lib/macro from the official
+                filelists.xml (tools/lock_builddeps.py, tools/lock_filelists.py;
+                the filelists must come from the snapshot rpms.json records,
+                else --allow-missing-filelists)
 order.json      SRPM build graph, edge classes, feedback-arc set, build order
                 (tools/lock_order.py; verified by checks.nn-order)
 subpackages.json  rpmspec -q results per SRPM.  These need nix builds and
@@ -370,7 +373,14 @@ def get_repodata(mirrors, repo, tree, cache_dir, kind):
         with open(tmp, "wb") as f:
             f.write(blob)
         os.replace(tmp, dest)
-    return dest, {"revision": revision, kind: sha, "timestamp": ts}
+    prov = {"revision": revision, kind: sha, "timestamp": ts}
+    if kind != "primary":
+        # the primary checksum of the same repomd.xml: lets callers check that
+        # <kind> belongs to the snapshot rpms.json was made from
+        for d in root.findall(NS_REPO + "data"):
+            if d.get("type") == "primary":
+                prov["primary"] = d.find(NS_REPO + "checksum").text.strip()
+    return dest, prov
 
 
 def sha256_file(p):
@@ -567,13 +577,20 @@ def dist_for(release):
     return ".el%s" % parts[0]
 
 
-def write_derived(outdir, rel, cache):
+def write_derived(outdir, rel, cache, allow_missing=False):
     """builddeps.json + order.json from the lock files in outdir, and the
     subpackages.json refresh (see the module docstring)."""
     fl, bd, order, sub = helpers()
     with open(os.path.join(outdir, "rpms.json")) as f:
         rpms_doc = json.load(f)
-    summary = fl.file_summary(sys.modules[__name__], rpms_doc, cache)
+    try:
+        summary = fl.file_summary(sys.modules[__name__], rpms_doc, cache,
+                                  allow_missing=allow_missing)
+    except fl.FilelistsError as e:
+        raise SystemExit("error: %s (derived files not written)" % e)
+    # subpackages.json first: builddeps resolves what no shipped RPM provides
+    # against the (unshipped) subpackage names
+    missing = sub.refresh(outdir, rel, rpms_doc, summary)
     doc = bd.generate(outdir, summary)
     p = os.path.join(outdir, "builddeps.json")
     write_text(p, dump_one_per_line(doc))
@@ -582,7 +599,6 @@ def write_derived(outdir, rel, cache):
     p = os.path.join(outdir, "order.json")
     write_text(p, dump_one_per_line(odoc))
     log("wrote %s: %s" % (p, json.dumps(odoc["stats"], sort_keys=True)))
-    missing = sub.refresh(outdir, rel, rpms_doc, summary)
     if missing:
         log("subpackages.json: %d SRPMs without an rpmspec result: run "
             "python3 -I tools/lock_subpackages.py --stale" % missing)
@@ -606,6 +622,9 @@ def main(argv=None):
     ap.add_argument("--derived-only", action="store_true",
                     help="only regenerate builddeps.json/order.json and refresh "
                          "subpackages.json from the committed lock files")
+    ap.add_argument("--allow-missing-filelists", action="store_true",
+                    help="derived files: warn instead of failing when the filelists do not "
+                         "match the locked repodata (tags/prefixes then degrade)")
     args = ap.parse_args(argv)
 
     if args.self_test:
@@ -625,7 +644,7 @@ def main(argv=None):
     outdir = os.path.join(args.out, "rocky-%s" % rel)
     os.makedirs(outdir, exist_ok=True)
     if args.derived_only:
-        write_derived(outdir, rel, cache)
+        write_derived(outdir, rel, cache, args.allow_missing_filelists)
         return 0
 
     stats = {"srpm_entries": 0, "rpm_entries": 0, "dropped_arch": {}}
@@ -691,7 +710,7 @@ def main(argv=None):
         log("wrote %s (%d bytes)" % (p, os.path.getsize(p)))
     log("      (deps.json uncompressed: %d bytes)" % raw)
     if not args.no_derived:
-        write_derived(outdir, rel, cache)
+        write_derived(outdir, rel, cache, args.allow_missing_filelists)
     return 0
 
 

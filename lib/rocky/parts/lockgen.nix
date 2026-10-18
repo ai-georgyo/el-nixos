@@ -6,6 +6,8 @@
 #   nn.lockgen.paths                { <srpm> = { drv; out; }; } for the collector
 #   nn.lockgen.seed                 SRPM names the lock must always cover
 #   nn.lockgen.buildroot            stage0-full + the *-rpm-macros subpackages
+#                                   + macros.rust-srpm
+#   nn.lockgen.rustSrpmMacros       macros.rust-srpm from the locked rust SRPM
 #
 # tools/lock_subpackages.py builds these (incrementally: every result is an
 # ordinary cached derivation) and folds them into lock/rocky-<rel>/subpackages.json.
@@ -21,6 +23,8 @@ let
   # builds produce are added, because some of them create subpackages at parse
   # time (%pyproject_extras_subpkg, %python_extras_subpkg) or are used in
   # %package lines.  --nodeps --noscripts, as everywhere in stage0.
+  # redhat-rpm-config also Requires rust-srpm-macros (%rust_arches, used in
+  # ExclusiveArch); see rustSrpmMacros.
   buildroot = l0.mkBuildroot {
     name = "lockgen";
     base = stage0.buildrootFull;
@@ -32,7 +36,25 @@ let
       { from = stage0.srpm.lua-rpm-macros; names = [ "lua-rpm-macros" ]; }
       { from = stage0.srpm.qt6; names = [ "qt6-rpm-macros" ]; }
     ];
+    extraCommands = ''
+      install -D -m 644 ${rustSrpmMacros} "$BUILDROOT/usr/lib/rpm/macros.d/macros.rust-srpm"
+    '';
   };
+
+  # rust-srpm-macros: in Rocky 10 rust-toolset-srpm-macros of the 270 MB rust
+  # SRPM provides it, and stage0 does not build rust (docs/stage0.md).  Its
+  # %files is the one macro file, installed verbatim from Source101
+  # (`%{__install} -D -m 644 %{S:101} %{buildroot}%{rpmmacrodir}/macros.rust-srpm`),
+  # so the lock generator takes that source straight from the locked SRPM.
+  # (Not registered in the rpmdb: rpmspec -q only needs the macros.)
+  rustSrpmMacros = pkgs.runCommand "macros.rust-srpm-${lock.srpms.rust.version}-${lock.srpms.rust.release}"
+    { nativeBuildInputs = [ pkgs.libarchive pkgs.gnugrep ]; } ''
+    bsdtar -xOf ${fetch.fetchSrpm "rust"} rust.spec > rust.spec
+    grep -Eq '^Source101:[[:space:]]+macros\.rust-srpm$' rust.spec
+    grep -Fq '%{S:101} %{buildroot}%{rpmmacrodir}/macros.rust-srpm' rust.spec
+    bsdtar -xOf ${fetch.fetchSrpm "rust"} macros.rust-srpm > $out
+    grep -q '^%rust_arches ' $out
+  '';
 
   runnerTools = with pkgs; [ bubblewrap coreutils findutils gnugrep gnused gawk diffutils attr cpio bash ];
   queryScript = ../lockgen/rpmspec-query.sh;
@@ -70,12 +92,12 @@ let
   subpackages = lib.mapAttrs (name: _: query name) lock.srpms;
 in
 {
-  inherit buildroot subpackages;
+  inherit buildroot subpackages rustSrpmMacros;
   paths = lib.mapAttrs (_: d: { drv = d.drvPath; out = d.outPath; }) subpackages;
 
   # Always covered (design §12 WP1): the S1/S2 toolchain set, glibc's
   # neighbours, and the stage0 macro SRPMs (+ rust, which ships
-  # rust-srpm-macros, the one macro package stage0 lacks).
+  # rust-srpm-macros, the one macro package stage0 lacks; see rustSrpmMacros).
   seed = [
     "glibc" "kernel" "which" "xz" "gzip" "sed" "m4" "expat" "libxcrypt" "ncurses" "krb5"
     "zlib-ng" "zstd" "gmp" "mpfr" "libmpc" "binutils" "gcc" "bash" "coreutils"

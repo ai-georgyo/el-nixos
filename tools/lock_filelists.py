@@ -12,8 +12,13 @@ primary files) is reduced to a small summary per binary RPM of rpms.json:
                                         # /usr/lib/rpm/{,redhat/}macros, /etc/rpm/macros.*
 
 Packages are matched by pkgid (= the sha256 rpms.json records), so a summary
-never mixes in a different build of the same name.  The summary is cached as
-``filesummary-<digest of the filelists checksums>.json``.
+never mixes in a different build of the same name.  The filelists are used
+only if their repomd.xml still has the primary checksum rpms.json records
+(``repodata.<repo>/<arch>/os.primary``): the lock and the file lists then
+describe the same repository snapshot.  A locked package without a summary
+is an error (``allow_missing`` turns it into a warning; its tags then
+degrade to ``other``).  The summary is cached as ``filesummary-<digest>.json``,
+the digest covering the filelists checksums and the wanted pkgids.
 """
 
 import gzip
@@ -63,36 +68,64 @@ def parse_filelists(path, want):
     return out
 
 
-def file_summary(UL, rpms_doc, cache_dir, repos=None, log=None):
+class FilelistsError(RuntimeError):
+    pass
+
+
+def file_summary(UL, rpms_doc, cache_dir, repos=None, log=None, allow_missing=False):
     """Summary for every package of rpms.json (dict as loaded).  UL is the
     update-lock module (download helpers).  Downloads at most one filelists
-    file per repo; the result is cached."""
+    file per repo; the result is cached.  The provenance (filelists sha256
+    per repo) is returned under the key "" -- callers record it in the files
+    they write (provenance()) and must not treat it as a package."""
     log = log or UL.log
     mirrors = rpms_doc["mirrors"]
     rpms = rpms_doc["rpms"]
     if repos is None:
         repos = sorted({r["repo"] for r in rpms.values()})
-    paths, sums = [], []
+    paths, sums, prov_out = [], [], {}
     for repo in repos:
         p, prov = UL.get_repodata(mirrors, repo, "binary", cache_dir, "filelists")
+        tree = "%s/%s" % (repo, UL.TREES["binary"])
+        locked = (rpms_doc.get("repodata") or {}).get(tree, {}).get("primary")
+        if locked != prov.get("primary"):
+            msg = ("filelists: %s repomd.xml has primary %s, rpms.json records %s: the "
+                   "repository moved on since the lock (update the lock, or use a mirror "
+                   "of the locked snapshot)" % (tree, prov.get("primary"), locked))
+            if not allow_missing:
+                raise FilelistsError(msg)
+            log("warning: " + msg)
         paths.append(p)
         sums.append("%s:%s" % (repo, prov["filelists"]))
+        prov_out[repo] = prov["filelists"]
+    want = {r["sha256"]: k for k, r in rpms.items()}
     # (the version tag changes whenever summarize_files does)
-    digest = hashlib.sha256(("v3 " + " ".join(sums) + " " + str(len(rpms))).encode()).hexdigest()[:16]
-    cached = os.path.join(cache_dir, "filesummary-%s.json" % digest)
+    h = hashlib.sha256(("v4 " + " ".join(sums) + "\n").encode())
+    for pkgid, k in sorted(want.items()):
+        h.update(("%s %s\n" % (pkgid, k)).encode())
+    cached = os.path.join(cache_dir, "filesummary-%s.json" % h.hexdigest()[:16])
     if os.path.exists(cached):
         with open(cached) as f:
-            return json.load(f)
-    want = {r["sha256"]: k for k, r in rpms.items()}
-    summary = {}
-    for p in paths:
-        summary.update(parse_filelists(p, want))
+            summary = json.load(f)
+    else:
+        summary = {}
+        for p in paths:
+            summary.update(parse_filelists(p, want))
+        tmp = cached + ".tmp"
+        with open(tmp, "w") as f:
+            json.dump(summary, f, sort_keys=True, separators=(",", ":"))
+        os.replace(tmp, cached)
     missing = sorted(set(rpms) - set(summary))
     if missing:
-        log("filelists: %d of %d packages not found by pkgid (repodata changed since the lock?): %s"
-            % (len(missing), len(rpms), missing[:10]))
-    tmp = cached + ".tmp"
-    with open(tmp, "w") as f:
-        json.dump(summary, f, sort_keys=True, separators=(",", ":"))
-    os.replace(tmp, cached)
+        msg = ("filelists: %d of %d locked packages not found by pkgid (repodata changed "
+               "since the lock?): %s" % (len(missing), len(rpms), missing[:10]))
+        if not allow_missing:
+            raise FilelistsError(msg)
+        log("warning: %s; their tags degrade to 'other'" % msg)
+    summary[""] = prov_out
     return summary
+
+
+def provenance(summary):
+    """{repo: filelists sha256} of a file_summary() result."""
+    return dict(sorted(summary.get("", {}).items()))

@@ -37,6 +37,12 @@ Output (one SRPM per line):
      "secondPass": [...],         # SRPMs with a lib-class back edge to another SRPM
      "selfLoops": [...],
      "stats": {...}}
+
+--check verifies order.json independently of `index`: needs equal
+builddeps.json, the graph minus the back edges is acyclic (Kahn) and its
+levels match, every non-back edge points dependencies-first, and the
+summary fields (sccs, bootTargets, secondPass, selfLoops, stats, scc ids)
+are exactly what needs/back imply (derived(), shared with compute()).
 """
 
 import argparse
@@ -201,16 +207,30 @@ def compute(builddeps):
     level = {}
     for s in order:
         level[s] = 1 + max((level[t] for t in succ[s] if t not in back[s]), default=-1)
-    big = sorted((c for c in comps if len(c) > 1), key=lambda c: (-len(c), c[0]))
-    scc_id = {v: i for i, c in enumerate(big) for v in c}
+    d = derived(g, back, level, comps)
     srpms = {}
     for s in nodes:
         e = {"index": pos[s], "level": level[s], "needs": g[s], "back": back[s]}
-        if s in scc_id:
-            e["scc"] = scc_id[s]
+        if s in d["sccOf"]:
+            e["scc"] = d["sccOf"][s]
         srpms[s] = e
+    out = {"format": 1, "release": builddeps.get("release"), "srpms": srpms}
+    out.update((k, d[k]) for k in DERIVED)
+    return out
+
+
+# the top-level fields that follow from needs/back/level and the components
+DERIVED = ("sccs", "bootTargets", "secondPass", "selfLoops", "stats")
+
+
+def derived(g, back, level, comps):
+    """sccs (+ sccOf), bootTargets, secondPass, selfLoops and stats from
+    the graph g ({s: {t: classes}}), the back edges, the levels and the
+    strongly connected components.  Shared by compute() and check_docs()."""
+    nodes = sorted(g)
+    big = sorted((c for c in comps if len(c) > 1), key=lambda c: (-len(c), c[0]))
     self_loops = sorted(s for s in nodes if s in g[s])
-    edges = [(s, t) for s in nodes for t in succ[s]]
+    n_edges = sum(len(g[s]) for s in nodes)
     back_edges = [(s, t) for s in nodes for t in back[s]]
     nonself_back = [(s, t) for s, t in back_edges if s != t]
     second = sorted({s for s, t in nonself_back if "lib" in g[s][t]})
@@ -220,7 +240,7 @@ def compute(builddeps):
             by_class[c] = by_class.get(c, 0) + 1
     stats = {
         "srpms": len(nodes),
-        "edges": len(edges) - len(self_loops),
+        "edges": n_edges - len(self_loops),
         "selfLoops": len(self_loops),
         "nontrivialSccs": len(big),
         "sccSizes": [len(c) for c in big],
@@ -232,10 +252,8 @@ def compute(builddeps):
         "levels": 1 + max(level.values(), default=-1),
     }
     return {
-        "format": 1,
-        "release": builddeps.get("release"),
-        "srpms": srpms,
         "sccs": big,
+        "sccOf": {v: i for i, c in enumerate(big) for v in c},
         "bootTargets": sorted({t for _s, t in back_edges}),
         "secondPass": second,
         "selfLoops": self_loops,
@@ -318,6 +336,28 @@ def check_docs(srpms, bd, od, quiet=False):
         bad = sorted(s for s in O if O[s]["level"] != level[s])
         if bad:
             errs.append("level differs for %d SRPMs, e.g. %s" % (len(bad), bad[:10]))
+        # the summary lists must be exactly what needs/back imply (not just
+        # contain it): WP6 generates the second pass etc. from them
+        G = {s: {t: c for t, c in O[s]["needs"].items() if t in O} for s in O}
+        nodes = sorted(G)
+        d = derived(G, {s: sorted(set(O[s]["back"]) & set(G[s])) for s in nodes}, level,
+                    tarjan(nodes, {s: sorted(G[s]) for s in nodes}))
+        for k in DERIVED:
+            if od.get(k) != d[k]:
+                if isinstance(d[k], list) and isinstance(od.get(k), list):
+                    have = {json.dumps(x) for x in od[k]}
+                    want = {json.dumps(x) for x in d[k]}
+
+                    def short(xs):
+                        return [x if len(x) < 60 else x[:57] + "..." for x in sorted(xs)[:5]]
+                    errs.append("%s differs from the graph: %d extra %s, %d missing %s"
+                                % (k, len(have - want), short(have - want),
+                                   len(want - have), short(want - have)))
+                else:
+                    errs.append("%s differs from the graph" % k)
+        bad = sorted(s for s in O if O[s].get("scc") != d["sccOf"].get(s))
+        if bad:
+            errs.append("scc differs for %d SRPMs, e.g. %s" % (len(bad), bad[:10]))
     if quiet:
         return errs
     n_back = sum(len(e["back"]) for e in O.values())
@@ -357,7 +397,21 @@ def selftest():
     if od["stats"]["backEdges"] != 1 or check_docs(names, b, od, quiet=True):
         _err("FAIL lock_order: expected 1 back edge and a clean check: %r" % od["stats"])
         bad += 1
-    # tampering must be caught: drop the back edge of the cycle
+    # tampering must be caught: bogus or missing summary entries ...
+    def tampered(f):
+        t = json.loads(json.dumps(od))
+        f(t)
+        return t
+    for what, f in [("extra secondPass", lambda t: t["secondPass"].append("zzz")),
+                    ("extra bootTarget", lambda t: t["bootTargets"].append("e")),
+                    ("empty selfLoops", lambda t: t["selfLoops"].clear()),
+                    ("empty sccs", lambda t: t["sccs"].clear()),
+                    ("scc removed", lambda t: t["srpms"]["a"].pop("scc")),
+                    ("stats", lambda t: t["stats"].update(levels=99))]:
+        if not check_docs(names, b, tampered(f), quiet=True):
+            _err("FAIL lock_order: tampering (%s) not detected" % what)
+            bad += 1
+    # ... and dropping the back edge of the cycle
     s = next(x for x in "abc" if [t for t in od["srpms"][x]["back"] if t != x])
     od["srpms"][s]["back"] = []
     if not check_docs(names, b, od, quiet=True):
