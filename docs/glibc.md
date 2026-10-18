@@ -14,12 +14,14 @@ Code: `packages/glibc.nix` (buildroot, build, trees, sanity),
 
 | attr | what |
 |---|---|
-| `legacyPackages.x86_64-linux.srpm.glibc` = `packages.x86_64-linux.glibc-rpms` | the rpmbuild result: `RPMS/{x86_64,noarch}/*.rpm` (233), `SRPMS/`, `logs/{build.log,srpm.log,files}` |
+| `legacyPackages.x86_64-linux.srpm.glibc` = `packages.x86_64-linux.glibc-rpms` | the rpmbuild result: `RPMS/{x86_64,noarch}/*.rpm` (233), `SRPMS/`; output `logs`: `build.log`, `srpm.log`, `files`, `purity.json` (the build-time purity scan) |
 | `legacyPackages.x86_64-linux.rpms.<name>` | payload tree (`rpmTree`, `allowedReferences = [ ]`) of every glibc subpackage: the 221 Rocky ships (`rpmsLock.bySrpm.glibc`) + `glibc32`, `sysroot-x86_64-el10-glibc`, `compat-libpthread-nonshared` |
 | `packages.x86_64-linux.glibc` | `rpms.glibc` (tree of the main `glibc` RPM) |
 | `packages.x86_64-linux.glibc-rpms` | = `srpm.glibc` |
-| `checks.x86_64-linux.glibc-purity` = `legacyPackages.….packageSets.glibc.trees` | linkFarm of all 224 trees: **one `nix build` = the purity check** |
+| `checks.x86_64-linux.glibc-purity` = `legacyPackages.….packageSets.glibc.trees` | linkFarm of all 224 trees (each depends on `srpm.glibc`, whose build ran the byte-level purity scan; see "Purity") |
 | `checks.x86_64-linux.glibc-parity` (`.report`) | `tools/rpm-parity.py` vs all 221 official RPMs (see "Parity with the official RPMs") |
+| `checks.x86_64-linux.glibc-abi` = `….packageSets.glibc.abi` | binutils-based ABI comparison of all 221 shipped subpackages with the official ones (see "ABI check") |
+| `checks.x86_64-linux.glibc-runtime` = `….packageSets.glibc.runtime` | our glibc in a root made only of RPMs, no `/nix/store`, same behaviour as the official glibc (see "Runtime check") |
 | `checks.x86_64-linux.glibc-sanity` = `….packageSets.glibc.sanity` | post-build checks, `report.txt` (below) |
 | `legacyPackages.….packageSets.glibc.{buildroot,root,subpackages,expected}` | the buildroot (layers), its root layer, the subpackage names, the expected NEVRA list |
 
@@ -171,8 +173,8 @@ rpmdb; the sysroot package then has no kernel headers).
 | annobin off (`_annotated_build 0`, `_annobin_gcc_plugin %{nil}`) | no `.annobin.notes` section (libc.so.6: 0x1eade bytes, ld.so: 0x315d), shorter `.shstrtab`, fewer `.debug_str` bytes in ld.so (its DWARF producer strings lack `-fplugin=gcc-annobin`) |
 | build tools from nixpkgs (python 3.13, gettext 1.0, gawk 5.4, perl 5.42, …) instead of Rocky's | none visible: the parity check finds every non-ELF file byte-identical (incl. the `.mo` catalogs and, with makeinfo 7.1, the info pages) |
 | makeinfo: Rocky's texinfo 7.1 sources built with nixpkgs' recipe and perl 5.42, `Unicode::Collate` hidden from it (Rocky's buildroot has no perl-Unicode-Collate, so its texi2any sorts indices by code point) | none: the 21 `libc.info*` pages are byte-identical (with nixpkgs' 7.2 all differed; with 7.1 + Unicode::Collate, the index order in 3 of them) |
-| rpmbuild links nixpkgs' libmagic 5.47 (Rocky: file 5.45) | FILECLASS header strings only: gzip descriptions gain `, original size modulo 2^32 N`; ld.so is "dynamically linked" instead of "static-pie linked" |
-| -devel libraries from nixpkgs (above) | `memusagestat` `.bss` is 0x78 vs 0x50 bytes and `.gnu_debugdata` 4 bytes smaller — it is the one object glibc compiles with the *system* headers (`sysincludes = # nothing`), here the stage0 glibc's (unpatched 2.39) `/usr/include` + nixpkgs gd.h, on Rocky the previous Rocky glibc-devel |
+| rpm's libzstd and libmagic: Rocky's zstd-1.5.5-9.el10 / file-5.45-9.el10 *sources* built in stage0 (`bootstrap/rpm-libs.nix`) instead of Rocky's binaries | none any more: with nixpkgs' zstd 1.5.7 / file 5.47 (until this was fixed) 209 payloads differed only in their compressed bytes and the FILECLASS strings differed (gzip "original size" suffix, ld.so "dynamically linked"); now 211 of 221 RPM payloads are byte-identical to Rocky's, compressed, and no FILECLASS differs |
+| -devel libraries from nixpkgs (above) | `memusagestat` (glibc-utils) links nixpkgs' `libgd.so.3`, whose `gdFontLarge`/`gdFontSmall` are 32-byte aligned (Rocky's gd-2.3.3-22.el10: 8-byte). ld places copy-relocated objects by the defining DSO's alignment, so memusagestat's `.bss` is 0x78/align 32 instead of 0x50/align 16, its 3 copy-relocated symbols move (`.dynsym` values, `.rela.dyn`, RIP-relative displacements in `.text`) and `.dynstr` follows libgd's symbol order. The machine code is identical (displacement-normalized `objdump -d`), and so are the dynamic symbols, versions and NEEDED. (Earlier versions of this document blamed the system headers; a relink test against both libgd builds shows it is the library.) Allowed by exact section ids in `glibc.json`; see "Known differences / open issues" |
 | ~~kernel headers 6.18 (nixpkgs)~~ — fixed: Rocky's 6.12.0-211 RPM | (the sysroot package now carries them) |
 | buildhost `el-nixos.localdomain`, BUILDTIME = changelog date (1789344000), no vendor/packager | RPM headers only |
 | rpm runs `--nodeps --noscripts` installs into the buildroot | none |
@@ -181,9 +183,10 @@ rpmdb; the sysroot package then has no kernel headers).
 ## Results
 
 Build (16 CPUs, i9-9900K, `make -O -j16`): `rpmbuild --rebuild` succeeds,
-≈ 10 min. It was built four times during integration (glibc track; + Rocky
-kernel-headers; + makeinfo 7.1; + Unicode::Collate hidden), every time on the
-first attempt. Output store path: see "Store paths".
+≈ 10 min. It was built five times during integration (glibc track; + Rocky
+kernel-headers; + makeinfo 7.1; + Unicode::Collate hidden; + Rocky-sourced
+libzstd/libmagic in rpm, purity scan, logs output), every time on the first
+attempt. Output store path: see "Store paths".
 
 `checks.glibc-sanity` (`report.txt`), all hard checks pass:
 
@@ -219,8 +222,19 @@ first attempt. Output store path: see "Store paths".
   nss_db, nss_hesiod, libnsl (ignoring `/usr/lib/.build-id/xx` entries, whose
   names depend on the build-id hashes).
 
-`checks.glibc-purity`: all 224 `rpmTree`s (221 shipped + 3 unshipped) build with
-`allowedReferences = [ ]` — **no shipped package references nixpkgs**.
+### Purity
+
+`srpm.glibc`'s build ends with `tools/rpm_purity.py` over all 233 binary
+RPMs (`logs/purity.json`): a byte-level search for `/nix/store` in every
+header, payload file and symlink target, including inside the 254 gzip'ed
+members, the xz `.gnu_debugdata` of 707 ELF files and any compressed ELF
+section — **no hit**, so the build succeeds; a hit would fail it, and with
+it everything built from it (`rpms.*`, the checks). `checks.glibc-parity`
+runs the same scan. `checks.glibc-purity` builds all 224 `rpmTree`s
+(221 shipped + 3 unshipped); their `allowedReferences = [ ]` adds little on
+top: Nix only scans for hashes of a derivation's input closure (rpm, cpio,
+stdenv), not for the nixpkgs perl/python/… the stage0 chroot exposes, and
+not inside compressed files.
 
 ### Parity with the official RPMs
 
@@ -229,9 +243,12 @@ our 233 RPMs with **all 221** official RPMs of `rpmsLock.bySrpm.glibc`
 (langpacks included) and **passes**:
 
 ```
-Compared 221 package pair(s); 0 unexpected difference(s), 2531 allowed;
+Compared 221 package pair(s); 0 unexpected difference(s), 5117 allowed;
 0 purity violation(s); 0 integrity error(s).
 ```
+
+(The allowed count grew from 2531 because archives are now compared member
+by member: 2790 of the 5117 are the per-member annobin sections below.)
 
 * 221/221 pairs: NEVR, every header tag except the allowed ones below,
   changelog, all dependency kinds (Requires/Provides/… with scriptlet
@@ -247,7 +264,15 @@ Compared 221 package pair(s); 0 unexpected difference(s), 2531 allowed;
   INTERP, NEEDED, SONAME, RPATH/RUNPATH, hash styles, BIND_NOW, PIE, TEXTREL,
   RELR, execstack, RELRO, build-id presence, GNU properties (IBT/SHSTK, ISA
   level), ABI tag, stapsdt probe count, package note, `.comment`, section
-  list — **all equal** except the missing `.annobin.notes` sections.
+  list, **every dynamic symbol with its version, binding, type, visibility
+  and size, the version definitions and needs, the sha256 of every loaded
+  (`SHF_ALLOC`) section and the program headers**; the 7 archives
+  (libc.a's 2214 members, libm, libmvec, libresolv, libc_nonshared, …)
+  member by member: member order, armap, each member's loaded section bytes,
+  non-local symbols and relocations. **All equal**, except the missing
+  annobin sections and memusagestat's copy-relocation layout (below): the
+  generated code and data of 715 of the 716 differing ELF files and of
+  every archive member are byte-identical to Rocky's.
 * 6458 payload digests per side recomputed and verified; no `/nix/store` in
   any of our headers or payloads (debuginfo/debugsource included).
 
@@ -257,39 +282,73 @@ Every remaining difference (all allowed, with the reason in the allowlist):
 |---|---|---|---|
 | `header.BUILDHOST`, `BUILDTIME`, `COOKIE` | 221 each | default.json | our build host / changelog-date buildtime; `rpmbuild --rebuild` copies the SRPM's cookie (Rocky's build host) into the binaries |
 | `header.VENDOR`, `PACKAGER`, `DISTRIBUTION`, `BUGURL` | 221 each | default.json | set by Rocky's build system; unset by us (we do not claim Rocky's identity) |
-| `header.PAYLOADDIGEST`/`PAYLOADDIGESTALT`, `SIZE` | 219 / 10 / 6 | default.json | follow from differing bytes (ELF, payload mtimes/compression) |
-| `content.elf:*` | 716 | default.json | ELF objects differ in build-id and debug-related bytes; properties compared above, equal |
-| `content.ar:*` | 7 | default.json | static archives (`libc_nonshared.a`, `libg.a`, … in glibc-devel/-static); official members carry annobin notes |
-| `elf.section:…:-.annobin.notes` | 9 | stage0.json | crt objects in glibc-devel (`crt1.o`, `Scrt1.o`, `Mcrt1.o`, …): no annobin plugin in stage0 |
+| `header.PAYLOADDIGESTALT` / `PAYLOADDIGEST`, `SIZE` | 10 / 10, 6 | default.json | the uncompressed payload differs in exactly the 10 packages that contain ELF objects (and only there: the other 211 payloads are byte-identical, compressed or not); `SIZE` = the 6 with size-changing ELF differences, mostly the missing `.annobin.notes` (glibc.x86_64: libc.so.6 lacks 0x1eade bytes of them) |
+| `content.elf:*` | 716 | default.json | ELF files differ in build-id, `.gnu_debuglink` CRC and debug-related bytes; everything loaded or linked is compared (above) and equal |
+| `content.ar:*` | 7 | default.json | static archives differ in member headers (ar dates/uid) and in their members' annobin/debug sections; members compared one by one (above) |
+| `elf.section:…:-.annobin.notes` | 9 + 2772 | stage0.json | no annobin plugin in stage0. Top level: 7 glibc-devel objects (`crt1.o`, `Scrt1.o`, `Mcrt1.o`, `gcrt1.o`, `grcrt1.o`, `rcrt1.o`, `libmcheck.a`) and, in glibc, `libc.so.6` and `ld-linux-x86-64.so.2`; plus 2772 archive members: `libc.a` 1880, `libm-2.39.a` 709, `libmvec.a` 162, `libresolv.a` 19, `libg.a` 1, `libBrokenLocale.a` 1 |
+| `elf.section:…:-.gnu.build.attributes` / `-.rela.gnu.build.attributes` | 9 / 9 | stage0.json | the 9 `libc_nonshared.a` members: glibc.spec compiles them with `-fplugin=annobin` (`BuildFlagsNonshared`), whose notes carry relocations |
+| `elf.alloc:/usr/bin/memusagestat:{.bss,.dynstr,.dynsym,.rela.dyn,.text}`, `elf.segments:/usr/bin/memusagestat` | 5 + 1 | glibc.json | copy relocations laid out after nixpkgs' libgd (deviations table; "Known differences / open issues") |
 | `header.OPTFLAGS` (rewrite) | 221 | stage0.json | official has `-specs=/usr/lib/rpm/redhat/redhat-annobin-cc1` |
-| `file.class` gzip suffix (rewrite) / ld.so "dynamically linked" vs "static-pie linked" | 254 / 1 | stage0.json | rpmbuild's libmagic is nixpkgs' 5.47, Rocky's is 5.45 (FILECLASS text only) |
 | `package.only-ours:` glibc32, sysroot-x86_64-el10-glibc, compat-libpthread-nonshared | 3 | glibc.json | built by the spec, not published by Rocky |
 | `package.only-ours:*-debuginfo/-debugsource` | 9 | default.json | the lock has no debug repos |
 | `file.only-*:/usr/lib/.build-id/<id>[.2] -> …/getconf/{POSIX_V7,XBS5}_LP64_OFF64` | 2+2 | glibc.json | hard-linked getconf binaries share one build-id; which link gets `.2` follows readdir order of the build filesystem |
 
-Not visible to the parity tool (it compares ELF *properties*, not section
-sizes) but found with a section-size comparison by the glibc track (below):
-memusagestat's `.bss` (0x78 vs 0x50) and ld.so's `.debug_str` (annobin
-producer strings).
+Not loaded, so not compared beyond the purity scan: debug information. ld.so
+keeps its DWARF, whose `.debug_str` lacks the `-fplugin=gcc-annobin`
+producer strings; the debuginfo packages have no official counterpart in
+the lock.
 
-ELF-level comparison with the official RPMs (scratch script, section name +
-size per file, ignoring `.annobin.notes`/`.shstrtab`/`.gnu_debugdata`/
-`.gnu_debuglink`):
+### ABI check (`checks.glibc-abi`)
 
-| package | ELF files | same section sizes | differ |
-|---|---|---|---|
-| glibc | 29 | 28 | ld-linux-x86-64.so.2 (`.debug_str`: annobin producer strings) |
-| glibc-common | 10 | 10 | |
-| glibc-utils | 4 | 3 | memusagestat (`.bss`, see deviations) |
-| glibc-gconv-extra | 246 | 246 | |
-| glibc-devel | 9 | 8 (2 byte-identical) | libmcheck.a (official member has `.annobin.notes`; `.debug_str` shorter) |
-| glibc-benchtests | 416 | 416 | |
-| nss_db / nss_hesiod / libnsl | 2 / 1 / 1 | all | |
+An independent answer to "is the ABI Rocky's?", with GNU binutils instead of
+rpm-parity's own ELF reader (`tools/abi-compare.py`), for all 221 shipped
+subpackages (our `rpms.*` trees vs the extracted official payloads), with
+**no allowlist**:
 
-i.e. the generated code (`.text`, `.rodata`, `.data`, … sizes) matches
-Rocky's build for every compared file except memusagestat's `.bss`.
-Byte-level differences remain from build-ids/`.gnu_debuglink` CRCs (debug info
-differs by the annobin strings), annobin notes and archive member metadata.
+```
+abi-compare: PASS
+packages 221; ELF DSOs/executables 709 (20428 dynamic symbols); relocatable objects 9;
+static archives 12 (3541 members); external symbols of objects/archives 19590; headers 480
+differences: 0 unexpected, 0 allowed; 0 unused allowlist rule(s)
+```
+
+Compared: `readelf --dyn-syms` (name@version, type, binding, visibility,
+defined/undefined, size; addresses left out), `readelf -V` (all 46
+`GLIBC_*` version definitions of libc.so.6, the needed versions, the version
+index table), the dynamic tags that matter (NEEDED, SONAME, RPATH/RUNPATH,
+FLAGS, FLAGS_1, VERDEFNUM/VERNEEDNUM), `ar t` member order and `nm -g` of
+every archive member and crt object, and every file under `/usr/include`
+byte for byte. (memusagestat passes here: its symbols are the same, only
+their addresses moved.) `abi-compare-selftest` proves the check fires on a
+symbol removed from an existing version node.
+
+### Runtime check (`checks.glibc-runtime`)
+
+`packages/glibc-runtime/`: two roots made **only of RPMs** — no nixpkgs, no
+busybox; `/nix` does not exist inside — that differ only in the C library:
+our 12 glibc subpackages + our kernel-headers, or the 13 official Rocky RPMs
+of the same names, each on the same 34 official non-glibc Rocky RPMs
+(filesystem, setup, basesystem, bash, coreutils-single, grep, sed, gzip,
+diffutils, tzdata, libgcc, libxcrypt(-devel,-static), ncurses-libs, … and
+their closure). They are installed with `rpm --root` **with scriptlets**
+(chrooted: glibc's Lua `%post` runs our `ldconfig`/`iconvconfig`), plus a
+32-bit root (our `glibc32`) and all-langpacks roots. All sessions run in one
+derivation, i.e. on the same machine. The ~1550-line behaviour report must
+be identical between the two roots (apart from the CPU's APIC id and inode
+numbers): ld.so `--version/--help/--list-tunables/--list-diagnostics/--verify`,
+running libc.so.6, ldd, ldconfig `-p`/`-v`, locale/localedef/date in several
+locales, iconv `-l` and conversions to 20 charsets (incl. gconv-extra ones),
+a regenerated `gconv-modules.cache` byte-identical to the shipped one, NSS
+(`getent passwd/group/hosts/ahosts/services/protocols/rpc/shadow/initgroups`,
+nss_db via makedb), `getconf -a`, zdump, gencat, sotruss, sprof, makedb,
+pldd, and programs **compiled against each root's glibc-devel/-static** with
+the stage0 gcc (dynamic, dlopen/dlsym/dladdr, 8 threads + TLS + mutex +
+`pthread_cancel`, NSS, libm in `%a`, libcrypt, `-static` with threads/iconv/
+libm, `-static` NSS, `-static-pie`), each run in both roots. All 885 locales
+of glibc-all-langpacks (`locale -k LC_ALL` + `date`) must be identical too.
+Result: `glibc-runtime: PASS -- 1543 report lines and 885 locales identical
+to the official RPMs`. The `/var/spool/mail` directory of filesystem is
+excluded from the install (see "Known differences / open issues").
 
 ## Store paths
 
@@ -299,28 +358,88 @@ Final integrated build (nixpkgs `26f4107`, 2026-10-18, local 16-CPU builder):
 |---|---|
 | `stage0.glibcBuildDeps` | `/nix/store/451v3lamp2vym2nv90amdl652k3rm405-stage0-glibc-build-deps` |
 | `stage0.texinfo71` | `/nix/store/ah7vb063q9pb6l81hv25lp2q7zal4pl1-stage0-texinfo-tree-7.1-6.el10` |
-| `stage0.kernelHeadersBuild` | `/nix/store/w4l78pxvf30hnkyivcd83q8vnmyzgh9i-srpm-kernel-headers-6.12.0-211.66.1.el10_2` |
-| `srpm.glibc` = `packages.glibc-rpms` (197 MB, 233 RPMs + SRPM) | `/nix/store/bp4q5wy3hs6kvb11a6yg3i5vaqbyxgc4-srpm-glibc-2.39-142.el10_2` |
-| `rpms.glibc` = `packages.glibc` | `/nix/store/chhmsr5ffla0jy4ljddlrclbzm9zr9bg-rpm-glibc` |
-| `checks.glibc-purity` | `/nix/store/mb3ihllmh5i8qv39kj201mh8dpw700xd-glibc-2.39-142.el10_2-rpm-trees` |
-| `checks.glibc-sanity` | `/nix/store/b7d0dcrppn79s3j33p693a142c600kw1-glibc-sanity-2.39-142.el10_2` |
-| `checks.glibc-parity` | `/nix/store/146zcywjsfpfbg7khbickxsj63sc6fd1-parity-glibc` |
+| `stage0.rpmLibs.zstd` / `.file` | `/nix/store/by3bqx64rrlgvladgqc2j2sdjf9mppcr-stage0-zstd-1.5.5-9.el10`, `/nix/store/2nkmigshbk6syl9666cnzlz70h6pclys-stage0-file-5.45-9.el10` |
+| `stage0.rpm` | `/nix/store/nfn9dhdh74372w9hfls1dhwqwqsj0dja-stage0-rpm-4.19.1.1-23.el10` |
+| `stage0.kernelHeadersBuild` | `/nix/store/n5zcq2rqi5fyy7d3nlzmwk4zsqrp0q0s-srpm-kernel-headers-6.12.0-211.66.1.el10_2` |
+| `srpm.glibc` = `packages.glibc-rpms` (171 MB, 233 RPMs + SRPM) | `/nix/store/10hfxa7fk6p5x3vd8jrkp6zz8mlb9sny-srpm-glibc-2.39-142.el10_2` |
+| `srpm.glibc.logs` | `/nix/store/s4j1adpiwr5yqwp96n43nqkji2rbl71s-srpm-glibc-2.39-142.el10_2-logs` |
+| `rpms.glibc` = `packages.glibc` | `/nix/store/p8wvx276pzqz026bzwv3w1scvnqvh6gb-rpm-glibc` |
+| `checks.glibc-purity` | `/nix/store/k4i6rmsaxzlf6ziwb018rsdq2jvqrkhb-glibc-2.39-142.el10_2-rpm-trees` |
+| `checks.glibc-sanity` | `/nix/store/vpyn6kj72a11k1cnq01a4j7glla80ili-glibc-sanity-2.39-142.el10_2` |
+| `checks.glibc-parity` | `/nix/store/mpy964h3c27dkc4qxj8ll5ilkvlrrklv-parity-glibc` |
+| `checks.glibc-abi` | `/nix/store/n1jwadx204b6ar2nl3khxrcbj2zbg2zk-glibc-abi-2.39-142.el10_2` |
+| `checks.glibc-runtime` | `/nix/store/aagqb6is8a1i1n2cfrc6r6rhr5jz0qwm-glibc-runtime-2.39-142.el10_2` |
 
-(The glibc track's build before integration — stage0 kernel headers, nixpkgs
-makeinfo 7.2 — was `/nix/store/kilh3yyhyyxd2xkc42adyvsx8x007lkq-srpm-glibc-…`;
-the section-size comparison above was made on an even earlier one,
-`…lsb2grqb…`, before the SIGPIPE runner fix. Neither change touches compiled
-code.)
+(Earlier builds: before the stage0 rpm got Rocky's libzstd/libmagic and the
+build-time purity scan, `…bp4q5wy3…-srpm-glibc-…` (parity
+`…146zcywj…`); before integration `…kilh3yyh…`. None of these changes
+touches compiled code: the parity tool finds the same loaded bytes.)
+
+## Known differences / open issues
+
+Everything that still differs from Rocky's build, or is known not to work
+yet, with its cause; none of it is papered over (each allowlist rule names
+exact ids and the reason):
+
+1. **memusagestat copy-relocation layout** (glibc-utils; `glibc.json`, 5
+   section ids + segments). Cause: it links nixpkgs' gd 2.3.3 `libgd.so.3`
+   (`bootstrap/glibc-build-deps.nix`), whose font objects are 32-byte
+   aligned; ld copies them into `.bss` with that alignment. Code, symbols,
+   versions and NEEDED are identical; no runtime/ABI effect (the copy slots
+   are 8-byte pointers). Fix: link against Rocky's libgd — which needs the gd
+   SRPM and its X11/fontconfig/freetype/jpeg/tiff/webp stack (stage1), or
+   Rocky's binary gd/gd-devel plus their library closure in the stage0
+   buildroot (policy decision: binaries we did not build).
+2. **No annobin** in stage0 (`stage0.json`): no `.annobin.notes`
+   (libc.so.6, ld.so, crt objects, 2772 archive members), no plugin
+   `.gnu.build.attributes` notes (and relocations) in the 9 libc_nonshared.a
+   members, OPTFLAGS
+   without the annobin `-specs`, ld.so's `.debug_str` without the plugin's
+   producer strings. Fix: build Rocky's annobin SRPM for the stage0 gcc.
+3. **Not bit-reproducible on rebuild: static archive member dates.** With
+   `nix build --rebuild`, every RPM is bit-identical except the 4 that ship
+   `.a` files (glibc-static, glibc-devel, glibc32,
+   sysroot-x86_64-el10-glibc): GNU ar stores the wall-clock time in every
+   member header (`ar cruv`; binutils configured like Rocky's,
+   `--enable-deterministic-archives=no`; ar ignores `SOURCE_DATE_EPOCH`).
+   Rocky's archives have wall-clock dates too, and parity ignores member
+   headers. Measured: `nix build --rebuild --keep-failed` of `srpm.glibc`,
+   then `cmp` of the kept build directory's RPMs with `$out`: 230 of 234
+   files (233 RPMs + SRPM) identical, exactly these 4 differ. Logs are a
+   separate output (`logs`) and never reproducible, so Nix's `--rebuild`
+   always reports "may not be deterministic" (and stops at `logs`, before
+   comparing `out`). Fix, if bit-reproducibility is wanted: rewrite the
+   member headers to `SOURCE_DATE_EPOCH` after the build (a step Rocky's
+   build does not have) or a deterministic `ar` (a toolchain deviation).
+4. **Non-root file owners cannot be applied in buildroot layers** (one uid
+   per user namespace): rpm aborts on filesystem's `root:mail
+   /var/spool/mail` ("cpio: chown failed - Device or resource busy").
+   `checks.glibc-runtime` installs filesystem with
+   `--excludepath=/var/spool/mail`. Store layers cannot represent owners or
+   modes such as setup's `0000` `/etc/shadow` either (the layer machinery now
+   copies such files out; the rpmdb still records the intended owner/mode).
+   Needed for stage1 roots, see [stage0.md](stage0.md) "Known gaps".
+5. **Build tools from nixpkgs** (python, perl, gawk, gettext, bison, make,
+   …) and the gd/libpng/zlib/libselinux/audit/libcap -devel libraries still
+   come from nixpkgs in the stage0 buildroot. Their effect on the output is
+   checked, not assumed: every non-ELF file is byte-identical to Rocky's, and
+   every loaded section of every ELF file except memusagestat (item 1).
+6. Outside glibc, found by the stronger parity comparison: the stage0
+   validation package **`which`** has different machine code in `main()`
+   (same section sizes; `which.json`). Not the C library (rebuilt against
+   our glibc-devel: same bytes); which is built with LTO, glibc is not;
+   prime suspect is the missing annobin plugin's effect on Rocky's LTO IR
+   (item 2). Not proven.
 
 ## Next steps
 
 * Annobin plugin for the stage0 gcc (Rocky annobin SRPM) → drop the two
   defines; then `.annobin.notes`, the archive members and the producer
-  strings match too, and the annobin rules leave `stage0.json`.
-* Build rpm against Rocky's file-5.45 libmagic (or run stage1) → the
-  FILECLASS rules go away.
+  strings match too, the annobin rules leave `stage0.json`, and `which`'s
+  LTO code can be re-checked.
 * stage1: rebuild glibc in a buildroot of Rocky RPMs only (this glibc +
   gcc/binutils/… and the real gd/libselinux/zlib-ng/… SRPMs), no `/nix/store`;
-  memusagestat's `.bss` should then match (Rocky glibc-devel headers).
+  memusagestat's layout should then match (Rocky's libgd). Needs the
+  owner/mode handling of item 4.
 * Optional: `%check` as a separate derivation (needs a non-multicall
   `/usr/bin/true` ≤ GLIBC_2.39, valgrind, gdb, nested namespaces).

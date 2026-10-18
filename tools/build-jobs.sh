@@ -64,10 +64,11 @@ rc=0
 t1=$(date +%s)
 
 "$JQ" -r 'select(.error) | "\(.attr): \(.error)"' "$jobs" > "$work/errors"
+"$JQ" -r 'select(.error) | .attr' "$jobs" > "$work/error-attrs"
 "$JQ" -r 'select(.drvPath) | [.cacheStatus // (if .isCached then "cached" else "notBuilt" end), .drvPath, .attr] | @tsv' \
   "$jobs" > "$work/ok"
 n_jobs=$(wc -l < "$work/ok")
-n_err=$(wc -l < "$work/errors")
+n_err=$(wc -l < "$work/error-attrs")
 cut -f2 "$work/ok" | sort -u > "$work/drvs"
 n_drvs=$(wc -l < "$work/drvs")
 n_local=$(awk -F'\t' '$1=="local"' "$work/ok" | cut -f2 | sort -u | wc -l)
@@ -105,7 +106,7 @@ else
   printf '  %-32s %s\n' "failed" "$failed"
 fi
 if [ "$n_err" -gt 0 ]; then
-  echo "evaluation errors:"; sed 's/^/    /' "$work/errors" | head -50
+  echo "evaluation errors:"; sed 's/^/    /' "$work/errors" | head -80
 fi
 if [ "$failed" -gt 0 ]; then
   echo "failed builds:"

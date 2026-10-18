@@ -17,14 +17,16 @@ binary-package names an SRPM produces are only *selected* at build time (by
 |---|---|
 | `binutils`, `gccPass1`, `glibc`, `gcc`, `kernelHeaders`, `sysroot` | the stage0 toolchain (FHS trees under `$out/usr`) |
 | `rpm`, `debugedit` | Rocky's rpm 4.19.1.1 / debugedit 5.1 built with FHS paths compiled in |
+| `rpmLibs.{zstd,file,elfutils}` | the stage0 rpm's libzstd / libmagic from Rocky's zstd/file SRPM sources, elfutils re-linked against that zstd (`bootstrap/rpm-libs.nix`) |
 | `buildroot` | stage0 base layer (toolchain + nixpkgs tools + rpm + `/etc`) |
 | `buildrootRelease` | + Rocky `rocky-release` RPMs (built from SRPM in `buildroot`) |
 | `buildrootFullA` | + redhat-rpm-config and the `*-srpm-macros` (pass A) |
 | `buildrootFull` | **stage0-full**: release + macro packages rebuilt in `buildrootFullA` (pass B) |
-| `srpm.<srpm-name>` | `buildSrpm` results: `$out/RPMS/<arch>/*.rpm`, `$out/SRPMS/*.src.rpm`, `$out/logs/` |
+| `srpm.<srpm-name>` | `buildSrpm` results: `$out/RPMS/<arch>/*.rpm`, `$out/SRPMS/*.src.rpm`; `.logs`: `build.log`, `srpm.log`, `files`, `purity.json` |
 | `srpmPassA.<srpm-name>` | the pass-A builds of the macro packages |
 | `rpms.<binary-name>` | `rpmTree`: one binary RPM's payload as an FHS tree, `allowedReferences = [ ]` |
 | `tests.{toolchain,toolchainFull,macros,whichRpms,whichTree}` | acceptance tests (output: `report.txt`) |
+| `tests.{chrootOpaque,chrootWhiteout,chrootAccept,chrootUsrmerge,chrootUnreadable}` | the layer machinery: deletions refused, additions/unreadable files/dir symlinks handled (`bootstrap/tests/chroot.nix`) |
 | `kernelHeadersBuild`, `rpms.kernel-headers`, `buildrootKernel`, `buildrootFullKernelHeaders`, `tests.{kernelHeaders,kernelHeadersBuildroot,toolchainKernelHeaders}` | Rocky kernel-headers from the kernel SRPM (headers-only rpmbuild) — see [kernel-headers.md](kernel-headers.md) |
 | `buildStage0 { srpm = "<name>"; ... }` | helper: build any lock SRPM in stage0-full |
 | `mkRoot { name, kernelHeaders ? <stage0>, extraTrees ? [ ] }` | a root layer like `buildroot` with other kernel headers (`null` = none, install an RPM on top) and/or extra FHS trees; the toolchain is not rebuilt |
@@ -218,8 +220,15 @@ Design:
   "making the root writable" is free.
 * `chroot_setup` seeds the upper dir with a writable copy of every
   **directory** of the merged lower view (so files can be created, replaced
-  and removed everywhere) and full copies of the small trees tools rewrite in
-  place (`/etc`, `/var`, `/usr/lib/sysimage` — the rpmdb).
+  and removed everywhere), a copy of every **symlink to a directory** (the
+  usrmerge links `/lib64 -> usr/lib64`, `/bin`, `/var/run` …: in a store
+  layer they are owned by `nobody`, and rpm 4.19 refuses to install through
+  a directory symlink that is owned neither by root nor by the file's owner —
+  "cpio: Unsafe symlink"; `tests.chrootUsrmerge` installs Rocky's libgcc,
+  whose payload uses `/lib64/…`, onto the stage0 root) and full copies of the
+  small trees tools rewrite in place (`/etc`, `/var`, `/usr/lib/sysimage` —
+  the rpmdb). Seeded entries that end up unchanged are dropped again by
+  `chroot_layer_out`.
 * Work is split into phases sharing the upper dir, each with a single uid
   mapping: **root phases** (uid 0, all caps in the namespace) and **build
   phases** (uid 1000 `mockbuild`, gid 135 `mock`). Files created in a root
@@ -243,10 +252,21 @@ Design:
   with `installFlags = [ ]` rpm checks dependencies and runs scriptlets
   chrooted into the root (ns-root has `CAP_SYS_CHROOT`).
 * `chroot_layer_out`: the upper dir minus the seeding (empty seeded dirs,
-  unchanged seeded files) becomes a new **layer**. Overlay whiteouts / opaque
-  dirs (deletions of lower content) cannot be stored in the Nix store, so they
-  fail the build; the rpmdb's sqlite WAL must be checkpointed (it is, rpm
-  closes the db) and `-wal`/`-shm` are never stored in layers.
+  unchanged seeded files and symlinks) becomes a new **layer**. Deletions of
+  lower content cannot be stored in the Nix store, so they fail the build:
+  whiteouts (char 0/0 devices) and opaque / redirected / metacopy
+  directories (`user.overlay.{opaque,redirect,metacopy}` xattrs — a lower
+  directory removed and recreated would otherwise silently get its deleted
+  files back once Nix drops the xattrs; the check reads `getfattr`'s output,
+  not its exit status, which is 1 whenever any file lacks the attribute and
+  made the old check a no-op under `pipefail`). `tests.chrootOpaque`,
+  `tests.chrootWhiteout` and `tests.chrootAccept` cover both directions.
+  Files rpm created unreadable for their owner (setup's `/etc/shadow` and
+  `/etc/gshadow` are mode `0000`) are made owner-readable before the
+  unprivileged copy-out (`tests.chrootUnreadable`); the store cannot
+  represent such modes, nor owners, anyway (see "Known gaps"). The rpmdb's
+  sqlite WAL must be checkpointed (it is, rpm closes the db) and
+  `-wal`/`-shm` are never stored in layers.
 
 ### 6. `mkBuildroot`, `buildSrpm`, `rpmTree`, `runInBuildroot` (`lib/default.nix`)
 
@@ -264,19 +284,29 @@ Design:
   `%source_date_epoch_from_changelog 1`, `%use_source_date_epoch_as_buildtime 1`,
   `%clamp_mtime_to_source_date_epoch 1`, `%_smp_build_ncpus $NIX_BUILD_CORES`
   (→ `%_smp_mflags -jN`), `--target`, `--nodeps` in stage0; then
-  `rpmbuild -rs` for the rebuilt source package. Output `$out/RPMS/<arch>/`,
-  `$out/SRPMS/`, `$out/logs/{build.log,srpm.log,files}` (store hashes in logs
-  are nuked so the output has no references). On failure the last 80 log
-  lines are printed. `allowedReferences = [ ]`: a store path in any RPM header
-  (e.g. an auto-generated `Requires: /nix/store/…/bin/perl`) fails the build.
+  `rpmbuild -rs` for the rebuilt source package. Outputs: `out` =
+  `RPMS/<arch>/`, `SRPMS/`; `logs` = `build.log`, `srpm.log`, `files`,
+  `purity.json` (store hashes in logs are nuked so no output has references;
+  the logs are a separate output because parallel build logs are never
+  reproducible). On failure the last 80 log lines are printed.
+  **Purity**: after the build, `tools/rpm_purity.py` searches every binary
+  RPM byte by byte for `/nix/store` — headers, payload files, symlink
+  targets, and inside gzip/xz/bzip2/zstd members, ELF `.gnu_debugdata` and
+  compressed ELF sections — and any hit fails the build (skipped only with
+  `allowStoreReferences = true`). `allowedReferences = [ ]` is kept, but on
+  its own it only catches store paths of the build's input closure in the
+  uncompressed RPM headers.
   `requiredSystemFeatures ? [ ]` is passed through (only set when non-empty,
   so existing derivations are unchanged); glibc uses `[ "big-parallel" ]`.
 * `rpmTree { build, name, file ? null }`: the payload of the binary RPM whose `%{NAME}` is
   `name`, extracted (`rpm2cpio | cpio`) into `$out`, with
-  **`allowedReferences = [ ]`** — the enforcement that shipped packages do
-  not depend on nixpkgs. `file` (`RPMS/<arch>/<n-v-r.a>.rpm`, still checked
-  against `%{NAME}`) avoids querying every RPM of an SRPM with hundreds of
-  subpackages (glibc: 233).
+  `allowedReferences = [ ]`. That alone is **not** the purity guarantee: Nix
+  only scans for hashes of paths in the derivation's input closure (rpm,
+  cpio, stdenv — not the nixpkgs tools of the buildroot) and never inside
+  compressed files. The guarantee is `buildSrpm`'s byte-level purity scan,
+  which every `rpmTree` depends on through `build`. `file`
+  (`RPMS/<arch>/<n-v-r.a>.rpm`, still checked against `%{NAME}`) avoids
+  querying every RPM of an SRPM with hundreds of subpackages (glibc: 233).
 * `runInBuildroot { name, buildroot, script, root ? false, binds ? { } }`:
   run a script in a buildroot; `/builddir/out` becomes `$out` (used by tests).
 
@@ -314,7 +344,7 @@ d. `rpms.which` (and every other `rpms.*`): `rpmTree` with
 | binutils: no gold, static libbfd/libopcodes (`--disable-shared`), no jansson/debuginfod | binutils.nix | host libs must not be looked up in `/usr/lib64` by the nixpkgs loader |
 | rpm: no plugins/python/selinux/audit/dbus/fapolicyd/imaevm/fsverity, `ENABLE_NLS=OFF` | rpm.nix | not needed to build packages |
 | kernel headers from nixpkgs (6.18) for the stage0 *toolchain* and the base root | kernel-headers.nix | the toolchain does not ship; package builds that need Rocky's headers use a root without them plus the Rocky kernel-headers RPM (glibc does: [glibc.md](glibc.md), [kernel-headers.md](kernel-headers.md)) |
-| rpm links nixpkgs' libmagic (file 5.47; Rocky: 5.45) | rpm.nix | FILECLASS strings only (gzip "original size" suffix, ld.so "dynamically linked"); allowed in `tools/parity/stage0.json` |
+| rpm's libzstd and libmagic: built from **Rocky's zstd-1.5.5-9.el10 and file-5.45-9.el10 SRPM sources** (tarball + all spec patches) with nixpkgs' toolchain; elfutils re-linked against that zstd | rpm-libs.nix, rpm.nix | they write bytes into every RPM: the compressed payload (nixpkgs' zstd 1.5.7 compressed identical payloads to different bytes) and the FILECLASS strings (nixpkgs' file 5.47: "dynamically linked" for ld.so, a gzip "original size" suffix). `installCheckPhase` asserts which `libzstd.so.1`/`libmagic.so.1` rpmbuild loads. The `file` command in the root is the same build |
 | makeinfo 7.1 from Rocky's texinfo SRPM, Unicode::Collate hidden (`texinfo71`) | texinfo.nix | only in package roots that ship info pages (glibc); nixpkgs' 7.2 and Unicode::Collate change the info output |
 | `%_annobin_gcc_plugin %{nil}` | macros.stage0 | no annobin plugin for the stage0 gcc yet (empties `-specs=…redhat-annobin-cc1`); `%_annotated_build` stays defined so `--remove-section .gnu.build.attributes` is still passed to find-debuginfo (harmless) |
 | `%_binary_payload w19.zstdio` | macros.stage0 | same value as redhat-rpm-config, for packages built before it is installed |
@@ -331,6 +361,11 @@ d. `rpms.which` (and every other `rpms.*`): `rpmTree` with
 | buildhost `el-nixos.localdomain`, buildtime = changelog date | buildSrpm | reproducibility |
 
 ## Results (real builds on nixbuild.net, nixpkgs 26f4107, 2026-10-18)
+
+Note: the store paths in this table predate later changes that rebuilt
+everything above the toolchain (the stage0 rpm now links Rocky-sourced
+libzstd/libmagic; `lib/chroot.sh` and `buildSrpm` changed); current paths
+for the glibc build are in [glibc.md](glibc.md) ("Store paths").
 
 Note: the SIGPIPE reset in `lib/chroot.sh` (added by the glibc track) changed
 the hashes of every derivation that uses the runner (buildroot layers above
@@ -427,5 +462,19 @@ Provides, file list, file digests and modes).
 * `mkBuildroot` cannot represent deletions of lower-layer files (fails
   loudly); later stages installing with scriptlets may need a "flatten" mode.
 * Later stages: `rpm --root` installs with `installFlags = [ ]` (deps +
-  scriptlets) and no `--store`; chown to non-root owners recorded in RPMs will
-  hit EINVAL in the single-uid namespace and needs handling there.
+  scriptlets) and no `--store`. **Non-root owners** recorded in RPMs cannot
+  be applied in the single-uid namespace: rpm's `fchown` to an unmapped
+  uid/gid fails and aborts the package ("cpio: chown failed - Device or
+  resource busy" for filesystem's `root:mail /var/spool/mail`; "- No such
+  file or directory" in another reproduction). Today the only such path in
+  the glibc runtime roots is excluded (`--excludepath=/var/spool/mail`).
+  Options for stage1: run the unpack as a non-zero uid with the needed
+  capabilities (rpm only chowns when `getuid() == 0`), or a chown shim, and
+  then restore owners and modes from the rpmdb at the final image step
+  (`rpm --setugids --setperms`).
+* **Owners and modes are not representable in store layers**: every file
+  of a layer appears as `nobody` with the store's `0444`/`0555` modes in the
+  next chroot (`/etc/shadow` of setup is `0000` in the RPM). The rpmdb in the
+  layer still records the intended values, so an image built from layers
+  must re-apply them (`rpm --setperms --setugids`), and `rpm -V` inside a
+  stage0/stage1 chroot reports mode/owner mismatches for such files.

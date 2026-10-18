@@ -34,7 +34,7 @@ research, including why the full kernel is not built: [research/kernel-headers.m
 
 | attr | what |
 |---|---|
-| `kernelHeadersBuild` (= `srpm.kernel`) | `buildSrpm` result: `$out/RPMS/x86_64/kernel-headers-6.12.0-211.66.1.el10_2.x86_64.rpm`, `…/kernel-modules-extra-matched-…rpm`, `$out/SRPMS/kernel-…src.rpm`, `$out/logs/` |
+| `kernelHeadersBuild` (= `srpm.kernel`) | `buildSrpm` result: `$out/RPMS/x86_64/kernel-headers-6.12.0-211.66.1.el10_2.x86_64.rpm`, `…/kernel-modules-extra-matched-…rpm`, `$out/SRPMS/kernel-…src.rpm`; `.logs`: `build.log`, `srpm.log`, `files`, `purity.json` |
 | `rpms.kernel-headers` | `rpmTree` of it (`$out/usr/include/…`), `allowedReferences = [ ]` |
 | `buildrootKernel` | the build environment: `buildrootFull` + one new layer (see below) |
 | `buildrootFullKernelHeaders` | stage0-full on a root **without** nixpkgs' headers, with kernel-headers installed via `rpm -i` |

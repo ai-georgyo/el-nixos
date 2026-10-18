@@ -114,11 +114,16 @@ nixbuild.net remote builders). This mirrors what mock does.
   user (uid 1000) with `%_topdir /builddir/build`, deterministic macros
   (`SOURCE_DATE_EPOCH`, `%_buildhost`, `%use_source_date_epoch_as_buildtime`,
   `%clamp_mtime_to_source_date_epoch`), `%_smp_mflags` from
-  `NIX_BUILD_CORES`, and `%dist` from the lock. Output:
-  `$out/RPMS/<arch>/*.rpm`, `$out/SRPMS/`, `$out/logs/`.
+  `NIX_BUILD_CORES`, and `%dist` from the lock. Outputs: `out` =
+  `RPMS/<arch>/*.rpm`, `SRPMS/`; `logs` = build/srpm logs, file list, purity
+  report. **Every build ends with a byte-level purity scan** of its binary
+  RPMs (`tools/rpm_purity.py`: headers, payload files, symlink targets, and
+  inside compressed members, ELF MiniDebugInfo and compressed ELF sections);
+  any `/nix/store` fails the build — this is how "does not depend on
+  nixpkgs" is *enforced*.
 - `rpmTree` derivation: one binary RPM extracted (rpm2cpio | cpio) to an FHS
-  tree; uses `allowedReferences = [ ]` so any `/nix/store` reference fails the
-  build — this is how "does not depend on nixpkgs" is *enforced*.
+  tree, with `allowedReferences = [ ]` (which by itself only catches store
+  paths of the derivation's input closure, see Verification).
 - Package set attrs (`legacyPackages.x86_64-linux`): `srpm.<srpm>` (the
   rpmbuild result) and `rpms.<binary rpm name>` (the extracted tree), both
   static from the lock (`rpmsLock.bySrpm`); per-SRPM extras under
@@ -127,8 +132,32 @@ nixbuild.net remote builders). This mirrors what mock does.
   subpackages>`, `stage0.kernelHeadersBuild` / `stage0.rpms.kernel-headers`.
 - Flake outputs: `packages.x86_64-linux.{glibc, glibc-rpms, kernel-headers,
   kernel-headers-rpms}`; `checks.x86_64-linux.*` = stage0 acceptance tests +
-  parity checks (`glibc-parity`, `kernel-headers-parity`, …) + `glibc-purity`
-  and `glibc-sanity`.
+  parity checks (`glibc-parity`, `kernel-headers-parity`, tool self-tests …)
+  + `glibc-purity`, `glibc-sanity`, `glibc-abi`, `glibc-runtime`;
+  `hydraJobs` = packages, checks, `srpm.*`, `rpms.*` and stage0's, for
+  `nix run .#build-jobs` (nix-eval-jobs, below).
+
+### Reproducibility
+
+`buildSrpm` sets `SOURCE_DATE_EPOCH` from the changelog
+(`%source_date_epoch_from_changelog`, `%use_source_date_epoch_as_buildtime`,
+`%clamp_mtime_to_source_date_epoch`), a fixed `%_buildhost`, and uses Nix's
+sandbox. Measured with `nix build --rebuild` on glibc (233 RPMs) and which:
+every RPM is bit-identical across rebuilds **except** RPMs containing static
+archives (glibc-static, glibc-devel, glibc32, sysroot-x86_64-el10-glibc):
+GNU ar writes the wall-clock time into each member header (glibc's
+Makerules run `ar cruv`; binutils is configured like Rocky's,
+`--enable-deterministic-archives=no`, and ar ignores `SOURCE_DATE_EPOCH`).
+Rocky's own archives carry wall-clock dates too, and rpm-parity ignores
+member headers. The build logs are a separate output (`logs`): parallel
+`make` output and `rpm-tmp.*` names are never reproducible. Nix's
+`--rebuild` therefore always reports "may not be deterministic" — and stops
+at the first differing output (`logs` sorts before `out`), so it never
+compares `out`. To check the RPMs, rebuild with `nix build --rebuild
+--keep-failed` and `cmp` the kept build directory's
+`builddir/build/RPMS/*/*.rpm` with `$out/RPMS` (glibc, 2026-10-18: 230 of
+234 files identical, the 4 differing ones are exactly the archive-carrying
+RPMs; which: all identical).
 
 ### Stages
 
@@ -148,20 +177,55 @@ nixbuild.net remote builders). This mirrors what mock does.
 - **stage1+** (later): buildroots made only of Rocky RPMs we built, installed
   with `rpm --root`; `/nix/store` is NOT visible inside the chroot, so
   leakage is impossible by construction; BuildRequires checked for real.
+  `checks.glibc-runtime` already assembles such roots (Rocky RPMs only,
+  scriptlets on). Known limits of the layer machinery for that stage
+  (non-root file owners, modes the store cannot represent) are listed in
+  [stage0.md](stage0.md) "Known gaps".
 
 ## Verification
 
-- **Purity**: `rpmTree` (`allowedReferences = [ ]`) for every shipped binary
-  package (`checks.glibc-purity`: all 224 glibc trees); `buildSrpm` itself
-  has `allowedReferences = [ ]`, so a store path in any RPM header fails the
-  build; the parity tool additionally scans every payload byte (debuginfo
-  included) for `/nix/store`, which cannot be allowlisted.
+- **Purity**: `buildSrpm` runs `tools/rpm_purity.py` on every build — a
+  byte-level search for `/nix/store` in every header, payload file and
+  symlink target of every binary RPM (debuginfo included), also inside
+  gzip/xz/bzip2/zstd members, ELF `.gnu_debugdata` and compressed ELF
+  sections; any hit fails the build, so nothing that depends on a package
+  (its `rpmTree`s, checks, other buildroots) can exist with a leak. The
+  parity tool runs the same scanner (cannot be allowlisted). `buildSrpm` and
+  `rpmTree` also keep `allowedReferences = [ ]`, but Nix's reference
+  scanner only knows the hashes of a derivation's *input closure* (for
+  `rpmTree`: rpm, cpio, stdenv — not the nixpkgs perl/python/… that the
+  stage0 chroot exposes) and cannot look into compressed data, so on its own
+  it is not a purity check (`checks.glibc-purity` = all 224 glibc trees
+  built, i.e. their builds passed the scan). Negative tests:
+  `parity-selftest-purity{,-nested}`, `purity-selftest-{plain,nested}`.
 - **Parity** ([parity.md](parity.md)): `mkParityCheck` compares our RPMs with
   the official ones from `rpms.json` (headers, deps, scriptlets, file lists
-  and attributes, content digests, ELF properties) and fails on any
-  difference not declared, with a reason, in `tools/parity/*.json`
+  and attributes, content digests; for every differing ELF file the
+  properties, the dynamic symbols with versions, the bytes of every loaded
+  section and the segments; static archives member by member) and fails on
+  any difference not declared, with a reason, in `tools/parity/*.json`
   (`default.json` for any rebuild, `stage0.json` for stage0 hacks, one file
   per SRPM).
+- **ABI cross-check** (`checks.glibc-abi`, `tools/abi-compare.py`): the same
+  questions answered independently with GNU binutils (`readelf --dyn-syms`,
+  `-V`, `-d`; `nm`/`ar` per archive member; header bytes) for all 221
+  shipped glibc subpackages, no allowlist.
+- **Runtime** (`checks.glibc-runtime`): roots made only of RPMs (no
+  `/nix/store` inside), one with our glibc and one with the official one,
+  same behaviour report.
+- **Evaluation**: plain derivations only; `nix run .#build-jobs` evaluates
+  all of `hydraJobs` with `allow-import-from-derivation = false` (as does
+  `nix flake check --no-build --option allow-import-from-derivation false`).
+
+## Building everything (CI)
+
+`nix run .#build-jobs [-- --workers N] [-- NIX-BUILD-ARGS]`
+(`tools/build-jobs.sh`): `nix-eval-jobs --flake .#hydraJobs
+--check-cache-status --force-recurse` with IFD disabled, skips every job
+whose outputs are already local or substitutable, builds the rest with one
+`nix build --keep-going --stdin`, and prints a summary (evaluation errors,
+local / cached / built / failed). nix-eval-jobs and jq come from the pinned
+nixpkgs.
 
 ## Status
 
@@ -169,7 +233,10 @@ Milestone 1 = Rocky `glibc` SRPM built in stage0, binary RPMs whose contents
 have no nixpkgs references, and whose file lists / provides / requires match
 the official Rocky binary RPMs as closely as possible (differences documented).
 **Done**: see [glibc.md](glibc.md) (233 RPMs, all 221 shipped NEVRAs equal
-to the official ones, purity check passes, `glibc-parity` passes against all
-221 official RPMs with only the documented differences). Rocky
+to the official ones, the build's purity scan finds no `/nix/store`,
+`glibc-parity` passes against all 221 official RPMs with only the documented
+differences, `glibc-abi` finds the ABI identical, `glibc-runtime` finds the
+behaviour identical in RPM-only roots; open items in glibc.md "Known
+differences / open issues"). Rocky
 kernel-headers are built from the kernel SRPM and used in the glibc
 buildroot ([kernel-headers.md](kernel-headers.md)).
