@@ -26,12 +26,19 @@
     {
       legacyPackages.${system} = rocky;
       packages.${system} = { };
-      # stage0 acceptance tests (docs/stage0.md)
-      checks.${system} = rocky.stage0.tests;
+      # stage0 acceptance tests (docs/stage0.md) + RPM parity checks (docs/parity.md)
+      checks.${system} = rocky.stage0.tests // rocky.parityChecks;
 
       apps.${system} = {
         update-lock = pyApp "update-lock" "Regenerate lock/rocky-<rel>/ from Rocky repodata";
         resolve-buildrequires = pyApp "resolve-buildrequires" "Resolve an SRPM's BuildRequires to a mock-like buildroot closure";
+        rpm-parity = {
+          type = "app";
+          program = "${bootPkgs.writeShellScript "rpm-parity" ''
+            PATH=${bootPkgs.zstd}/bin:$PATH exec ${bootPkgs.python3}/bin/python3 -I ${rocky.parityTool} "$@"
+          ''}";
+          meta.description = "Compare RPMs against the official Rocky RPMs (docs/parity.md)";
+        };
       };
     };
 }
