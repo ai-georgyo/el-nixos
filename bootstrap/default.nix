@@ -130,6 +130,26 @@ let
     { } (builtins.attrNames produces);
 
   tests = import ./tests { inherit pkgs lib' buildroot buildrootFull which rpms; };
+
+  # ---------------------------------------------------------------- package roots
+  # A root layer like `buildroot` (same toolchain, rpm, nixpkgs tools, /etc)
+  # with different kernel headers and/or extra FHS trees (e.g. -devel
+  # libraries a package needs).  kernelHeaders = null: none -- the caller
+  # installs a kernel-headers RPM on top (then `rpm -ql kernel-headers` works).
+  # Only the cheap root derivation differs; the toolchain is not rebuilt.
+  mkRoot = { name, kernelHeaders ? kh, extraTrees ? [ ] }:
+    let
+      l = import ./root.nix {
+        inherit pkgs rpm debugedit tools name;
+        fhsTrees = lib.optional (kernelHeaders != null) kernelHeaders ++ [ glibc binutils gcc ] ++ extraTrees;
+      };
+    in l // { layers = [ l ]; };
+  # what stage0-full installs on top of the root: rocky-release + the pass-B
+  # macro packages (mkBuildroot rpm specs)
+  fullRpms = [ release ] ++ macroRpms macros;
+
+  # glibc SRPM build inputs missing from the stage0 root (docs/glibc.md)
+  glibcBuildDeps = import ./glibc-build-deps.nix { inherit pkgs; systemtapSrpm = srpm "systemtap"; };
 in
 {
   inherit binutils gccPass1 glibc sysroot gcc rpm debugedit;
@@ -138,6 +158,7 @@ in
   srpm = srpmBuilds;
   srpmPassA = macrosA;
   inherit rpms tests dev;
+  inherit mkRoot fullRpms glibcBuildDeps;
   lib = lib';
   # helper for later packages: build an SRPM from the lock in the full stage0 buildroot
   buildStage0 = args: buildSrpm ({ buildroot = buildrootFull; } // args);

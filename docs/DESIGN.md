@@ -118,7 +118,8 @@ nixbuild.net remote builders). This mirrors what mock does.
   tree; uses `allowedReferences = [ ]` so any `/nix/store` reference fails the
   build — this is how "does not depend on nixpkgs" is *enforced*.
 - Package set attrs: `rocky.srpm.<srpm>` (the rpmbuild result) and
-  `rocky.<binary rpm name>` (the extracted tree), both static from the lock.
+  `rocky.rpms.<binary rpm name>` (the extracted tree), both static from the lock
+  (`rpmsLock.bySrpm`); per-SRPM extras under `rocky.packageSets.<srpm>`.
 
 ### Stages
 
@@ -138,3 +139,4 @@ nixbuild.net remote builders). This mirrors what mock does.
 Milestone 1 = Rocky `glibc` SRPM built in stage0, binary RPMs whose contents
 have no nixpkgs references, and whose file lists / provides / requires match
 the official Rocky binary RPMs as closely as possible (differences documented).
+Status: built — see [glibc.md](glibc.md).

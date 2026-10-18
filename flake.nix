@@ -25,9 +25,15 @@
     in
     {
       legacyPackages.${system} = rocky;
-      packages.${system} = { };
-      # stage0 acceptance tests (docs/stage0.md)
-      checks.${system} = rocky.stage0.tests;
+      packages.${system} = {
+        glibc-srpm-build = rocky.srpm.glibc; # rpmbuild result (RPMS/, SRPMS/, logs/)
+        glibc = rocky.rpms.glibc;            # payload tree of the main glibc RPM
+      };
+      # stage0 acceptance tests (docs/stage0.md) + glibc (docs/glibc.md)
+      checks.${system} = rocky.stage0.tests // {
+        glibc-trees = rocky.packageSets.glibc.trees;   # every subpackage via rpmTree (purity)
+        glibc-sanity = rocky.packageSets.glibc.sanity; # NEVRs, configure results, ELF checks
+      };
 
       apps.${system} = {
         update-lock = pyApp "update-lock" "Regenerate lock/rocky-<rel>/ from Rocky repodata";
