@@ -15,9 +15,15 @@
 #   * cc-cflags-before empty (no -fno-omit-frame-pointer / machine flags), no
 #     default hardening (NIX_HARDENING_ENABLE=""): the flags are
 #     redhat-rpm-config's %optflags / %build_ldflags, exactly Rocky's;
-#   * cc-wrapper-hook add-prefix-map.sh: -ffile-prefix-map=<input>=/usr for every
-#     store include root and the gcc prefix; -frandom-seed from the environment
-#     (nixpkgs' reproducible-builds.sh) dropped [F-1, E1];
+#   * cc-wrapper-hook add-prefix-map.sh: -ffile-prefix-map=<root>=/usr for the
+#     gcc prefix, every input (NIX_ROCKY_MAP_ROOTS, filled by the setup hook
+#     map-roots.sh), every store include dir/-include file/source named on the
+#     command line, and the symlink targets of store system include dirs;
+#     -frandom-seed from the environment (nixpkgs' reproducible-builds.sh)
+#     dropped [F-1, E1];
+#   * NIX_ENFORCE_PURITY forced to 0 in both wrappers (no-purity.sh): in the
+#     tool shim /usr is the declared-input view, and stdenv's default
+#     NIX_ENFORCE_PURITY=1 would silently drop -I/usr/... -L/usr/lib64 -rpath;
 #   * --enable-new-dtags (Rocky's ld defaults to DT_RPATH [NF-S2]) so the
 #     wrapper's -rpath entries become DT_RUNPATH;
 #   * self rpath $out/lib64 instead of $out/lib (lib64-rpath.sh, setup hook);
@@ -36,8 +42,12 @@
 #
 # Usable from PATH without setup hooks (mkRpmPackage's tool shim): gcc cc g++
 # c++ cpp, x86_64-redhat-linux-{gcc,g++,c++}, gcc-ar gcc-nm gcc-ranlib gcov
-# and binutils (ld as ar nm objcopy ...); with no NIX_* variables set, the
-# wrappers add only libc/gcc paths, the dynamic linker and the maps above.
+# and binutils (ld as ar nm objcopy ...; the binutils copy has gcc's LTO plugin
+# in lib/bfd-plugins, as Rocky's shared /usr/lib/bfd-plugins has it).  With no
+# NIX_* variables set, the wrappers add only libc/gcc paths, the dynamic linker
+# and the maps above; inside a stdenv build they also read NIX_CFLAGS_COMPILE,
+# NIX_LDFLAGS, NIX_ROCKY_MAP_ROOTS (the setup hooks fill them from the inputs;
+# rpmbuild passes the environment on), and NIX_ENFORCE_PURITY has no effect.
 { bootPkgs, lib, stage0, ... }:
 let
   pkgs = bootPkgs;
@@ -93,6 +103,14 @@ let
     name = "rocky-s1-binutils-2.41-63.el10";
     tree = stage0.binutils;
     passthru = { isGNU = true; version = "2.41"; };
+    # ar/nm/ranlib load plugins from <their real bindir>/../lib/bfd-plugins; on
+    # Rocky gcc ships liblto_plugin.so into the shared /usr/lib/bfd-plugins.
+    # Without it, slim (-fno-fat-lto-objects) objects cannot be archived.
+    postCopy = ''
+      mkdir -p $out/lib/bfd-plugins
+      ln -s ${gcc}/libexec/gcc/x86_64-redhat-linux/14/liblto_plugin.so $out/lib/bfd-plugins/
+      test -e $out/lib/bfd-plugins/liblto_plugin.so
+    '';
   };
 
   libcAdapter = libc:
@@ -128,9 +146,12 @@ let
   '';
   stage0Libc = libcAdapter { out = stage0LibcTree; dev = stage0LibcTree; };
 
-  wrap = { libc, name ? "rocky-s1" }:
+  wrap = { libc, name ? "rocky-s1", enforcePurity ? false }:
     let
       l = if libc.rockyLibc or false then libc else libcAdapter libc;
+      noPurity = lib.optionalString (!enforcePurity) ''
+        cat ${./no-purity.sh} >> $out/nix-support/utils.bash
+      '';
       outIsNotDev = l.out.outPath != l.dev.outPath;
       bintools = pkgs.wrapBintoolsWith {
         name = "${name}-binutils-wrapper";
@@ -144,6 +165,7 @@ let
           touch $out/nix-support/ld-set-dynamic-linker
           echo --enable-new-dtags >> $out/nix-support/libc-ldflags-before
           cat ${./lib64-rpath.sh} >> $out/nix-support/setup-hook
+          ${noPurity}
         '';
       };
     in
@@ -153,6 +175,8 @@ let
       libc = l;
       extraBuildCommands = ''
         : > $out/nix-support/cc-cflags-before
+        ${noPurity}
+        cat ${./map-roots.sh} >> $out/nix-support/setup-hook
         substitute ${./add-prefix-map.sh} $out/nix-support/cc-wrapper-hook \
           --subst-var-by gcc ${gcc} --subst-var-by storeDir ${storeDir}
         substitute ${./m32-libc.sh} m32-libc.sh --subst-var-by libcDev ${l.dev} \

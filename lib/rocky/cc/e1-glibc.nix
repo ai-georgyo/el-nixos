@@ -81,27 +81,27 @@ let
         # hard-coded /usr, /etc in %install fold into the prefix (BUILDROOT/usr -> prefix)
         --define '__spec_install_pre %{___build_pre}; rm -rf "%{buildroot}"; mkdir -p "%{buildroot}%{_prefix}"; ln -s "%{_prefix_rel}" "%{buildroot}/usr"'
       )
+      inShim() {
+        env --default-signal=PIPE bwrap --bind /nix /nix --bind "$NIX_BUILD_TOP" "$NIX_BUILD_TOP" --ro-bind /etc /etc --proc /proc --dev /dev --tmpfs /tmp \
+          --dir /usr --ro-bind $shim/bin /usr/bin --symlink /usr/bin /usr/sbin --chdir "$PWD" \
+          --ro-bind $shim/bin /bin --ro-bind $shim/bin /sbin --ro-bind ${rpmConfig} /usr/lib/rpm -- "$@"
+      }
+      # The rpmbuild output goes to the Nix build log (`nix log`), not into
+      # $out: rpm-tmp.XXXX names and parallel-make interleaving would make the
+      # output differ between rebuilds.
       echo "=== rpmbuild -bb (relocated to $P)"
-      set +e
-      env --default-signal=PIPE bwrap --bind /nix /nix --bind "$NIX_BUILD_TOP" "$NIX_BUILD_TOP" --ro-bind /etc /etc --proc /proc --dev /dev --tmpfs /tmp \
-        --dir /usr --ro-bind $shim/bin /usr/bin --symlink /usr/bin /usr/sbin --chdir "$PWD" \
-        --ro-bind $shim/bin /bin --ro-bind $shim/bin /sbin --ro-bind ${rpmConfig} /usr/lib/rpm \
-        -- rpmbuild -bb --nodeps --nocheck --noclean --target x86_64 "''${defs[@]}" $top/SPECS/glibc.spec > $TMPDIR/build.log 2>&1
-      rc=$?
-      set -e
+      inShim rpmbuild -bb --nodeps --nocheck --noclean --target x86_64 "''${defs[@]}" $top/SPECS/glibc.spec
       mkdir -p $out/nix-support
-      if [ $rc -ne 0 ]; then tail -n 80 $TMPDIR/build.log; exit 1; fi
-      sed -E 's|/nix/store/[a-z0-9]{32}-|/nix/store/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-|g' $TMPDIR/build.log > $out/nix-support/build.log
       BR=$(ls -d $top/BUILDROOT/*)
       echo "buildroot top level:"; ls -la $BR
       cp -a $BR$P/. $out/
       (cd $BR && find . -path ./nix -prune -o -print | grep -v '^\./nix$' | sort) > $out/nix-support/outside-prefix.txt || true
       mkdir -p $out/nix-support/rpm-files
-      export RPM_CONFIGDIR=${rpmConfig}
       for f in $top/RPMS/*/*.rpm; do
-        n=$(rpm -qp --nosignature --qf '%{NAME}' $f)
-        rpm -qp --nosignature --qf '[%{FILEFLAGS:fflags}\t%{FILEMODES:perms}\t%{FILELINKTOS}\t%{FILENAMES}\n]' $f > $out/nix-support/rpm-files/$n.txt
+        n=$(inShim rpm -qp --nosignature --qf '%{NAME}' $f)
+        inShim rpm -qp --nosignature --qf '[%{FILEFLAGS:fflags}\t%{FILEMODES:perms}\t%{FILELINKTOS}\t%{FILENAMES}\n]' $f > $out/nix-support/rpm-files/$n.txt
       done
+      echo "rpm-files: $(ls $out/nix-support/rpm-files | wc -l) packages, $(cat $out/nix-support/rpm-files/*.txt | wc -l) files"
     '';
   };
 

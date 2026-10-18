@@ -8,8 +8,10 @@
 # Part A: the wrapper as a stdenv input (setup hooks ran: NIX_CFLAGS_COMPILE
 # carries nixpkgs' -frandom-seed, NIX_LDFLAGS the self rpath).  Part B: the
 # wrapper from PATH with an empty environment and Rocky's %build_cflags /
-# %build_ldflags, as mkRpmPackage's tool shim runs it.
-# Environment: WRAPPER LIBC GCC BINUTILS STORESCAN ROCKY_FLAGS PYTHON PATH_B.
+# %build_ldflags, as mkRpmPackage's tool shim runs it.  Part C: from PATH,
+# libc split into out/dev (the relocated glibc's shape); a subset of A/B.
+# Environment: WRAPPER LIBC GCC BINUTILS STORESCAN ROCKY_FLAGS PYTHON PATH_B
+# BWRAP FARM FARM_T FARM_TF ABS_HDR PATH_C WRAPPER_C LIBC_OUT LIBC_DEV.
 mkdir -p "$out"
 exec > >(tee "$out/report.txt") 2>&1
 fail=0
@@ -117,6 +119,9 @@ check "link against shared lib"   'gcc -O2 -g -o usefoo usefoo.c -L. -lfoo'
 check "-m32 C hello builds"       'gcc -m32 -O2 -g -o hello32 hello.c'
 check "-static C hello builds"    'gcc -static -O2 -g -o hello-static hello.c'
 check "-flto C hello builds"      'gcc -O2 -g -flto=auto -ffat-lto-objects -o hello-lto hello.c'
+check "slim LTO: plain nm/ar read -fno-fat-lto-objects objects (LTO plugin in the binutils copy)" \
+  'gcc -O2 -flto -fno-fat-lto-objects -c -o foo-thin.o foo.c && grep -q " T foo" <<<"$(nm foo-thin.o)" && ar rcs libthin.a foo-thin.o && grep -q " T foo" <<<"$(nm libthin.a)"'
+check "slim LTO: a program links against the slim archive" 'gcc -O2 -flto -o usethin usefoo.c libthin.a'
 check "C hello object builds"     'gcc -O2 -g -c -o hello.o hello.c'
 check "__FILE__ in a header under -I<store>/include reads /usr/include/..." \
   'gcc -O2 -I"$out/include" -o file file.c && [ "$(./file)" = /usr/include/rocky-where.h ]'
@@ -128,6 +133,7 @@ check "shared lib user runs"      'LD_LIBRARY_PATH=. ./usefoo'
 check "-m32 hello runs"           './hello32'
 check "static hello runs"         './hello-static'
 check "lto hello runs"            './hello-lto'
+check "slim-LTO archive user runs" './usethin'
 echo "== A: inspect"
 for b in hello hellocc usefoo hello-lto libfoo.so.1; do
   echo "-- $b: interp=$(interp $b) runpath=$(runpath $b)"
@@ -170,7 +176,61 @@ check "CET: -fcf-protection binary carries IBT+SHSTK (crt files/libc built with 
 check "build-id note present" 'grep -q "Build ID" <<<"$(readelf -nW hello)"'
 check "a -frandom-seed the build passes itself is kept" \
   'gcc -g -c -frandom-seed=keepme -o seed.o foo.c && grep -q -- -frandom-seed=keepme <<<"$(readelf --debug-dump=info seed.o)"'
-check "no maps for a version probe (gcc -v prints, exits 0)" 'gcc -v 2>&1 | grep -q "gcc version 14.3.1"'
+nmaps() { grep -c -- -ffile-prefix-map <<<"$(NIX_DEBUG=1 "$@" 2>&1)"; }
+check "no maps for probes (gcc -v, --version, -dumpversion, -print-file-name=include; NIX_DEBUG)" \
+  '[ "$(nmaps gcc -v)" = 0 ] && [ "$(nmaps gcc --version)" = 0 ] && [ "$(nmaps gcc -dumpversion)" = 0 ] && [ "$(nmaps gcc -print-file-name=include)" = 0 ]'
+check "maps for a compile (control for the probe check)" '[ "$(nmaps gcc -c -o probe.o foo.c)" -gt 0 ]'
+
+echo "== A: prefix map coverage (declared inputs, symlink farms, -include, store sources)"
+echo "NIX_ROCKY_MAP_ROOTS=${NIX_ROCKY_MAP_ROOTS-}"
+check "the setup hook put the inputs into NIX_ROCKY_MAP_ROOTS" '[[ " ${NIX_ROCKY_MAP_ROOTS-} " == *" $WRAPPER "* ]]'
+check "fixtures are not inputs (only the hook's own scan can map them)" \
+  '! grep -qE "$FARM|$FARM_T|$FARM_TF|$ABS_HDR" <<<"${NIX_ROCKY_MAP_ROOTS-}"'
+cat > farm.c <<'EOF'
+#include <rocky-farm.h>
+#include <rocky-fhs.h>
+int main(void) { return rocky_farm(1) + rocky_fhs(1) - 5; }
+EOF
+lnk=$FARM/include/rocky-farm.h; tgt=$(realpath "$lnk")
+lnk2=$FARM/include/rocky-fhs.h; tgt2=$(realpath "$lnk2")
+echo "farm: $lnk (${#lnk}) -> $tgt (${#tgt}); $lnk2 (${#lnk2}) -> $(readlink "$lnk2") (${#tgt2})"
+check "farm precondition: the symlinks' realpaths are shorter (gcc then names the header by them)" \
+  '[ -L "$lnk" ] && [[ $tgt == "$FARM_T"/* ]] && (( ${#tgt} < ${#lnk} )) && [ -L "$lnk2" ] && [[ $tgt2 == "$FARM_TF"/usr/include/* ]] && (( ${#tgt2} < ${#lnk2} ))'
+check "control: unwrapped gcc, -isystem farm, only the farm mapped: DWARF names the target store paths" \
+  '"$GCC/bin/gcc" -O0 -g -isystem "$FARM/include" -ffile-prefix-map="$FARM=/usr" -c -o farm-control.o farm.c && x=$(readelf --debug-dump=line farm-control.o) && grep -qF "$FARM_T/include" <<<"$x" && grep -qF "$FARM_TF/usr/include" <<<"$x"'
+check "-isystem farm: the targets' roots are mapped (NIX_DEBUG)" \
+  'x=$(NIX_DEBUG=1 gcc -O0 -g -isystem "$FARM/include" -c -o farm.o farm.c 2>&1) && grep -qxF -- "  -ffile-prefix-map=$FARM_T=/usr" <<<"$x" && grep -qxF -- "  -ffile-prefix-map=$FARM_TF/usr=/usr" <<<"$x"'
+check "-isystem farm: walk cached in \$TMPDIR/.rocky-cc-linkroots" '[ -f "$TMPDIR/.rocky-cc-linkroots/${FARM#/nix/store/}" ]'
+check "-isystem farm: no store path in the DWARF" 'dwarfClean farm.o'
+readelf --debug-dump=line farm.o > line-farm.txt
+check "-isystem farm: line table names /usr/include (no /usr/usr)" 'grep -q "/usr/include$" line-farm.txt && ! grep -q /usr/usr line-farm.txt'
+check "-idirafter farm and joined -isystem<farm> (cached walk): no store path in the DWARF" \
+  'gcc -O0 -g -idirafter "$FARM/include" -c -o farm2.o farm.c && gcc -O0 -g -isystem"$FARM/include" -c -o farm3.o farm.c && dwarfClean farm2.o farm3.o'
+printf 'int main(void) { return rocky_farm(-1); }\n' > use-inc.c
+check "-include <store>/x.h: no store path in the DWARF" \
+  'gcc -O0 -g -include "$FARM_T/include/rocky-farm.h" -c -o inc.o use-inc.c && dwarfClean inc.o'
+check "a source file in the store: no store path in the DWARF, __FILE__ mapped" \
+  'gcc -O0 -g -o src "$FARM_T/rocky-src.c" && dwarfClean src && [ "$(./src)" = /usr/rocky-src.c ]'
+printf '#include "%s/include/rocky-abs.h"\nint main(void) { return rocky_abs(0); }\n' "$ABS_HDR" > abs.c
+check "control: an absolute #include of a store header not in NIX_ROCKY_MAP_ROOTS stays in the DWARF" \
+  'gcc -O0 -g -c -o abs-control.o abs.c && grep -qF "$ABS_HDR" <<<"$(readelf --debug-dump=line abs-control.o)"'
+check "absolute #include of a root in NIX_ROCKY_MAP_ROOTS: no store path in the DWARF" \
+  'NIX_ROCKY_MAP_ROOTS="${NIX_ROCKY_MAP_ROOTS-} $ABS_HDR" gcc -O0 -g -c -o abs.o abs.c && dwarfClean abs.o'
+
+echo "== A: NIX_ENFORCE_PURITY=1 (stdenv) and /usr as the view of declared inputs"
+check "stdenv set NIX_ENFORCE_PURITY=1 and Nix NIX_STORE (the test is meaningful)" \
+  '[ "${NIX_ENFORCE_PURITY-}" = 1 ] && [ -n "${NIX_STORE-}" ]'
+check "cc and ld wrappers keep -I/-isystem/-L/-rpath under /usr (no 'skipping impure path')" \
+  'x=$(NIX_DEBUG=1 gcc -I/usr/include/glib-2.0 -isystem /usr/include/foo -o pur usefoo.c foo.c -L/usr/lib64 -Wl,-rpath,/usr/lib64 2>&1) && ! grep -q "impure path" <<<"$x" && grep -qxF -- "  -I/usr/include/glib-2.0" <<<"$x" && [[ ":$(runpath pur):" == *":/usr/lib64:"* ]]'
+mkdir -p view/include/rockyview view/lib64
+printf 'int rockyview(void);\n' > view/include/rockyview/rockyview.h
+printf 'int rockyview(void) { return 42; }\n' > rv.c
+printf '#include <rockyview.h>\nint main(void) { return rockyview() == 42 ? 0 : 1; }\n' > useview.c
+gcc -O2 -fPIC -shared -Wl,-soname,librockyview.so.1 -o view/lib64/librockyview.so.1 rv.c && ln -sf librockyview.so.1 view/lib64/librockyview.so
+inView() { "$BWRAP" --bind /nix /nix --bind "$NIX_BUILD_TOP" "$NIX_BUILD_TOP" --proc /proc --dev /dev --tmpfs /tmp \
+  --ro-bind "$PWD/view" /usr --chdir "$PWD" -- "$@"; }
+check "in a /usr view (bwrap, stdenv environment): -I/usr/include/x -L/usr/lib64 -rpath /usr/lib64 build, run" \
+  'inView gcc -O2 -I/usr/include/rockyview -o useview useview.c -L/usr/lib64 -lrockyview -Wl,-rpath,/usr/lib64 && inView ./useview && [[ ":$(runpath useview):" == *":/usr/lib64:"* ]]'
 
 echo
 echo "== B: from PATH, empty environment, Rocky %build_cflags/%build_ldflags"
@@ -187,6 +247,8 @@ check "cc / c++ / x86_64-redhat-linux-gcc / cpp work" \
   'rb cc $CFLAGS_R $LDFLAGS_R -o usefoo usefoo.c -L. -lfoo && rb c++ -O2 -o hellocc2 hello.cc && rb x86_64-redhat-linux-gcc -O2 -o hello2 hello.c && rb cpp hello.c > hello.i && rb x86_64-redhat-linux-gcc-14 -O2 -c foo.c -o foo2.o'
 check "as / ld / ar / gcc-ar / nm from PATH" \
   'rb gcc $CFLAGS_R -c foo.c -o foo.o && rb gcc-ar rcs libfoo.a foo.o && rb ar t libfoo.a | grep -qx foo.o && rb nm libfoo.a | grep -q " T foo" && rb as --version >/dev/null && rb ld --version >/dev/null'
+check "slim LTO from PATH: plain ar/nm handle -fno-fat-lto-objects, the archive links" \
+  'rb gcc -O2 -flto -fno-fat-lto-objects -c foo.c -o foo-thin.o && rb ar rcs libthin.a foo-thin.o && grep -q " T foo" <<<"$(rb nm libthin.a)" && rb gcc -O2 -flto -o usethin usefoo.c libthin.a && ./usethin'
 check "C hello (Rocky flags) runs" './hello'
 # With --as-needed the program does not NEED libm.so.6 itself; libstdc++ does,
 # and a DT_RUNPATH only serves the object's own NEEDED entries.  A relocated
@@ -227,11 +289,22 @@ check "C: -static hello builds" 'rc gcc -static -O2 -g -o hello-static hello.c'
 check "C: hello: PT_INTERP is out's loader" '[ "$(interp hello)" = "$LIBC_OUT/lib64/ld-linux-x86-64.so.2" ]'
 check "C: hello32: PT_INTERP is out's 32-bit loader" '[ "$(interp hello32)" = "$LIBC_OUT/lib/ld-linux.so.2" ]'
 check "C: no DT_RPATH" '! hasRpath hello && ! hasRpath hellocc && ! hasRpath hello32'
+for b in hello hellocc hello32; do
+  echo "-- C $b: interp=$(interp $b) runpath=$(runpath $b)"
+  check "C $b: DT_RUNPATH entries are store paths" 'rp=$(runpath $b); [ -n "$rp" ] && ! tr ":" "\n" <<<"$rp" | grep -v "^/nix/store/"'
+done
+for b in hello hellocc; do
+  check "C $b: PIE, BIND_NOW, GNU_RELRO (redhat-hardened specs applied)" \
+    'grep -q "DYN (Position-Independent Executable" <<<"$(readelf -hW $b)" && grep -qE "FLAGS.*BIND_NOW|FLAGS_1.*NOW" <<<"$(readelf -dW $b)" && grep -q GNU_RELRO <<<"$(readelf -lW $b)"'
+done
+readelf --debug-dump=info hello > info-hello.txt 2>/dev/null
+check "C: producer records Rocky's switches, no -frandom-seed, no maps, no store path" \
+  'p=$(grep -m1 DW_AT_producer info-hello.txt) && grep -q -- "-march=x86-64-v3.*-fcf-protection" <<<"$p" && ! grep -qE -- "-frandom-seed|-ffile-prefix-map|/nix/store" <<<"$p"'
 # out/lib64 is the relocated glibc loader's system dir (design §4.2); stage0's
 # loader gets it through LD_LIBRARY_PATH
 check "C: hello runs" 'LD_LIBRARY_PATH=$LIBC_OUT/lib64 ./hello'
 check "C: C++ hello runs" 'LD_LIBRARY_PATH=$LIBC_OUT/lib64 ./hellocc'
-check "C: -m32 hello runs" './hello32 || LD_LIBRARY_PATH=$LIBC_OUT/lib ./hello32'
+check "C: -m32 hello runs (libc.so.6 through DT_RUNPATH out/lib)" './hello32'
 check "C: static hello runs" './hello-static'
 check "C: no store path in the DWARF (full or pieced)" \
   '"$PYTHON" -I "$STORESCAN" --debug-only --input "$WRAPPER_C" --input "$LIBC_OUT" --input "$LIBC_DEV" --input "$GCC" hello hellocc hello32 hello-static'
