@@ -1,0 +1,11 @@
+#!/usr/bin/env python3
+# Entry point: python3 -I <dir>/rocky-partition --plan plan.json [...]
+# (-I ignores PYTHONPATH, so the package next to this file is put on sys.path
+# here; `PYTHONPATH=<dir> python3 -m rocky_partition` works too.)
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
+from rocky_partition.__main__ import main  # noqa: E402
+
+sys.exit(main())
