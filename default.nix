@@ -1,7 +1,8 @@
 # Entry point: returns the Rocky package set. See docs/DESIGN.md.
 { bootPkgs
 , release ? "10.2"
-, kernelHeadersRpm ? null # Rocky kernel-headers RPM for the glibc buildroot (packages/glibc.nix)
+, kernelHeadersRpm ? null # kernel-headers RPM for the glibc buildroot (mkBuildroot rpm spec);
+                          # null: Rocky's, rebuilt from the kernel SRPM (stage0.kernelHeadersBuild)
 }:
 let
   readLock = file: builtins.fromJSON (builtins.readFile (./lock + "/rocky-${release}/${file}"));
@@ -10,12 +11,15 @@ let
   fetch = import ./lib/sources.nix { inherit (bootPkgs) fetchurl; inherit lock rpmsLock; };
 
   # stage0 buildroot machinery (docs/stage0.md)
-  stage0 = import ./bootstrap { pkgs = bootPkgs; inherit lock; inherit (fetch) officialRpms; };
+  stage0 = import ./bootstrap { pkgs = bootPkgs; inherit lock rpmsLock; inherit (fetch) officialRpms; };
 
   # milestone 1: the glibc SRPM rebuilt in stage0 (docs/glibc.md)
   glibc = import ./packages/glibc.nix {
     pkgs = bootPkgs;
-    inherit stage0 rpmsLock kernelHeadersRpm;
+    inherit stage0 rpmsLock;
+    # installed with rpm, so glibc.spec's `rpm -ql kernel-headers` works
+    kernelHeadersRpm = if kernelHeadersRpm != null then kernelHeadersRpm
+      else { from = stage0.kernelHeadersBuild; names = [ "kernel-headers" ]; };
     inherit (fetch) officialRpms;
   };
 

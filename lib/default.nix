@@ -6,7 +6,7 @@
 }:
 let
   inherit (pkgs) lib;
-  fetch = import ./fetch-srpm-seed.nix { inherit pkgs lock; };
+  fetch = import ./srpm.nix { inherit pkgs lock; };
 
   # tools used outside the chroot by the runner
   runnerTools = with pkgs; [ bubblewrap coreutils findutils gnugrep gnused gawk diffutils attr cpio bash ];

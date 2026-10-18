@@ -5,10 +5,11 @@
 , lock                    # parsed lock/rocky-<rel>/srpms.json
 , kernelHeaders ? null    # FHS tree with usr/include/{linux,asm,...}; default: nixpkgs linuxHeaders
 , officialRpms ? null     # lib/sources.nix officialRpms (verification checks only)
+, rpmsLock ? null         # parsed lock/rocky-<rel>/rpms.json: binary names per SRPM (bySrpm)
 }:
 let
   inherit (pkgs) lib;
-  fetch = import ../lib/fetch-srpm-seed.nix { inherit pkgs lock; };
+  fetch = import ../lib/srpm.nix { inherit pkgs lock; };
   srpm = fetch.unpackSrpm;
 
   kh = if kernelHeaders != null then kernelHeaders else import ./kernel-headers.nix { inherit pkgs; };
@@ -154,11 +155,17 @@ let
   srpmBuilds = { rocky-release = release; inherit which; kernel = kernelHeadersBuild; } // macros;
 
   # binary rpm name -> extracted tree (d)
+  # From rpms.json's bySrpm (what Rocky ships from each SRPM), except where
+  # our build deliberately produces a subset: the headers-only kernel build
+  # and go-rpm-macros built for noarch (see macroSrpms).
+  lockNames = srpmName: fallback:
+    if rpmsLock == null then fallback
+    else lib.unique (map (k: rpmsLock.rpms.${k}.name) rpmsLock.bySrpm.${srpmName});
   produces = {
-    rocky-release = [ "rocky-release" "rocky-repos" "rocky-gpg-keys" "rocky-sb-certs" ];
-    which = [ "which" ];
+    rocky-release = lockNames "rocky-release" [ "rocky-release" "rocky-repos" "rocky-gpg-keys" "rocky-sb-certs" ];
+    which = lockNames "which" [ "which" ];
     kernel = [ "kernel-headers" ];
-  } // lib.mapAttrs (n: v: v.names) macroSrpms;
+  } // lib.mapAttrs (n: v: if v ? target then v.names else lockNames n v.names) macroSrpms;
   rpms = lib.foldl' (acc: s: acc // lib.genAttrs produces.${s} (name: rpmTree { build = srpmBuilds.${s}; inherit name; }))
     { } (builtins.attrNames produces);
 

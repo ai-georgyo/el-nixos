@@ -1,8 +1,9 @@
-# Temporary SRPM fetcher driven by the seed lock (lock/rocky-<rel>/srpms.json).
-# The lock-generator track owns lib/fetch-srpm.nix; the integrator reconciles.
+# SRPM helpers over the lock (lock/rocky-<rel>/srpms.json):
 #
-#   fetchSrpm "glibc"  -> /nix/store/...-glibc-2.39-142.el10_2.src.rpm
+#   fetchSrpm "glibc"  -> /nix/store/...-glibc-2.39-142.el10_2.src.rpm   (lib/fetch-srpm.nix, FOD)
 #   unpackSrpm "glibc" -> /nix/store/...-glibc-2.39-142.el10_2-srpm/{glibc.spec,*.tar.xz,*.patch}
+#   distOf "glibc"     -> ".el10_2"
+#   entry "glibc"      -> the lock entry
 { pkgs, lock }:
 let
   inherit (pkgs) lib;
@@ -10,14 +11,7 @@ let
   entry = name:
     lock.srpms.${name} or (throw "SRPM '${name}' is not in the lock (lock/rocky-${lock.release}/srpms.json)");
 
-  fetchSrpm = name:
-    let e = entry name; in
-    pkgs.fetchurl {
-      name = baseNameOf e.path;
-      urls = map (m: "${m}/${e.repo}/source/tree/${e.path}") lock.mirrors;
-      sha256 = e.sha256;
-      passthru = { srpmName = name; lockEntry = e; };
-    };
+  fetchSrpm = import ./fetch-srpm.nix { inherit (pkgs) fetchurl; inherit lock; };
 
   # All files of an SRPM (spec, tarballs, patches) in one directory.
   # bsdtar reads the rpm container directly (no rpm2cpio needed).
