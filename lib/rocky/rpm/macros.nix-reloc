@@ -1,0 +1,159 @@
+# el-nixos: relocation macros for Nix-native builds (docs/nix-native-design.md §1.2).
+#
+# Template: lib/rocky/rpm/nix-scripts/instantiate substitutes, per build,
+#   @PREFIX@    the derivation's main output ($out)        -> %_prefix
+#   @BUILDTOP@  the build's scratch dir ($NIX_BUILD_TOP)   -> %_topdir, %_tmppath
+#   @NCPUS@     $NIX_BUILD_CORES (at least 1)              -> %__smp_use_ncpus
+#   @DIST@      the SRPM's dist tag (lib/srpm.nix distOf)   -> %distcore
+#               (empty: the line is dropped, macros.dist's %distcore .el10 stays)
+# and keeps a `# @@if <path>` ... `# @@endif` block only when <path> exists in
+# the instantiated config (macros.d/macros.systemd: the systemd-rpm-macros
+# overrides apply only where Rocky would define those macros at all).
+# Shipped as <rpm config>/nix/macros.nix-reloc (template); instantiate writes
+# the substituted copy there and APPENDS it to the config's redhat/macros, the
+# last macro file of rpm's macro path inside the config dir, so it is read last.
+#
+# Deviations from the design's §1.2 text, each verified against the stage0
+# macro files (rpm 4.19.1.1, redhat-rpm-config, *-srpm-macros, rocky-release;
+# docs/research/nix-native/experiments/rpmconfig.md):
+#  1. Not in macros.d/.  rpm's macro path is macros, macros.d/macros.*,
+#     platform/%{_target}/macros, fileattrs/*.attr, redhat/macros, /etc/rpm/...:
+#     the platform file (%_prefix /usr, %_oldincludedir /usr/include,
+#     %__spec_install_pre, %__brp_compress) and redhat/macros
+#     (%__spec_install_pre, %__brp_compress without %{_prefix},
+#     %_binary_payload, %_annobin_gcc_plugin, ...) are read after macros.d and
+#     would override a macros.d file (checks.nn-rpm-config has this negative
+#     control: in macros.d, %_prefix stays /usr).
+#  2. %__spec_prep_post: the prep hooks run BEFORE %{___build_post}, which ends
+#     in `exit $RPM_EC` (the design's order never ran them).
+#  3. %__spec_install_pre keeps redhat-rpm-config's
+#     %{?_auto_set_build_flags:%{set_build_flags}} (the design dropped it, which
+#     would change %install's environment: CFLAGS, LDFLAGS, ... unset).
+#  4. %dist is not overridden: 1906 of 2217 Rocky 10.2 SRPMs are .el10, not
+#     .el10_2.  %distcore is set per build (@DIST@), which keeps macros.dist's
+#     %distprefix/%distsuffix/~bootstrap logic.
+#  5. %_rpmconfigdir is not redefined: it is %{getconfdir} (rpm's compiled-in
+#     /usr/lib/rpm, or $RPM_CONFIGDIR when the config is used from the store,
+#     e.g. `rpm -qp` by the partitioner), never derived from %_prefix.
+#  6. %_dbpath added: %{_usr}/lib/sysimage/rpm would follow %_usr into $out.
+#  7. %_annotated_build is left alone: redhat-rpm-config tests it with
+#     %{?_annotated_build:...} (definedness, not value), so `0` changes nothing;
+#     emptying %_annobin_gcc_plugin is what stage0 (bootstrap/macros.stage0)
+#     does, and keeps the flags identical to the FHS builds.
+#  8. systemd-rpm-macros (not in stage0) does NOT derive its directories from
+#     %_prefix: Rocky's macros.systemd (257-23.el10_2.2.rocky.0.1) has literal
+#     `%_unitdir /usr/lib/systemd/system` etc. (systemd's meson substitutes
+#     them).  Its 21 directory macros are overridden here, in a block kept only
+#     when macros.d/macros.systemd is present (without systemd-rpm-macros,
+#     Rocky leaves %_unitdir undefined, and specs test %{?_unitdir}).  The
+#     scriptlet bodies (%systemd_post: /usr/lib/systemd/systemd-update-helper)
+#     are run-time paths on the installed system and stay.  checks.nn-rpm-config
+#     uses the locked Rocky RPM.
+#  9. %__smp_use_ncpus is rpm's, with @NCPUS@ instead of %{getncpus}: the design's
+#     fixed `%_smp_build_ncpus @NCPUS@` bypassed %_smp_ncpus_max (and with it
+#     %constrain_build) and left %_smp_build_nthreads at the host's CPU count.
+#     An exported $RPM_BUILD_NCPUS still wins, as in rpm.
+# 10. SOURCE_DATE_EPOCH: rpm sets it from the changelog only when it is not in
+#     the environment; Nix's stdenv exports SOURCE_DATE_EPOCH=315532800, which
+#     then wins (BUILDTIME and file mtimes 1980).  The caller runs rpmbuild with
+#     SOURCE_DATE_EPOCH unset (env -u) to get the changelog date like M1's
+#     buildSrpm; checks.nn-rpm-config asserts both cases.
+
+# ---- install / compile prefix: the derivation's main output ----------------
+%_prefix                 @PREFIX@
+%_exec_prefix            %{_prefix}
+%_usr                    %{_prefix}
+%_prefix_rel             %{lua:print((rpm.expand('%{_prefix}'):gsub('^/+', '')))}
+%_lib                    lib64
+# derived (unchanged definitions, listed for clarity):
+#   _bindir _sbindir _libdir _libexecdir _datadir _includedir _infodir _mandir
+#   _defaultdocdir _docdir _defaultlicensedir _licensedir
+%_oldincludedir          %{_includedir}
+%_sysusersdir            %{_prefix}/lib/sysusers.d
+%_rpmmacrodir            %{_prefix}/lib/rpm/macros.d
+%rpmmacrodir             %{_rpmmacrodir}
+%_rpmluadir              %{_prefix}/lib/rpm/lua
+%_fontbasedir            %{_datadir}/fonts
+%_fontconfig_templatedir %{_datadir}/fontconfig/conf.avail
+%_pam_moduledir          %{_libdir}/security
+%gopath                  %{_datadir}/gocode
+# systemd-rpm-macros' directories (macros.d/macros.systemd, all literal /usr
+# there): $out/lib/systemd/..., $out/lib/udev/... (= nixpkgs layout; NixOS
+# systemd.packages / services.udev.packages consume it).  %_sysusersdir is
+# rpm's own (above) and also defined by macros.systemd.
+# @@if macros.d/macros.systemd
+%_systemd_util_dir                 %{_prefix}/lib/systemd
+%_unitdir                          %{_prefix}/lib/systemd/system
+%_userunitdir                      %{_prefix}/lib/systemd/user
+%_presetdir                        %{_prefix}/lib/systemd/system-preset
+%_userpresetdir                    %{_prefix}/lib/systemd/user-preset
+%_udevhwdbdir                      %{_prefix}/lib/udev/hwdb.d
+%_udevrulesdir                     %{_prefix}/lib/udev/rules.d
+%_journalcatalogdir                %{_prefix}/lib/systemd/catalog
+%_kernel_install_dir               %{_prefix}/lib/kernel/install.d
+%_binfmtdir                        %{_prefix}/lib/binfmt.d
+%_sysctldir                        %{_prefix}/lib/sysctl.d
+%_tmpfilesdir                      %{_prefix}/lib/tmpfiles.d
+%_user_tmpfilesdir                 %{_datadir}/user-tmpfiles.d
+%_environmentdir                   %{_prefix}/lib/environment.d
+%_modulesloaddir                   %{_prefix}/lib/modules-load.d
+%_modprobedir                      %{_prefix}/lib/modprobe.d
+%_systemdgeneratordir              %{_prefix}/lib/systemd/system-generators
+%_systemdusergeneratordir          %{_prefix}/lib/systemd/user-generators
+%_systemd_system_env_generator_dir %{_prefix}/lib/systemd/system-environment-generators
+%_systemd_user_env_generator_dir   %{_prefix}/lib/systemd/user-environment-generators
+# @@endif
+
+# ---- runtime FHS: stays FHS (defaults installed into <output>/etc etc.) ------
+%_sysconfdir             /etc
+%_localstatedir          /var
+%_sharedstatedir         /var/lib
+%_rundir                 /run
+%_runstatedir            /run
+%_initddir               %{_sysconfdir}/rc.d/init.d
+%_pam_confdir            %{_sysconfdir}/pam.d
+%_usrsrc                 /usr/src
+#   (debugedit maps comp dirs to %_usrsrc/debug/<nvra>; FHS keeps store paths out
+#    of DWARF; sources land in the debug output under src/debug)
+%_dbpath                 /usr/lib/sysimage/rpm
+
+# ---- engine/tool macros that must NOT follow the prefix ---------------------
+%__perl                  /usr/bin/perl
+%__plugindir             /usr/lib64/rpm-plugins
+%_buildshell             /bin/sh
+
+# ---- build plumbing ----------------------------------------------------------
+%_topdir                 @BUILDTOP@/rpmbuild
+%_tmppath                @BUILDTOP@/tmp
+# rpm's %__smp_use_ncpus (macros), %{getncpus %{?1}} -> @NCPUS@
+%__smp_use_ncpus() %([ -z "$RPM_BUILD_NCPUS" ] \\\
+	&& RPM_BUILD_NCPUS="@NCPUS@"; \\\
+        ncpus_max=%{?_smp_ncpus_max}; \\\
+        if [ -n "$ncpus_max" ] && [ "$ncpus_max" -gt 0 ] && [ "$RPM_BUILD_NCPUS" -gt "$ncpus_max" ]; then RPM_BUILD_NCPUS="$ncpus_max"; fi; \\\
+        echo "$RPM_BUILD_NCPUS";)
+%_binary_payload         w0.ufdio
+%_source_payload         w0.ufdio
+%distcore                @DIST@
+%_buildhost              el-nixos.localdomain
+# (effective only with SOURCE_DATE_EPOCH unset in rpmbuild's environment, item 10)
+%source_date_epoch_from_changelog   1
+%use_source_date_epoch_as_buildtime 1
+%clamp_mtime_to_source_date_epoch   1
+%__brp_compress          %{_rpmconfigdir}/brp-compress %{_prefix}
+%__check_files           %{_rpmconfigdir}/nix/check-files %{buildroot} %{_prefix}
+%__spec_prep_post        %{_rpmconfigdir}/nix/prep-hooks "%{_builddir}/%{?buildsubdir}"\
+%{___build_post}
+%__spec_install_pre      %{___build_pre}\
+    [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf "${RPM_BUILD_ROOT}"\
+    mkdir -p "`dirname "$RPM_BUILD_ROOT"`"\
+    mkdir "$RPM_BUILD_ROOT"\
+    %{_rpmconfigdir}/nix/fold-usr "$RPM_BUILD_ROOT" "%{_prefix}"\
+    %{?_auto_set_build_flags:%{set_build_flags}}\
+%{nil}
+%__spec_install_post     %{_rpmconfigdir}/nix/fold-usr "$RPM_BUILD_ROOT" "%{_prefix}"\
+    %{?__debug_package:%{__debug_install_post}}\
+    %{__arch_install_post}\
+    %{__os_install_post}\
+%{nil}
+# annobin: no plugin until the stage has a Rocky annobin for its gcc (as stage0)
+%_annobin_gcc_plugin     %{nil}

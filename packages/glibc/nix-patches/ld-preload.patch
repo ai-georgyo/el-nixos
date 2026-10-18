@@ -1,0 +1,17 @@
+P3 (design §4.3): /etc/ld.so.preload -> /etc/ld-nix.so.preload, so a host
+preload file never injects host DSOs into processes of the relocated glibc
+(same name as nixpkgs: NixOS's environment.etc."ld-nix.so.preload" works).
+Rebased from nixpkgs 26f4107e47e3 pkgs/development/libraries/glibc/dont-use-system-ld-so-preload.patch
+onto Rocky glibc-2.39-142.el10_2 after %prep; same change, no others.
+
+--- a/elf/rtld.c
++++ b/elf/rtld.c
+@@ -1892,7 +1892,7 @@
+      open().  So we do this first.  If it succeeds we do almost twice
+      the work but this does not matter, since it is not for production
+      use.  */
+-  static const char preload_file[] = "/etc/ld.so.preload";
++  static const char preload_file[] = "/etc/ld-nix.so.preload";
+   if (__glibc_unlikely (__access (preload_file, R_OK) == 0))
+     {
+       /* Read the contents of the file.  */

@@ -1,0 +1,3 @@
+# rpmConfig extraMacroDirs test (checks.nn-rpm-config): a plain directory of
+# macro files lands in the config's macros.d.
+%nn_extra_dir_macro %{_libdir}/nn-extra

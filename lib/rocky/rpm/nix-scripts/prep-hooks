@@ -1,0 +1,29 @@
+#!/usr/bin/bash
+# prep-hooks DIR   (docs/nix-native-design.md §1.2, §4.3)
+#
+# Run at the end of %prep (%__spec_prep_post), in the unpacked source DIR
+# (%{_builddir}/%{buildsubdir}): Nix-side patches and fixups without editing
+# the spec's patch list.
+#   NIX_PREP_PATCHES  whitespace-separated patch files, applied in order with
+#                     `patch -p1` (a patch that does not apply cleanly fails
+#                     the build)
+#   NIX_PREP_SCRIPT   a shell script FILE, run with `bash -e` in DIR
+# Both unset: no-op.
+set -euo pipefail
+die() { echo "prep-hooks: $*" >&2; exit 1; }
+[ $# -eq 1 ] || die "usage: prep-hooks DIR"
+patches=${NIX_PREP_PATCHES:-}
+script=${NIX_PREP_SCRIPT:-}
+[ -n "${patches//[[:space:]]/}" ] || [ -n "$script" ] || exit 0
+[ -d "$1" ] || die "source directory '$1' does not exist"
+cd "$1"
+for p in $patches; do
+  [ -f "$p" ] || die "patch '$p' not found"
+  echo "prep-hooks: applying ${p##*/}" >&2
+  patch -p1 --batch --forward --no-backup-if-mismatch -i "$p" || die "${p##*/} does not apply"
+done
+if [ -n "$script" ]; then
+  [ -f "$script" ] || die "NIX_PREP_SCRIPT '$script' is not a file"
+  echo "prep-hooks: running ${script##*/}" >&2
+  bash -e "$script" || die "${script##*/} failed"
+fi

@@ -48,6 +48,22 @@ deps.json.gz (NOT read by Nix; input for tools/resolve-buildrequires.py)
     symbol-versioning deps ``kernel(...)`` / ``ksym(...)`` are dropped (they are
     >90% of all provides and only matter for kmod packages).
 
+Derived files (docs/nix-native-design.md §3.2, §8.2; skipped with
+--no-derived, regenerated alone from the committed lock with --derived-only):
+
+builddeps.json  per SRPM the direct providers of every BuildRequire (published
+                RPMs, else unshipped subpackages from subpackages.json),
+                providers tagged tool/lib/macro from the official
+                filelists.xml (tools/lock_builddeps.py, tools/lock_filelists.py;
+                the filelists must come from the snapshot rpms.json records,
+                else --allow-missing-filelists)
+order.json      SRPM build graph, edge classes, feedback-arc set, build order
+                (tools/lock_order.py; verified by checks.nn-order)
+subpackages.json  rpmspec -q results per SRPM.  These need nix builds and
+                are produced by tools/lock_subpackages.py (incremental); this
+                tool only drops entries whose SRPM EVR changed and re-derives
+                the repodata-dependent fields (shipped, prefix).
+
 All output is deterministic: sorted keys, fixed formatting, no timestamps other
 than the repomd revision/timestamps recorded as provenance in rpms.json.
 """
@@ -250,6 +266,20 @@ _VERCMP_TESTS = [
 ]
 
 
+def helpers():
+    """The tools/lock_*.py helper modules (imported lazily: the plain
+    repodata path does not need them)."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    if here not in sys.path:
+        sys.path.insert(0, here)  # -I drops the script dir from sys.path
+    sys.dont_write_bytecode = True
+    import lock_builddeps
+    import lock_filelists
+    import lock_order
+    import lock_subpackages
+    return lock_filelists, lock_builddeps, lock_order, lock_subpackages
+
+
 def self_test():
     bad = 0
     for a, b, want in _VERCMP_TESTS:
@@ -266,7 +296,10 @@ def self_test():
             log("FAIL evrcmp(%r, %r) = %d, want %d" % (a, b, got, want))
             bad += 1
     log("self-test: %d failures (%d cases)" % (bad, len(_VERCMP_TESTS) + 5))
-    return bad == 0
+    _fl, bd, order, sub = helpers()
+    hbad = bd.selftest() + order.selftest() + sub.selftest()
+    log("self-test (lock_builddeps, lock_order, lock_subpackages): %d failures" % hbad)
+    return bad == 0 and hbad == 0
 
 
 # --------------------------------------------------------------------------
@@ -305,15 +338,21 @@ def fetch_first(mirrors, relpath):
 def get_primary(mirrors, repo, tree, cache_dir):
     """Download repomd.xml + primary.xml.gz (cached by checksum, verified).
     Returns (path to primary.xml.gz, provenance dict)."""
+    return get_repodata(mirrors, repo, tree, cache_dir, "primary")
+
+
+def get_repodata(mirrors, repo, tree, cache_dir, kind):
+    """Download repomd.xml + the <kind> (primary, filelists) metadata file,
+    cached by checksum and verified.  Returns (path, provenance dict)."""
     base = "%s/%s" % (repo, TREES[tree])
     repomd, url = fetch_first(mirrors, base + "/repodata/repomd.xml")
     root = ET.fromstring(repomd)
     revision = root.findtext(NS_REPO + "revision")
     for data in root.findall(NS_REPO + "data"):
-        if data.get("type") == "primary":
+        if data.get("type") == kind:
             break
     else:
-        raise RuntimeError("no primary in " + url)
+        raise RuntimeError("no %s in %s" % (kind, url))
     ck = data.find(NS_REPO + "checksum")
     if ck.get("type") != "sha256":
         raise RuntimeError("unsupported checksum type %s in %s" % (ck.get("type"), url))
@@ -321,7 +360,7 @@ def get_primary(mirrors, repo, tree, cache_dir):
     href = data.find(NS_REPO + "location").get("href")
     ts = int(data.findtext(NS_REPO + "timestamp") or 0)
     os.makedirs(cache_dir, exist_ok=True)
-    dest = os.path.join(cache_dir, "%s-%s-%s-primary.xml.gz" % (repo, tree, sha))
+    dest = os.path.join(cache_dir, "%s-%s-%s-%s.xml.gz" % (repo, tree, sha, kind))
     if os.path.exists(dest) and sha256_file(dest) == sha:
         log("  cached   %s %s" % (base, sha[:12]))
     else:
@@ -334,7 +373,14 @@ def get_primary(mirrors, repo, tree, cache_dir):
         with open(tmp, "wb") as f:
             f.write(blob)
         os.replace(tmp, dest)
-    return dest, {"revision": revision, "primary": sha, "timestamp": ts}
+    prov = {"revision": revision, kind: sha, "timestamp": ts}
+    if kind != "primary":
+        # the primary checksum of the same repomd.xml: lets callers check that
+        # <kind> belongs to the snapshot rpms.json was made from
+        for d in root.findall(NS_REPO + "data"):
+            if d.get("type") == "primary":
+                prov["primary"] = d.find(NS_REPO + "checksum").text.strip()
+    return dest, prov
 
 
 def sha256_file(p):
@@ -531,6 +577,33 @@ def dist_for(release):
     return ".el%s" % parts[0]
 
 
+def write_derived(outdir, rel, cache, allow_missing=False):
+    """builddeps.json + order.json from the lock files in outdir, and the
+    subpackages.json refresh (see the module docstring)."""
+    fl, bd, order, sub = helpers()
+    with open(os.path.join(outdir, "rpms.json")) as f:
+        rpms_doc = json.load(f)
+    try:
+        summary = fl.file_summary(sys.modules[__name__], rpms_doc, cache,
+                                  allow_missing=allow_missing)
+    except fl.FilelistsError as e:
+        raise SystemExit("error: %s (derived files not written)" % e)
+    # subpackages.json first: builddeps resolves what no shipped RPM provides
+    # against the (unshipped) subpackage names
+    missing = sub.refresh(outdir, rel, rpms_doc, summary)
+    doc = bd.generate(outdir, summary)
+    p = os.path.join(outdir, "builddeps.json")
+    write_text(p, dump_one_per_line(doc))
+    log("wrote %s (%d bytes)" % (p, os.path.getsize(p)))
+    odoc = order.compute(doc)
+    p = os.path.join(outdir, "order.json")
+    write_text(p, dump_one_per_line(odoc))
+    log("wrote %s: %s" % (p, json.dumps(odoc["stats"], sort_keys=True)))
+    if missing:
+        log("subpackages.json: %d SRPMs without an rpmspec result: run "
+            "python3 -I tools/lock_subpackages.py --stale" % missing)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--release", default=DEFAULT_RELEASE)
@@ -543,7 +616,15 @@ def main(argv=None):
                          "default: dl.rockylinux.org pub + vault)")
     ap.add_argument("--keep-kernel-abi", action="store_true",
                     help="keep kernel(...)/ksym(...) deps in deps.json.gz")
-    ap.add_argument("--self-test", action="store_true", help="run rpmvercmp tests and exit")
+    ap.add_argument("--self-test", action="store_true", help="run the self-tests and exit")
+    ap.add_argument("--no-derived", action="store_true",
+                    help="only srpms.json, rpms.json, deps.json.gz")
+    ap.add_argument("--derived-only", action="store_true",
+                    help="only regenerate builddeps.json/order.json and refresh "
+                         "subpackages.json from the committed lock files")
+    ap.add_argument("--allow-missing-filelists", action="store_true",
+                    help="derived files: warn instead of failing when the filelists do not "
+                         "match the locked repodata (tags/prefixes then degrade)")
     args = ap.parse_args(argv)
 
     if args.self_test:
@@ -562,6 +643,9 @@ def main(argv=None):
     cache = args.cache_dir or os.path.join(".cache", "repodata", rel)
     outdir = os.path.join(args.out, "rocky-%s" % rel)
     os.makedirs(outdir, exist_ok=True)
+    if args.derived_only:
+        write_derived(outdir, rel, cache, args.allow_missing_filelists)
+        return 0
 
     stats = {"srpm_entries": 0, "rpm_entries": 0, "dropped_arch": {}}
     srpms, rpms, deps, prov = {}, {}, {}, {}
@@ -625,6 +709,8 @@ def main(argv=None):
     for p in (p_srpms, p_rpms, p_deps):
         log("wrote %s (%d bytes)" % (p, os.path.getsize(p)))
     log("      (deps.json uncompressed: %d bytes)" % raw)
+    if not args.no_derived:
+        write_derived(outdir, rel, cache, args.allow_missing_filelists)
     return 0
 
 

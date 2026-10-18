@@ -1,0 +1,13 @@
+# E2: re-establish %buildroot/usr -> <prefix> after %install (specs that
+# `rm -rf %buildroot`, e.g. sed): merge a real usr/ into the prefix first.
+# From [SG] realias; the real one is WP2's fold-usr.  $1 = BUILDROOT, $2 = prefix.
+set -euo pipefail
+BR=$1 P=$2
+mkdir -p "$BR$P"
+[ -L "$BR/usr" ] && exit 0
+if [ -d "$BR/usr" ]; then
+  echo "e2: %buildroot/usr is a real directory (spec removed the alias); merging it into $P" >&2
+  (cd "$BR/usr" && find . -mindepth 1 -maxdepth 1 -exec cp -a -t "$BR$P/" {} +)
+  rm -rf "$BR/usr"
+fi
+ln -s "${P#/}" "$BR/usr"

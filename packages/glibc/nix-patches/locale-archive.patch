@@ -1,0 +1,129 @@
+P2 (design §4.3): the locale archive is looked up in $LOCALE_ARCHIVE_2_27,
+then $LOCALE_ARCHIVE (secure_getenv: ignored for setuid programs), then --
+inherited unchanged from nixpkgs -- /run/current-system/sw/lib/locale/locale-archive
+(NixOS) and /usr/lib/locale/locale-archive (FHS host), then the compiled-in
+$prefix/lib/locale/locale-archive.  The archive (glibc-all-langpacks) is a
+separate output, so the compiled-in path is not where it lives
+(runtimeSearchPaths: LOCALE_ARCHIVE).
+Rebased from nixpkgs 26f4107e47e3 pkgs/development/libraries/glibc/nix-locale-archive.patch
+onto Rocky glibc-2.39-142.el10_2 after %prep; same changes, no others.
+
+--- a/locale/loadarchive.c
++++ b/locale/loadarchive.c
+@@ -123,6 +123,25 @@
+   return MAX (namehash_end, MAX (string_end, locrectab_end));
+ }
+ 
++static int
++open_locale_archive (void)
++{
++  int fd = -1;
++  char *versioned_path = secure_getenv ("LOCALE_ARCHIVE_2_27");
++  char *path = secure_getenv ("LOCALE_ARCHIVE");
++  if (versioned_path)
++    fd = __open_nocancel (versioned_path, O_RDONLY|O_LARGEFILE|O_CLOEXEC);
++  if (path && fd < 0)
++    fd = __open_nocancel (path, O_RDONLY|O_LARGEFILE|O_CLOEXEC);
++  if (fd < 0)
++    fd = __open_nocancel("/run/current-system/sw/lib/locale/locale-archive", O_RDONLY|O_LARGEFILE|O_CLOEXEC);
++  if (fd < 0)
++    fd = __open_nocancel ("/usr/lib/locale/locale-archive", O_RDONLY|O_LARGEFILE|O_CLOEXEC);
++  if (fd < 0)
++    fd = __open_nocancel (archfname, O_RDONLY|O_LARGEFILE|O_CLOEXEC);
++  return fd;
++}
++
+ 
+ /* Find the locale *NAMEP in the locale archive, and return the
+    internalized data structure for its CATEGORY data.  If this locale has
+@@ -202,7 +221,7 @@
+       archmapped = &headmap;
+ 
+       /* The archive has never been opened.  */
+-      fd = __open_nocancel (archfname, O_RDONLY|O_LARGEFILE|O_CLOEXEC);
++      fd = open_locale_archive ();
+       if (fd < 0)
+ 	/* Cannot open the archive, for whatever reason.  */
+ 	return NULL;
+@@ -397,8 +416,7 @@
+ 	  if (fd == -1)
+ 	    {
+ 	      struct __stat64_t64 st;
+-	      fd = __open_nocancel (archfname,
+-				    O_RDONLY|O_LARGEFILE|O_CLOEXEC);
++	      fd = open_locale_archive();
+ 	      if (fd == -1)
+ 		/* Cannot open the archive, for whatever reason.  */
+ 		return NULL;
+--- a/locale/programs/locale.c
++++ b/locale/programs/locale.c
+@@ -633,6 +633,26 @@
+ 
+ 
+ static int
++open_locale_archive (void)
++{
++  int fd = -1;
++  char *versioned_path = secure_getenv ("LOCALE_ARCHIVE_2_27");
++  char *path = secure_getenv ("LOCALE_ARCHIVE");
++  if (versioned_path)
++    fd = open64 (versioned_path, O_RDONLY);
++  if (path && fd < 0)
++    fd = open64 (path, O_RDONLY);
++  if (fd < 0)
++    fd = open64 ("/run/current-system/sw/lib/locale/locale-archive", O_RDONLY|O_LARGEFILE|O_CLOEXEC);
++  if (fd < 0)
++    fd = open64 ("/usr/lib/locale/locale-archive", O_RDONLY);
++  if (fd < 0)
++    fd = open64 (ARCHIVE_NAME, O_RDONLY);
++  return fd;
++}
++
++
++static int
+ write_archive_locales (void **all_datap, char *linebuf)
+ {
+   struct stat64 st;
+@@ -644,7 +664,7 @@
+   int fd, ret = 0;
+   uint32_t cnt;
+ 
+-  fd = open64 (ARCHIVE_NAME, O_RDONLY);
++  fd = open_locale_archive ();
+   if (fd < 0)
+     return 0;
+ 
+--- a/locale/programs/locarchive.c
++++ b/locale/programs/locarchive.c
+@@ -116,6 +116,22 @@
+ }
+ 
+ 
++static int
++open_locale_archive (const char * archivefname, int flags)
++{
++  int fd = -1;
++  char *versioned_path = secure_getenv ("LOCALE_ARCHIVE_2_27");
++  char *path = secure_getenv ("LOCALE_ARCHIVE");
++  if (versioned_path)
++    fd = open64 (versioned_path, flags);
++  if (path && fd < 0)
++    fd = open64 (path, flags);
++  if (fd < 0)
++    fd = open64 (archivefname, flags);
++  return fd;
++}
++
++
+ static void
+ create_archive (const char *archivefname, struct locarhandle *ah)
+ {
+@@ -577,7 +593,7 @@
+   while (1)
+     {
+       /* Open the archive.  We must have exclusive write access.  */
+-      fd = open64 (archivefname, readonly ? O_RDONLY : O_RDWR);
++      fd = open_locale_archive (archivefname, readonly ? O_RDONLY : O_RDWR);
+       if (fd == -1)
+ 	{
+ 	  /* Maybe the file does not yet exist? If we are opening

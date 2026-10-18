@@ -1,0 +1,24 @@
+{
+ "ncurses": {
+  "_prefixSub": "ncurses-base",
+  "runtimeSearchPaths": {"share/terminfo": "TERMINFO_DIRS"},
+  "prefixRelativeOk": ["dev:bin/ncurses*-config"]
+ },
+ "ncurses:eponymous-terminfo": {"runtimeSearchPaths": {"share/terminfo": "TERMINFO_DIRS"}},
+ "ncurses:base-terminfo": {"_prefixSub": "ncurses-base", "runtimeSearchPaths": {"share/terminfo": "TERMINFO_DIRS"}},
+ "ncurses:merge": {
+  "mergeOutputs": [["ncurses", "ncurses-libs", "ncurses-base"]],
+  "runtimeSearchPaths": {"share/terminfo": "TERMINFO_DIRS"}
+ },
+ "krb5": {
+  "prefixRelativeOk": ["dev:bin/krb5-config", "tests"],
+  "danglingOk": ["lib64/gss"],
+  "unionDirs": {"lib64/krb5/plugins": "plugin dirs of pkinit/server/server_ldap/xrealmauthz: krb5.conf [plugins] module paths or a profile"},
+  "mergeOutputs": [["krb5-libs", "libkadm5", "krb5-server"]]
+ },
+ "krb5:nomerge": {
+  "prefixRelativeOk": ["dev:bin/krb5-config", "tests"],
+  "danglingOk": ["lib64/gss"],
+  "unionDirs": {"lib64/krb5/plugins": "plugin dirs of pkinit/server/server_ldap/xrealmauthz: krb5.conf [plugins] module paths or a profile"}
+ }
+}
