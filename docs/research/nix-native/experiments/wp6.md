@@ -179,7 +179,44 @@ nixpkgs gpgv), gnupg, python3, bsdtar; FHS bins: stage0 rpm, debugedit.
 
 ## Hand-off requests: addressed / rejected
 
-HANDOFF_PLACEHOLDER
+Requests from `foundation-handoff.md` that concern WP6 (or that WP6, as the
+integration owner of `lib/rocky/**`, `tools/rocky-partition/**`,
+`bootstrap/nn/**`, took over):
+
+| from | request | status |
+|---|---|---|
+| cc | Phase E: drop RUNPATH entries for -L dirs that hold only scripts/links (`$dev/lib64`, the gcc lib dir) | **done by Phase E as is** (RUNPATH is recomputed from DT_NEEDED; which/xz/zlib-ng: no self rpath, no gcc dir left). Its foreign-path check was wrong for exactly these entries: fixed (deviation 7) |
+| cc | cc wrapper first on PATH | done (first nativeBuildInput; first in the view's /usr/bin) |
+| cc | NIX_NO_SELF_RPATH / NIX_DONT_SET_RPATH as derivation attributes | done: identifier `env` keys go into the structured `env` (exported before the setup hooks run) |
+| cc | consider strictDeps | done (`strictDeps = true`): nixpkgs tools no longer reach NIX_CFLAGS_COMPILE, HOST_PATH = runtime inputs |
+| cc | keep declared inputs as stdenv deps / let NIX_ROCKY_MAP_ROOTS pass through bwrap and rpmbuild | done (the shim passes the environment; host inputs are buildInputs; the libc's dev is in the view) |
+| shim/cc | `-ffile-prefix-map=$out=/usr` while prefixView | done in mkRpmPackage: `$out` appended to NIX_ROCKY_MAP_ROOTS for the rpmbuild call; which's debug info names only /usr/include (checked) |
+| shim/rpmconfig | macro file in redhat/macros, not macros.d; `--load` unusable | done (rpmConfig's instantiate) |
+| shim/partition | config.site must end with exit status 0 | done (`true` appended to lib/rocky/config.site; checks.nn-rpm-config still green) |
+| shim/partition | QA_RPATHS=0x0002 | done (`env.QA_RPATHS = "0x0002"`) |
+| shim/rpmconfig | /sbin/ldconfig (Rocky's static) and gpgv2 on PATH; bash at /usr/bin/bash | done (S1 baseTools: stage0 ldconfig, gpgv2 link, bash) |
+| shim | run rpmbuild as `${toolShim} -- rpmbuild` with rockyViewInputs, RPM_CONFIG_DIR, ROCKY_PREFIX_VIEW; $out empty before | done |
+| shim | library rule: every view input with shared libraries is also a cc-wrapper input | done by construction (deviation 2) |
+| shim | partitioner: report $out/<rel> references that exist in the view but not in the outputs | already covered by Phase D case 4 (`dangling`, "view leak?"); file-granular DWARF check not added (open) |
+| shim | NEEDED-resolution guard | Phase E's `unresolved-needed` error is that guard for every patched ELF; `noPatchelf` files (glibc's loader, libc) are not resolved (open, low risk) |
+| shim | self-RPATH must be the owning output's lib64 | done by Phase E (xz: `$lib/lib64`) |
+| shim | `%{name}` in the store name breaks specs that sed paths by package name (krb5) | not addressed (krb5 is not in S1); needs a packages/krb5 override |
+| shim | `ROCKY_PREFIX_VIEW_DIRS` per package | not exposed as an override (not needed so far) |
+| partition | `prefixRelativeOk` and `integrityOk` override keys; pass the PLAN.md keys | done (overrides.nix, README-overrides.md, plan) |
+| partition | invoke `python3 -I <tool>/rocky-partition --plan …` (not `-m`), keep BUILDROOT/RPMS (--noclean) | done |
+| partition | check-files must also map a real BUILDROOT/usr (libxcrypt) | not addressed (libxcrypt not in S1) |
+| partition | spec-hazards lint (krb5 sed, gnutls .hmac sed) | not addressed (no lint tool yet) |
+| glibc | non-identifier `env` keys via `env 'k=v' rpmbuild`, never structured env; assert in overrides.nix | done (`rockyRpmbuildEnv` associative array; overrides.nix validates env key syntax). Evaluated for rockyBoot.s1.glibc: `user-defined-trusted-dirs` is on the command line, not in `env` |
+| glibc | lateBind exempts the raw late outputs' unresolved NEEDED and FHS shebangs (S3) | the partitioner already does both (`unresolved-needed` info for lateBind outputs with libs; `fhs-shebang` info for lateBind interpreters): S3 needs neither allowUnresolvedNeeded nor fhsAllowlist for those outputs |
+| glibc | opaqueRefs format | settled (deviation 9) |
+| glibc | what S3a's glibcBuildDeps provides | not decided here (S3 does not exist); S1's is the hoisted stage0 tree, build-only |
+| lock/rpmconfig | %distcore, never %dist; `--dist distOf` | done |
+| rpmconfig | SOURCE_DATE_EPOCH unset for rpmbuild | done (`env -u SOURCE_DATE_EPOCH`) |
+| purity | `purityChecker = purity.forStage <stage>` once per stage; allowedBuildDrvs via drvSet; stdenv/stdenvNoCC on the stage; buildPure for S3/S4 | done in mkStage (buildPure is a parameter; S1 false). `nn.purity.violations nn.stages.s1 rockyBoot.s1.which` lists 799 entries (nixpkgs tools: S1 is not build-pure, as designed) |
+| purity | wrap with `purity.check`; out first in outputs | done |
+| names | multiple-outputs.sh hooks off; `checkOutputs`; rpmOutputs for the plan, shippedRpmOutputs for aliases | done (`stage.rpm` keys = shipped names from the lock) |
+| names | partitioner hooks: provider/yieldsTo contract | not done (deviation 11) |
+
 
 ## Open
 

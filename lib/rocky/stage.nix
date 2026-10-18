@@ -25,6 +25,8 @@
 #                             configure records FHS interpreter paths that
 #                             patchShebangs/lateBind bind later (§5.4); false =
 #                             the store PATH
+#     defines ? { }           rpmbuild --define for every package of the stage
+#                             (a package's own `defines` win)
 #     fallback ? { }          BuildRequires (rpm names) the stage does not build:
 #                             <rpm> = { native ? [ ]; host ? [ ]; view ? [ ];
 #                                       macroDirs ? [ ]; reason; }
@@ -85,6 +87,7 @@
 , python3
 , bsdtar
 , fhsPath ? true
+, defines ? { }
 , fallback ? { }
 , usesStagePackage ? (srpm: provider: true)
 , exceptionsFor ? (srpm: [ ])
@@ -100,7 +103,7 @@
 }:
 let
   self = {
-    inherit name stdenv buildPure fhsPath rpmBin rpmLibDir rpmConfig toolShim patchelf
+    inherit name stdenv buildPure fhsPath defines rpmBin rpmLibDir rpmConfig toolShim patchelf
       python3 bsdtar fhsBins ccFor libcFor libcSrpm exceptionsFor purity fallback packages;
     stdenvNoCC = stdenv;
     rpmPkg = rpm;   # the rpm package (`rpm` is the RPM-name alias set)

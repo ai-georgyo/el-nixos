@@ -17,6 +17,7 @@ import os
 import shutil
 import stat
 import subprocess
+import re
 import sys
 import traceback
 
@@ -609,8 +610,79 @@ def t_plan_errors():
     true("unknown plan keys: noSuchKey" in c.stderr, c.stderr)
 
 
+def t_cmake_export():
+    """install(EXPORT) file in -devel with set(_IMPORT_PREFIX "<P>"): the
+    ${_IMPORT_PREFIX} uses are written out and classified (headers -> $dev,
+    the library stays in out), the definition is acked (WP6, zlib-ng)"""
+    c = Case("cmakeexport")
+    c.sub("foo").sub("foo-devel", ["foo"])
+    c.cc("foo", "lib64/libfoo.so.1.0", LIB_SRC, ["-Wl,-soname,libfoo.so.1"], shared=True)
+    c.link("foo", "lib64/libfoo.so.1", "libfoo.so.1.0")
+    c.link("foo-devel", "lib64/libfoo.so", "libfoo.so.1")
+    c.text("foo-devel", "include/foo.h", "int foo_answer(void);\n")
+    c.text("foo-devel", "lib64/cmake/foo/foo.cmake",
+           'set(_IMPORT_PREFIX "@P@")\nset_target_properties(foo::foo PROPERTIES\n'
+           '  INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include")\n'
+           'set_target_properties(foo::foo PROPERTIES IMPORTED_LOCATION "${_IMPORT_PREFIX}/lib64/libfoo.so.1.0")\n'
+           'set(_IMPORT_PREFIX)\n')
+    c.run({"foo": "out", "foo-devel": "dev"}, expect_rc=0)
+    c.no_errors()
+    eq(c.read("dev", "lib64/cmake/foo/foo.cmake"),
+       'set(_IMPORT_PREFIX "%s")\nset_target_properties(foo::foo PROPERTIES\n'
+       '  INTERFACE_INCLUDE_DIRECTORIES "%s/include")\n'
+       'set_target_properties(foo::foo PROPERTIES IMPORTED_LOCATION "%s/lib64/libfoo.so.1.0")\n'
+       'set(_IMPORT_PREFIX)\n' % (c.P, c.p("dev"), c.P), "foo.cmake")
+    c.has("cmake-expanded", "info", "dev/lib64/cmake/foo/foo.cmake")
+    c.has("prefix-relative", "info", "CMake export file")
+
+
+def toolchain_paths(path, skip):
+    """store paths in a fixture that come from the test's own toolchain
+    (PT_INTERP, bytes patchelf left behind), except the one under test"""
+    with open(path, "rb") as f:
+        data = f.read()
+    found = set()
+    for m in re.finditer(rb"(/[^\0:]*?/([0-9a-df-np-sv-z]{32})-[^/\0:]*)", data):
+        if m.group(2).decode() != skip:
+            found.add(m.group(1).decode())
+    return sorted(found)
+
+
+def t_rpath_foreign():
+    """a foreign store dir in a RUNPATH counts only if it survives phase E:
+    the cc's -L dir the ld-wrapper turned into -rpath is dropped (no error);
+    one that resolves a NEEDED stays and must be allowed (WP6, which)"""
+    c = Case("rpathforeign")
+    unused = "/nix/store/%s-gcc/lib/gcc/x86_64-redhat-linux/14" % fhash("gcc")
+    c.sub("foo")
+    c.cc("foo", "bin/foo", 'int main(void) { return 0; }\n', rpath=unused)
+    tc = toolchain_paths(c.path("bin/foo"), fhash("gcc"))
+    c.run({"foo": "out"}, {"allowedStorePaths": tc}, expect_rc=0)
+    c.no_errors()
+    eq(c.runpath("out", "bin/foo"), None, "RUNPATH of bin/foo after phase E")
+    c.has("runpath-changed", "info", "bin/foo")
+    # a NEEDED found only in a foreign dir: kept, so it must be allowed
+    d = Case("rpathforeign2")
+    lib = os.path.join(STORE, "%s-bar-1" % fhash("bar"), "lib64")
+    os.makedirs(lib, exist_ok=True)
+    so = os.path.join(lib, "libbar.so.1")
+    if not os.path.exists(so):
+        src = os.path.join(d.dir, "bar.c")
+        with open(src, "w") as f:
+            f.write("int bar(void) { return 1; }\n")
+        subprocess.run(["cc", "-shared", "-fPIC", "-Wl,-soname,libbar.so.1", "-o", so, src], check=True)
+    d.sub("foo")
+    d.cc("foo", "bin/foo", 'int bar(void);\nint main(void) { return bar(); }\n', [so], rpath=lib)
+    tc = toolchain_paths(d.path("bin/foo"), fhash("bar"))
+    d.run({"foo": "out"}, {"allowedStorePaths": tc}, expect_rc=1)
+    d.has("foreign-store-path", "error", "RUNPATH entry")
+    d.run({"foo": "out"}, {"allowedStorePaths": tc + [os.path.dirname(lib)]}, expect_rc=0)
+    d.no_errors()
+
+
 CASES = [t_split, t_libs_self_cycle, t_nested_stubs, t_integrity, t_pc_derived, t_token_split, t_search_path, t_text_cycle, t_dangling_foreign_union, t_pieced,
-         t_prefix_relative, t_late, t_subpackages_unclaimed, t_replay, t_layout_and_docs, t_plan_errors]
+         t_prefix_relative, t_late, t_subpackages_unclaimed, t_replay, t_layout_and_docs, t_plan_errors,
+         t_cmake_export, t_rpath_foreign]
 
 
 def main():

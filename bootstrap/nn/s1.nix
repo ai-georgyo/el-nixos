@@ -188,6 +188,11 @@ let
     inherit (pkgs) patchelf python3;
     bsdtar = pkgs.libarchive;
     fhsPath = true;
+    # no annobin plugin for the stage0 gcc copy: rpmConfig empties
+    # %_annobin_gcc_plugin (redhat-rpm-config only tests definedness), and
+    # specs that test the value (glibc: `0%{?_annotated_build} > 0` adds
+    # -fplugin=annobin to BuildFlagsNonshared) see 0, as in M1 (docs/glibc.md)
+    defines = { _annotated_build = "0"; };
     inherit fallback;
     # glibc uses no S1 package (see the header)
     usesStagePackage = srpm: _provider: srpm != "glibc";

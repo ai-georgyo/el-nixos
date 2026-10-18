@@ -145,7 +145,8 @@ let
     if layoutRel ? ${m} then [ "--define" "${m} ${builtins.placeholder o}/${layoutRel.${m}}" ]
     else throw "mkRpmPackage ${srpm}: layout.${m}: no standard directory known for this macro (lib/rocky/mk-rpm-package.nix layoutRel)")
     ov.layout);
-  defineArgs = lib.concatLists (lib.mapAttrsToList (k: v: [ "--define" "${k} ${toString v}" ]) ov.defines)
+  defineArgs = lib.concatLists (lib.mapAttrsToList (k: v: [ "--define" "${k} ${toString v}" ])
+      (stage.defines // ov.defines))
     ++ layoutArgs;
   bcondArgs = lib.concatMap (w: [ "--with" w ]) ov.bconds."with"
     ++ lib.concatMap (w: [ "--without" w ]) ov.bconds.without;
