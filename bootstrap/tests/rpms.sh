@@ -29,9 +29,10 @@ for f in /inputs/build/RPMS/*/*.rpm; do
       readelf -lW "$e" | grep -i interpreter || true
       readelf -dW "$e" | grep -E 'NEEDED|RPATH|RUNPATH|SONAME' || true
       readelf -nW "$e" | grep -E 'Build ID|x86 ISA|IBT|Packaging Metadata|FDO_PACKAGING_METADATA|Package' || true
-      check "${e#$d}: no RPATH/RUNPATH" '! readelf -dW "$e" | grep -qE "RPATH|RUNPATH"'
-      if readelf -lW "$e" | grep -q interpreter; then
-        check "${e#$d}: PT_INTERP /lib64/ld-linux-x86-64.so.2" 'readelf -lW "$e" | grep -q "interpreter: /lib64/ld-linux-x86-64.so.2]"'
+      # (here-strings: an early-exiting grep -q must not SIGPIPE readelf under pipefail)
+      check "${e#$d}: no RPATH/RUNPATH" '! grep -qE "RPATH|RUNPATH" <<<"$(readelf -dW "$e")"'
+      if grep -q interpreter <<<"$(readelf -lW "$e")"; then
+        check "${e#$d}: PT_INTERP /lib64/ld-linux-x86-64.so.2" 'grep -q "interpreter: /lib64/ld-linux-x86-64.so.2]" <<<"$(readelf -lW "$e")"'
       fi
     fi
   done < <(find $d -type f -print0)

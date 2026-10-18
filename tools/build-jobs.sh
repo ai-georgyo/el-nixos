@@ -92,6 +92,9 @@ echo
 echo "build-jobs summary ($flake#$attr)"
 printf '  %-32s %s\n' "jobs evaluated" "$n_jobs ($n_drvs distinct derivations, $((t1 - t0)) s)"
 printf '  %-32s %s\n' "evaluation errors" "$n_err"
+if [ $rc -ne 0 ]; then
+  printf '  %-32s %s\n' "nix-eval-jobs" "FAILED with exit status $rc (messages above); the job list is incomplete"
+fi
 printf '  %-32s %s\n' "already built (local)" "$n_local"
 printf '  %-32s %s\n' "substitutable (binary cache)" "$n_cached"
 if [ $dry = 1 ]; then

@@ -7,10 +7,13 @@ out=/builddir/out
 exec > >(tee "$out/report.txt") 2>&1
 fail=0
 check() { if eval "$2"; then echo "PASS: $1"; else echo "FAIL: $1"; fail=1; fi; }
+# Pipelines never end in a reader that exits early (head, grep -q/-m): under
+# `pipefail`, with SIGPIPE at its default (as under mock), the writer may be
+# killed (status 141) depending on timing.  Read from here-strings instead.
 
 cd /builddir
 echo "== versions"
-gcc --version | head -1; g++ --version | head -1; ld --version | head -1; ldd --version | head -1
+for t in gcc g++ ld ldd; do sed -n 1p <<<"$($t --version)"; done
 check "gcc -dumpmachine is x86_64-redhat-linux" '[ "$(gcc -dumpmachine)" = x86_64-redhat-linux ]'
 check "gcc -dumpversion is 14" '[ "$(gcc -dumpversion)" = 14 ]'
 echo "== search dirs"; gcc -print-search-dirs
@@ -71,16 +74,16 @@ echo "== inspect"
 for b in hello hellocc libfoo.so.1 usefoo hello-lto; do
   readelf -lW $b | grep -i 'program interpreter' || true
   readelf -dW $b | grep -E 'NEEDED|RPATH|RUNPATH' || true
-  [ $b = libfoo.so.1 ] || check "$b: PT_INTERP /lib64/ld-linux-x86-64.so.2" 'readelf -lW $b | grep -q "interpreter: /lib64/ld-linux-x86-64.so.2]"'
-  check "$b: no RPATH/RUNPATH" '! readelf -dW $b | grep -qE "RPATH|RUNPATH"'
-  check "$b: no /nix/store strings (incl. debuginfo)" '! strings -a $b | grep -q /nix/store'
+  [ $b = libfoo.so.1 ] || check "$b: PT_INTERP /lib64/ld-linux-x86-64.so.2" 'grep -q "interpreter: /lib64/ld-linux-x86-64.so.2]" <<<"$(readelf -lW $b)"'
+  check "$b: no RPATH/RUNPATH" '! grep -qE "RPATH|RUNPATH" <<<"$(readelf -dW $b)"'
+  check "$b: no /nix/store strings (incl. debuginfo)" '! grep -q /nix/store <<<"$(strings -a $b)"'
 done
-check "hello32: PT_INTERP /lib/ld-linux.so.2" 'readelf -lW hello32 | grep -q "interpreter: /lib/ld-linux.so.2]"'
-check "hellocc resolves libstdc++ from /lib64 via the FHS loader" '/lib64/ld-linux-x86-64.so.2 --list ./hellocc | tee /dev/stderr | grep -q "libstdc++.so.6 => /lib64/libstdc++.so.6"'
-check "hello resolves libc from /lib64" '/lib64/ld-linux-x86-64.so.2 --list ./hello | grep -q "libc.so.6 => /lib64/libc.so.6"'
-check "debuginfo comp_dir is /builddir" 'readelf --debug-dump=info hello | grep -m1 DW_AT_comp_dir | grep -q /builddir'
+check "hello32: PT_INTERP /lib/ld-linux.so.2" 'grep -q "interpreter: /lib/ld-linux.so.2]" <<<"$(readelf -lW hello32)"'
+check "hellocc resolves libstdc++ from /lib64 via the FHS loader" 'x=$(/lib64/ld-linux-x86-64.so.2 --list ./hellocc); echo "$x" >&2; grep -q "libstdc++.so.6 => /lib64/libstdc++.so.6" <<<"$x"'
+check "hello resolves libc from /lib64" 'grep -q "libc.so.6 => /lib64/libc.so.6" <<<"$(/lib64/ld-linux-x86-64.so.2 --list ./hello)"'
+check "debuginfo comp_dir is /builddir" 'grep -m1 DW_AT_comp_dir <<<"$(readelf --debug-dump=info hello)" | grep -q /builddir'
 check "CET: -fcf-protection binary carries IBT+SHSTK (crt files/libc built with CET)" \
-  'gcc -O2 -fcf-protection -o hello-cet hello.c && readelf -nW hello-cet | grep -q "IBT, SHSTK"'
-check "build-id note present" 'readelf -nW hello | grep -q "Build ID"'
+  'gcc -O2 -fcf-protection -o hello-cet hello.c && grep -q "IBT, SHSTK" <<<"$(readelf -nW hello-cet)"'
+check "build-id note present" 'grep -q "Build ID" <<<"$(readelf -nW hello)"'
 echo
 if [ $fail = 0 ]; then echo "ALL TOOLCHAIN CHECKS PASSED"; else echo "SOME TOOLCHAIN CHECKS FAILED"; exit 1; fi
