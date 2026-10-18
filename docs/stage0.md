@@ -26,6 +26,9 @@ binary-package names an SRPM produces are only *selected* at build time (by
 | `rpms.<binary-name>` | `rpmTree`: one binary RPM's payload as an FHS tree, `allowedReferences = [ ]` |
 | `tests.{toolchain,toolchainFull,macros,whichRpms,whichTree}` | acceptance tests (output: `report.txt`) |
 | `buildStage0 { srpm = "<name>"; ... }` | helper: build any lock SRPM in stage0-full |
+| `mkRoot { name, kernelHeaders ? <stage0>, extraTrees ? [ ] }` | a root layer like `buildroot` with other kernel headers (`null` = none, install an RPM on top) and/or extra FHS trees; the toolchain is not rebuilt |
+| `fullRpms` | the rpm specs stage0-full installs (rocky-release + pass-B macro packages), for `mkBuildroot` on a `mkRoot` |
+| `glibcBuildDeps` | FHS tree of what the glibc SRPM needs beyond the root (see [glibc.md](glibc.md)) |
 | `lib` | `{ buildSrpm, mkBuildroot, rpmTree, runInBuildroot, fetchSrpm, unpackSrpm, distOf, ... }` |
 | `dev.*` | machinery smoke tests on a root without the FHS toolchain (fast iteration) |
 
@@ -220,6 +223,11 @@ Design:
   (`PATH=/usr/bin:/bin:/usr/sbin:/sbin`, `HOME`, `TERM=vt100`,
   `SHELL=/bin/bash`, `LANG=C.UTF-8`, `TZ=UTC`); `/nix/store` read-only **only
   with `--store`** (stage0); extra binds (`/builddir` from `$TMPDIR`).
+  SIGPIPE is reset to its default disposition (`env --default-signal=PIPE
+  bwrap …`): the Nix build sandbox starts builders with SIGPIPE *ignored*
+  (`SigIgn: …1000`, observed on this Determinate Nix 2.36 setup), which
+  survives exec and makes `grep … | head`-style pipelines print "write
+  error: Broken pipe" instead of terminating quietly as under mock.
 * `chroot_tools`: run a command *outside* the root (nixpkgs world) with the
   merged root mounted rw at `$BUILDROOT` — used for `rpm --root $BUILDROOT -i`
   with the stage0 rpm. This works for every stage, including later ones where
@@ -253,10 +261,14 @@ Design:
   are nuked so the output has no references). On failure the last 80 log
   lines are printed. `allowedReferences = [ ]`: a store path in any RPM header
   (e.g. an auto-generated `Requires: /nix/store/…/bin/perl`) fails the build.
-* `rpmTree { build, name }`: the payload of the binary RPM whose `%{NAME}` is
+  `requiredSystemFeatures ? [ ]` is passed through (only set when non-empty,
+  so existing derivations are unchanged); glibc uses `[ "big-parallel" ]`.
+* `rpmTree { build, name, file ? null }`: the payload of the binary RPM whose `%{NAME}` is
   `name`, extracted (`rpm2cpio | cpio`) into `$out`, with
   **`allowedReferences = [ ]`** — the enforcement that shipped packages do
-  not depend on nixpkgs.
+  not depend on nixpkgs. `file` (`RPMS/<arch>/<n-v-r.a>.rpm`, still checked
+  against `%{NAME}`) avoids querying every RPM of an SRPM with hundreds of
+  subpackages (glibc: 233).
 * `runInBuildroot { name, buildroot, script, root ? false, binds ? { } }`:
   run a script in a buildroot; `/builddir/out` becomes `$out` (used by tests).
 
@@ -309,6 +321,12 @@ d. `rpms.which` (and every other `rpms.*`): `rpmTree` with
 | buildhost `el-nixos.localdomain`, buildtime = changelog date | buildSrpm | reproducibility |
 
 ## Results (real builds on nixbuild.net, nixpkgs 26f4107, 2026-10-18)
+
+Note: the SIGPIPE reset in `lib/chroot.sh` (added by the glibc track) changed
+the hashes of every derivation that uses the runner (buildroot layers above
+the root, `srpm.*`, `rpms.*`, `tests.*`); the toolchain, `rpm`, `debugedit` and
+the root layer are unchanged. All tests were rebuilt and pass; the store paths
+below for those derivations are from before that change.
 
 `flake.lock` was added, pinning nixpkgs (nixos-26.05) to the revision all of
 this was built with (`26f4107e47e3ad0ffd0db220469ba83b6f6d96e8`).
@@ -388,12 +406,11 @@ Provides, file list, file digests and modes).
 * rust-srpm-macros (from the rust SRPM) is not installed in stage0-full.
 * Annobin: build Rocky's annobin SRPM in stage0 against the stage0 gcc's plugin
   headers, then drop `%_annobin_gcc_plugin %{nil}`.
-* The glibc SRPM additionally BuildRequires gd/libpng/zlib, libselinux,
-  audit-libs, libcap, systemtap-sdt-devel, gdb, python3-devel,
-  libstdc++-static, glibc-static, libidn2, texinfo: those must be built from
-  their SRPMs with `buildStage0` and installed with `mkBuildroot` (or switched
-  off with bconds) before the glibc build itself.
-* Kernel headers: swap in Rocky's kernel-headers via `kernelHeaders`.
+* The glibc SRPM is built (milestone 1): see [glibc.md](glibc.md) for its
+  buildroot (`mkRoot` + `glibcBuildDeps` + `fullRpms`) and results.
+* Kernel headers: swap in Rocky's kernel-headers — for glibc via
+  `default.nix`'s `kernelHeadersRpm` (an RPM installed into the glibc
+  buildroot); for the toolchain via `kernelHeaders` (rebuilds gcc).
 * `mkBuildroot` cannot represent deletions of lower-layer files (fails
   loudly); later stages installing with scriptlets may need a "flatten" mode.
 * Later stages: `rpm --root` installs with `installFlags = [ ]` (deps +

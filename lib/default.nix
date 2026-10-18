@@ -111,6 +111,7 @@ let
     , vendor ? null      # Rocky's build system sets "Rocky Enterprise Software Foundation"
     , packager ? null    # ... and "Rocky Linux Build System <releng@rockylinux.org>"; we do not claim those
     , allowStoreReferences ? false
+    , requiredSystemFeatures ? [ ]   # e.g. [ "big-parallel" ] for long builds
     }:
     let
       srpmFile = if builtins.isString srpm then fetch.fetchSrpm srpm else srpm;
@@ -133,7 +134,7 @@ let
         ++ lib.optional nodeps "--nodeps"
         ++ rpmbuildArgs;
     in
-    pkgs.stdenvNoCC.mkDerivation {
+    pkgs.stdenvNoCC.mkDerivation ({
       name = "srpm-${pname}" + lib.optionalString (e != null) "-${e.version}-${e.release}";
       nativeBuildInputs = runnerTools;
       outputs = [ "out" ];
@@ -186,7 +187,7 @@ let
         inherit buildroot dist;
         lockEntry = e;
       };
-    };
+    } // lib.optionalAttrs (requiredSystemFeatures != [ ]) { inherit requiredSystemFeatures; });
 
   # --- runInBuildroot -----------------------------------------------------------
   # Run a bash script inside a buildroot (as mockbuild unless root = true).
@@ -222,6 +223,8 @@ let
   rpmTree =
     { build          # buildSrpm result
     , name           # %{NAME} of the binary rpm
+    , file ? null    # optional: its path relative to `build` (RPMS/<arch>/<n-v-r.a>.rpm),
+                     # skips querying every RPM of the build (SRPMs with hundreds of subpackages)
     }:
     pkgs.stdenvNoCC.mkDerivation {
       name = "rpm-${name}";
@@ -229,9 +232,14 @@ let
       buildCommand = ''
         set -euo pipefail
         sel=
+      '' + (if file == null then ''
         for f in ${build}/RPMS/*/*.rpm; do
           if [ "$(${rpmOutside} -qp --nosignature --qf '%{NAME}' "$f")" = ${lib.escapeShellArg name} ]; then sel=$f; fi
         done
+      '' else ''
+        f=${build}/${file}
+        if [ -e "$f" ] && [ "$(${rpmOutside} -qp --nosignature --qf '%{NAME}' "$f")" = ${lib.escapeShellArg name} ]; then sel=$f; fi
+      '') + ''
         [ -n "$sel" ] || { echo "no rpm named ${name} in ${build}/RPMS" >&2; exit 1; }
         mkdir -p $out
         echo "extracting $(${rpmOutside} -qp --nosignature --qf '%{NEVRA}' "$sel")"

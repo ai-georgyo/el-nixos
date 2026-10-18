@@ -80,7 +80,11 @@ chroot__fresh_dirs() {
   rm -rf "$st/work" 2>/dev/null || mv "$st/work" "$st/work.old.$chroot__n"
   mkdir "$st/work"
 }
-chroot__bwrap() { bwrap "$@"; }
+# The Nix build sandbox starts builders with SIGPIPE *ignored* (SigIgn bit 13,
+# observed with Determinate Nix 2.36), and an ignored disposition survives
+# exec.  mock/rpmbuild run with the default (terminate), which pipelines like
+# `grep ... | head` rely on; restore it for everything run in a chroot.
+chroot__bwrap() { env --default-signal=PIPE bwrap "$@"; }
 
 # run "bash -c SCRIPT _ ARGS..." with the merged read-only lower view at STATE/merged
 chroot__in_merged() {
