@@ -88,6 +88,7 @@ let
     allowFile = allowFile srpm "runtime";
   } {
     inherit name glibc outPaths libgcc kernelHeaders failOnDiff;
+    langpackNames = lib.filter (lib.hasPrefix "glibc-langpack-") (lib.attrNames official);
     cc = cc';
   };
 in

@@ -1280,44 +1280,75 @@ def read_graph(path):
 
 
 def check_closure(plan, rules, out, graphs):
+    """every output's closure inside siblings + extraAllowed (+ their
+    closures); a foreign path is reported once, at the edge where it enters
+    (the sibling output or allowed path that references it), with the
+    outputs whose closures it reaches"""
     res = Result("closure", rules)
     outs = plan["outputs"]
     sib = set(outs.values())
-    allowed = set(plan.get("extraAllowed", []))
-    full = {}
+    owner = {p: o for o, p in outs.items()}
+    graph, per = {}, {}
     for o in sorted(outs):
         gp = os.path.join(graphs, "graph-" + o)
         if not os.path.exists(gp):
             raise ToolError("closure: no graph file for output %s" % o)
-        full.update(read_graph(gp))
-    # allowed extras include their own closures
+        g = read_graph(gp)
+        graph.update(g)
+        per[o] = g
+    allowed = set(plan.get("extraAllowed", []))
     stack = list(allowed)
     while stack:
         x = stack.pop()
-        for r in full.get(x, []):
+        for r in graph.get(x, []):
             if r not in allowed:
                 allowed.add(r)
                 stack.append(r)
-    edges = {}
+    ok = sib | allowed
+    edges, entries, reach = {}, {}, {}
     nocheck = {o for o in ("debug", "logs") if o in outs}
     for o in sorted(outs):
-        g = read_graph(os.path.join(graphs, "graph-" + o))
+        g = per[o]
         p = outs[o]
         refs = [r for r in g.get(p, []) if r != p]
-        edges[o] = sorted(PathMap(outs).by_path.get(r, r) for r in refs)
-        for x in sorted(g):
-            if x in sib or x in allowed:
-                continue
-            res.diff("output:" + o, "closure.foreign:" + re.sub(r"^/nix/store/[0-9a-z]{32}-", "", x), x, None,
-                     detail={"via": sorted(y for y in g if x in g[y])[:5]})
+        edges[o] = sorted(owner.get(r, r) for r in refs)
+        foreign = [x for x in g if x not in ok]
+        res.count("outputs")
+        res.count("closure_paths", len(g))
+        if foreign:
+            res.count("outputs_with_foreign")
+        for x in foreign:
+            reach.setdefault(x, set()).add(o)
         for n in nocheck:
             if o != n and outs[n] in refs:
                 res.diff("output:" + o, "closure.debug-ref:" + n, n, None)
-        res.count("outputs")
-        res.count("closure_paths", len(g))
+    for x, rs in graph.items():
+        if x not in ok:
+            continue
+        for r in rs:
+            if r not in ok:
+                entries.setdefault((owner.get(x, x), r), True)
+    for (src, r) in sorted(entries):
+        res.diff("output:" + src if src in outs else src,
+                 "closure.foreign:" + re.sub(r"^/nix/store/[0-9a-z]{32}-", "", r), r, None,
+                 detail={"enters_via": src, "closures_reached": len(reach.get(r, ())),
+                         "foreign_paths_below": len(below(graph, r))})
+    res.stats["foreign_paths"] = len(reach)
     return res.finish(out, plan.get("name", "?"), extra={"edges": edges, "summary": [
-        "outputs %d; every closure within the %d siblings + %d allowed path(s)" % (
-            len(outs), len(sib), len(set(plan.get("extraAllowed", []))))]})
+        "outputs %d; closures must stay within the %d siblings + %d allowed path(s); foreign paths %d "
+        "(entry edges %d)" % (len(outs), len(sib), len(set(plan.get("extraAllowed", []))), len(reach),
+                              len(entries))]})
+
+
+def below(graph, r):
+    seen, stack = set(), [r]
+    while stack:
+        x = stack.pop()
+        for y in graph.get(x, []):
+            if y not in seen:
+                seen.add(y)
+                stack.append(y)
+    return seen
 
 
 # --------------------------------------------------------------------------- runtime
@@ -1325,10 +1356,17 @@ ADDR_RE = re.compile(r"\(0x[0-9a-f]+\)")
 ITEM_RE = re.compile(r"^### (\S+)\s*$")
 
 
+IDENTITY_RE = re.compile(r"^(\s*)(\S+) => \2 \(ADDR\)$", re.M)
+
+
 def normalize_runtime(text, pm):
+    """output paths -> /usr, map labels, addresses, usrmerge spellings; and
+    ld.so's "name => path" when both are the same after that (the official
+    PT_INTERP /lib64/ld-linux... resolves to /usr/lib64/...)"""
     text = pm.text(text)
     text = ADDR_RE.sub("(ADDR)", text)
-    text = re.sub(r"(?<![\w./-])/(lib64|lib|bin|sbin)/", r"/usr/\1/", text)
+    text = usrmerge_text(text)
+    text = IDENTITY_RE.sub(r"\1\2 (ADDR)", text)
     return text
 
 
@@ -1368,19 +1406,21 @@ def check_runtime(plan, rules, out, ours_dir, off_dir):
         res.count("reports")
         for it in oo:
             if it not in if_:
-                res.diff(fn, "runtime.only-ours:" + it, "\n".join(io_[it][:20]), None)
+                res.diff(fn, "runtime.only-ours:" + it, io_[it][:20], None)
         for it in of:
             res.count("items")
             if it not in io_:
-                res.diff(fn, "runtime.only-official:" + it, None, "\n".join(if_[it][:20]))
+                res.diff(fn, "runtime.only-official:" + it, None, if_[it][:20])
                 continue
             a, b = io_[it], if_[it]
             if a == b:
                 res.count("items_equal")
                 continue
             ud = list(difflib.unified_diff(b, a, "official", "ours", lineterm="", n=0))
-            changed = "\n".join(x for x in ud[2:] if not x.startswith("@@"))
-            res.diff(fn, "runtime.item:" + it, changed, None, detail={"diff": ud[:120]})
+            # ours/official = the changed lines, so allowlist rules can pin them
+            plus = [x[1:] for x in ud[2:] if x.startswith("+")]
+            minus = [x[1:] for x in ud[2:] if x.startswith("-")]
+            res.diff(fn, "runtime.item:" + it, plus, minus, detail={"diff": ud[:120]})
     for fn in sorted(os.listdir(ours_dir)):
         if fn.endswith(".txt") and not os.path.exists(os.path.join(off_dir, fn)):
             res.info.append("ours-only report %s (checked by assertions, not compared)" % fn)
@@ -1408,10 +1448,11 @@ def selftest():
     assert our_target(pm, "out", "etc/localtime", "/etc/zoneinfo") == "/etc/zoneinfo"
     assert official_target("/usr/lib64/libx.so", "libx.so.1") == "/usr/lib64/libx.so.1"
     assert official_target("/usr/bin/x", "../../lib64/y") == "/usr/lib64/y"
-    t = "### a\n x %s/lib64/libc.so.6 (0x00007f00)\n### b\n/lib64/ld.so\n" % o
+    t = "### a\n x %s/lib64/libc.so.6 (0x00007f00)\n### b\n/lib64/ld.so\n\t/lib64/l.so => /usr/lib64/l.so (0x1)\n" % o
     items, order = parse_items(normalize_runtime(t, pm))
     assert order == ["a", "b"] and items["a"] == [" x /usr/lib64/libc.so.6 (ADDR)"], items
-    assert items["b"] == ["/usr/lib64/ld.so"], items
+    assert items["b"] == ["/usr/lib64/ld.so", "\t/usr/lib64/l.so (ADDR)"], items
+    assert usrmerge_text("/lib: x /lib64/a /usr/lib64 a/lib/b") == "/usr/lib: x /usr/lib64/a /usr/lib64 a/lib/b"
     print("nn-parity selftest (unit): PASS")
     return 0
 
