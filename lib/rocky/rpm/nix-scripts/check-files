@@ -1,0 +1,30 @@
+#!/usr/bin/sh
+# check-files BR P   (docs/nix-native-design.md §1.2)
+#
+# rpm's check-files (%__check_files: packaged file list on stdin, prints the
+# installed but unpackaged files) for relocated builds: with BR/usr -> P
+# (fold-usr), %files may name a file as /usr/x or as P/x; on disk it is BR/P/x.
+# Both sides are canonicalised to BR/P/x; the BR/usr link itself is not a file.
+RPM_BUILD_ROOT=${1%/}
+P=${2%/}
+
+if [ ! -d "${RPM_BUILD_ROOT}" ] || [ -z "${P}" ]; then
+	cat > /dev/null
+	if [ -e "${RPM_BUILD_ROOT}" ] ; then
+		echo "Error: \`${RPM_BUILD_ROOT}' is not a directory" 1>&2
+	fi
+	exit 1
+fi
+
+[ -n "$TMPDIR" ] || TMPDIR="/tmp"
+FILES_DISK=`mktemp "${TMPDIR}/rpmXXXXXX"`
+trap "rm -f \"${FILES_DISK}\"" 0 2 3 5 10 13 15
+
+# literal (not regex) match of the buildroot in sed patterns
+esc() { printf '%s' "$1" | sed -e 's/[]\/$*.^[|]/\\&/g'; }
+BRe=`esc "${RPM_BUILD_ROOT}"`
+
+find "${RPM_BUILD_ROOT}" \( -type f -o -type l \) ! -path "${RPM_BUILD_ROOT}/usr" \
+	| sed -e "s|^${BRe}/usr/|${RPM_BUILD_ROOT}${P}/|" | LC_ALL=C sort -u > "${FILES_DISK}"
+sed -e "s|^${BRe}/usr/|${RPM_BUILD_ROOT}${P}/|" | LC_ALL=C sort -u \
+	| diff -d "${FILES_DISK}" - | sed -n 's|^< '"${BRe}"'\(.*\)$|   \1|p'

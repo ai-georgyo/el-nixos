@@ -1,0 +1,9 @@
+# Stand-in for systemd-rpm-macros (not in stage0), with the directory macros
+# as systemd's src/rpm/macros.systemd.in defines them: checks.nn-rpm-config
+# verifies that they follow %_prefix (and that extraMacroDirs works).
+%_unitdir %{_prefix}/lib/systemd/system
+%_userunitdir %{_prefix}/lib/systemd/user
+%_presetdir %{_prefix}/lib/systemd/system-preset
+%_udevrulesdir %{_prefix}/lib/udev/rules.d
+%_tmpfilesdir %{_prefix}/lib/tmpfiles.d
+%_modprobedir %{_prefix}/lib/modprobe.d

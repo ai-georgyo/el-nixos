@@ -1,0 +1,63 @@
+#!/usr/bin/bash
+# fold-usr BR P   (docs/nix-native-design.md §1.2, §1.5)
+#
+# Make %buildroot/usr an alias of %buildroot<P> (P = %_prefix = $out), so
+# hard-coded /usr paths in %install, %files, brp-compress and find-debuginfo
+# land in the relocated tree:
+#   - mkdir -p BR/P
+#   - BR/usr a real directory (the spec did `rm -rf %buildroot` and installed
+#     to %buildroot/usr): merge it into BR/P; the same non-directory path on
+#     both sides is an error (never silently pick one)
+#   - BR/usr -> "${P#/}" as a RELATIVE symlink (an absolute one would point
+#     out of the buildroot)
+# BR/etc, BR/var stay real directories; usrmerge links (/bin, /lib64, ...)
+# are not created.  Idempotent: run by %__spec_install_pre and again by
+# %__spec_install_post.  P = /usr (not relocated) is a no-op.
+set -euo pipefail
+die() { echo "fold-usr: $*" >&2; exit 1; }
+[ $# -eq 2 ] || die "usage: fold-usr BUILDROOT PREFIX"
+BR=${1%/}; P=${2%/}
+case $P in /?*) ;; *) die "prefix '$2' is not absolute" ;; esac
+case $P in /usr) exit 0 ;; /usr/*) die "prefix '$P' is below /usr" ;; esac
+[ -d "$BR" ] || die "buildroot '$BR' is not a directory"
+rel=${P#/}
+
+mkdir -p "$BR$P"
+
+# merge directory $1 into directory $2 (both real directories)
+merge() {
+  local src=$1 dst=$2 e n
+  for e in "$src"/* "$src"/.[!.]* "$src"/..?*; do
+    [ -e "$e" ] || [ -L "$e" ] || continue
+    n=${e##*/}
+    if [ -d "$e" ] && [ ! -L "$e" ] && [ -d "$dst/$n" ] && [ ! -L "$dst/$n" ]; then
+      merge "$e" "$dst/$n"
+    elif [ -e "$dst/$n" ] || [ -L "$dst/$n" ]; then
+      conflicts+=("${e#"$BR"}")
+    else
+      mv "$e" "$dst/$n"
+    fi
+  done
+}
+
+if [ -L "$BR/usr" ]; then
+  t=$(readlink "$BR/usr")
+  [ "$t" = "$rel" ] && exit 0
+  die "$BR/usr is a symlink to '$t', expected '$rel'"
+elif [ -d "$BR/usr" ]; then
+  echo "fold-usr: $BR/usr is a real directory; merging it into $BR$P" >&2
+  conflicts=()
+  merge "$BR/usr" "$BR$P"
+  if [ ${#conflicts[@]} -ne 0 ]; then
+    printf 'fold-usr: exists both under /usr and under %s: %s\n' "$P" "${conflicts[@]}" >&2
+    exit 1
+  fi
+  # only (now empty) directories are left
+  if [ -n "$(find "$BR/usr" ! -type d -print -quit)" ]; then
+    die "$BR/usr not empty after the merge"
+  fi
+  rm -rf "$BR/usr"
+elif [ -e "$BR/usr" ]; then
+  die "$BR/usr exists and is not a directory"
+fi
+ln -s "$rel" "$BR/usr"

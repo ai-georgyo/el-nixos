@@ -1,0 +1,71 @@
+#!/bin/sh
+# instantiate DEST --prefix P --buildtop DIR --ncpus N [--dist D] [--macro-dir DIR]...
+#
+# Per-build instantiation of an rpm config built by lib/rocky/rpm/config.nix
+# (this script lives in its nix/ dir).  Runs in the Nix builder, outside the
+# tool shim (docs/nix-native-design.md §5.4, §5.5):
+#   1. copy the config to DEST (writable; the shim binds DEST at /usr/lib/rpm)
+#   2. copy the macro files of every --macro-dir and of every directory in
+#      $NIX_RPM_MACRO_DIRS (whitespace/colon separated; a macro package's
+#      lib/rpm/macros.d) into DEST/macros.d -- a differing file of the same
+#      name is an error
+#   3. substitute @PREFIX@ @BUILDTOP@ @NCPUS@ @DIST@ into nix/macros.nix-reloc
+#      (empty --dist: Rocky's %distcore, .el10) and append the result to
+#      DEST/redhat/macros, the last macro file of rpm's macro path inside the
+#      config dir (RPM_VENDOR=redhat), so it overrides every Rocky default
+#   4. mkdir -p BUILDTOP/tmp (%_tmppath)
+set -eu
+die() { echo "instantiate: $*" >&2; exit 1; }
+src=$(cd "$(dirname "$0")/.." && pwd)
+[ $# -ge 1 ] || die "usage: instantiate DEST --prefix P --buildtop DIR --ncpus N [--dist D] [--macro-dir DIR]..."
+dest=$1; shift
+prefix= buildtop= ncpus= dist= macrodirs=
+while [ $# -gt 0 ]; do
+  [ $# -ge 2 ] || die "option $1 needs a value"
+  case $1 in
+    --prefix) prefix=$2 ;;
+    --buildtop) buildtop=$2 ;;
+    --ncpus) ncpus=$2 ;;
+    --dist) dist=$2 ;;
+    --macro-dir) macrodirs="$macrodirs $2" ;;
+    *) die "unknown option $1" ;;
+  esac
+  shift 2
+done
+case $prefix in /?*) ;; *) die "--prefix must be an absolute path (got '$prefix')" ;; esac
+case $buildtop in /?*) ;; *) die "--buildtop must be an absolute path (got '$buildtop')" ;; esac
+case $ncpus in ''|*[!0-9]*) die "--ncpus must be a number (got '$ncpus')" ;; esac
+case $dist in ''|.[A-Za-z0-9_]*) ;; *) die "--dist must look like .el10_2 (got '$dist')" ;; esac
+for v in "$prefix" "$buildtop"; do
+  case $v in *[!A-Za-z0-9._+/-]*) die "unsupported character in '$v'" ;; esac
+done
+
+[ ! -e "$dest" ] || die "$dest already exists"
+mkdir -p "$dest"
+cp -RP "$src/." "$dest/"
+chmod -R u+w "$dest"
+
+for d in $macrodirs $(printf '%s' "${NIX_RPM_MACRO_DIRS:-}" | tr ':' ' '); do
+  [ -d "$d" ] || die "macro dir '$d' does not exist"
+  for f in "$d"/*; do
+    [ -f "$f" ] || continue
+    t=$dest/macros.d/${f##*/}
+    if [ -e "$t" ]; then
+      cmp -s "$f" "$t" || die "$f differs from the config's macros.d/${f##*/}"
+    else
+      cp "$f" "$t"; chmod u+w "$t"
+    fi
+  done
+done
+
+r=$dest/nix/macros.nix-reloc
+sed -e "s|@PREFIX@|$prefix|g" -e "s|@BUILDTOP@|$buildtop|g" -e "s|@NCPUS@|$ncpus|g" \
+  -e "/@DIST@/{" -e "s|@DIST@|$dist|" -e "/^%distcore *\$/d" -e "}" \
+  "$src/nix/macros.nix-reloc" > "$r"
+if grep -n '@[A-Z][A-Z]*@' "$r" >&2; then die "unsubstituted placeholder in $r"; fi
+mkdir -p "$dest/redhat"
+{
+  printf '\n# ---- el-nixos: lib/rocky/rpm/macros.nix-reloc, instantiated (read last) ----\n'
+  cat "$r"
+} >> "$dest/redhat/macros"
+mkdir -p "$buildtop/tmp"

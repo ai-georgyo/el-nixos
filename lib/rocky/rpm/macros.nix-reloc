@@ -1,0 +1,112 @@
+# el-nixos: relocation macros for Nix-native builds (docs/nix-native-design.md §1.2).
+#
+# Template: lib/rocky/rpm/nix-scripts/instantiate substitutes, per build,
+#   @PREFIX@    the derivation's main output ($out)        -> %_prefix
+#   @BUILDTOP@  the build's scratch dir ($NIX_BUILD_TOP)   -> %_topdir, %_tmppath
+#   @NCPUS@     $NIX_BUILD_CORES                           -> %_smp_build_ncpus
+#   @DIST@      the SRPM's dist tag (lib/srpm.nix distOf)   -> %distcore
+#               (empty: the line is dropped, macros.dist's %distcore .el10 stays)
+# Shipped as <rpm config>/nix/macros.nix-reloc (template); instantiate writes
+# the substituted copy there and APPENDS it to the config's redhat/macros, the
+# last macro file of rpm's macro path inside the config dir, so it is read last.
+#
+# Deviations from the design's §1.2 text, each verified against the stage0
+# macro files (rpm 4.19.1.1, redhat-rpm-config, *-srpm-macros, rocky-release;
+# docs/research/nix-native/experiments/rpmconfig.md):
+#  1. Not in macros.d/.  rpm's macro path is macros, macros.d/macros.*,
+#     platform/%{_target}/macros, fileattrs/*.attr, redhat/macros, /etc/rpm/...:
+#     the platform file (%_prefix /usr, %_oldincludedir /usr/include,
+#     %__spec_install_pre, %__brp_compress) and redhat/macros
+#     (%__spec_install_pre, %__brp_compress without %{_prefix},
+#     %_binary_payload, %_annobin_gcc_plugin, ...) are read after macros.d and
+#     would override a macros.d file (checks.nn-rpm-config has this negative
+#     control: in macros.d, %_prefix stays /usr).
+#  2. %__spec_prep_post: the prep hooks run BEFORE %{___build_post}, which ends
+#     in `exit $RPM_EC` (the design's order never ran them).
+#  3. %__spec_install_pre keeps redhat-rpm-config's
+#     %{?_auto_set_build_flags:%{set_build_flags}} (the design dropped it, which
+#     would change %install's environment: CFLAGS, LDFLAGS, ... unset).
+#  4. %dist is not overridden: 1906 of 2217 Rocky 10.2 SRPMs are .el10, not
+#     .el10_2.  %distcore is set per build (@DIST@), which keeps macros.dist's
+#     %distprefix/%distsuffix/~bootstrap logic.
+#  5. %_rpmconfigdir is not redefined: it is %{getconfdir} (rpm's compiled-in
+#     /usr/lib/rpm, or $RPM_CONFIGDIR when the config is used from the store,
+#     e.g. `rpm -qp` by the partitioner), never derived from %_prefix.
+#  6. %_dbpath added: %{_usr}/lib/sysimage/rpm would follow %_usr into $out.
+#  7. %_annotated_build is left alone: redhat-rpm-config tests it with
+#     %{?_annotated_build:...} (definedness, not value), so `0` changes nothing;
+#     emptying %_annobin_gcc_plugin is what stage0 (bootstrap/macros.stage0)
+#     does, and keeps the flags identical to the FHS builds.
+#  8. systemd-rpm-macros (%_unitdir, ...) is not in stage0; when a stage adds
+#     it as a macro package its %{_prefix}/lib/systemd/... follow %_prefix
+#     (checks.nn-rpm-config verifies this with a stand-in macro file).
+
+# ---- install / compile prefix: the derivation's main output ----------------
+%_prefix                 @PREFIX@
+%_exec_prefix            %{_prefix}
+%_usr                    %{_prefix}
+%_prefix_rel             %{lua:print((rpm.expand('%{_prefix}'):gsub('^/+', '')))}
+%_lib                    lib64
+# derived (unchanged definitions, listed for clarity):
+#   _bindir _sbindir _libdir _libexecdir _datadir _includedir _infodir _mandir
+#   _defaultdocdir _docdir _defaultlicensedir _licensedir
+%_oldincludedir          %{_includedir}
+%_sysusersdir            %{_prefix}/lib/sysusers.d
+%_rpmmacrodir            %{_prefix}/lib/rpm/macros.d
+%rpmmacrodir             %{_rpmmacrodir}
+%_rpmluadir              %{_prefix}/lib/rpm/lua
+%_fontbasedir            %{_datadir}/fonts
+%_fontconfig_templatedir %{_datadir}/fontconfig/conf.avail
+%_pam_moduledir          %{_libdir}/security
+%gopath                  %{_datadir}/gocode
+# systemd-rpm-macros derive %_unitdir %_userunitdir %_presetdir %_udevrulesdir
+# %_tmpfilesdir %_modprobedir from %{_prefix}/lib -> $out/lib/systemd/...
+# (= nixpkgs layout; NixOS systemd.packages / services.udev.packages consume it)
+
+# ---- runtime FHS: stays FHS (defaults installed into <output>/etc etc.) ------
+%_sysconfdir             /etc
+%_localstatedir          /var
+%_sharedstatedir         /var/lib
+%_rundir                 /run
+%_runstatedir            /run
+%_initddir               %{_sysconfdir}/rc.d/init.d
+%_pam_confdir            %{_sysconfdir}/pam.d
+%_usrsrc                 /usr/src
+#   (debugedit maps comp dirs to %_usrsrc/debug/<nvra>; FHS keeps store paths out
+#    of DWARF; sources land in the debug output under src/debug)
+%_dbpath                 /usr/lib/sysimage/rpm
+
+# ---- engine/tool macros that must NOT follow the prefix ---------------------
+%__perl                  /usr/bin/perl
+%__plugindir             /usr/lib64/rpm-plugins
+%_buildshell             /bin/sh
+
+# ---- build plumbing ----------------------------------------------------------
+%_topdir                 @BUILDTOP@/rpmbuild
+%_tmppath                @BUILDTOP@/tmp
+%_smp_build_ncpus        @NCPUS@
+%_binary_payload         w0.ufdio
+%_source_payload         w0.ufdio
+%distcore                @DIST@
+%_buildhost              el-nixos.localdomain
+%source_date_epoch_from_changelog   1
+%use_source_date_epoch_as_buildtime 1
+%clamp_mtime_to_source_date_epoch   1
+%__brp_compress          %{_rpmconfigdir}/brp-compress %{_prefix}
+%__check_files           %{_rpmconfigdir}/nix/check-files %{buildroot} %{_prefix}
+%__spec_prep_post        %{_rpmconfigdir}/nix/prep-hooks "%{_builddir}/%{?buildsubdir}"\
+%{___build_post}
+%__spec_install_pre      %{___build_pre}\
+    [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf "${RPM_BUILD_ROOT}"\
+    mkdir -p "`dirname "$RPM_BUILD_ROOT"`"\
+    mkdir "$RPM_BUILD_ROOT"\
+    %{_rpmconfigdir}/nix/fold-usr "$RPM_BUILD_ROOT" "%{_prefix}"\
+    %{?_auto_set_build_flags:%{set_build_flags}}\
+%{nil}
+%__spec_install_post     %{_rpmconfigdir}/nix/fold-usr "$RPM_BUILD_ROOT" "%{_prefix}"\
+    %{?__debug_package:%{__debug_install_post}}\
+    %{__arch_install_post}\
+    %{__os_install_post}\
+%{nil}
+# annobin: no plugin until the stage has a Rocky annobin for its gcc (as stage0)
+%_annobin_gcc_plugin     %{nil}
