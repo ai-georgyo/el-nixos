@@ -41,6 +41,20 @@ nonDebugExtra=$(grep -vE -- '-debug(info|source)$' <<<"$extra" | grep . || true)
 say "info: debug packages: $(grep -cE -- '-debug(info|source)$' <<<"$extra" || true): $(grep -E -- '-debug(info|source)$' <<<"$extra" | tr '\n' ' ')"
 rpm -qp --nosignature --qf '%{SOURCERPM} %{BUILDHOST} %{BUILDTIME} payload=%{PAYLOADCOMPRESSOR}/%{PAYLOADFLAGS}\n' $B/RPMS/x86_64/glibc-2.*.x86_64.rpm | sed 's/^/info: glibc header: /' | tee -a $R
 
+# ---------------------------------------------------------------- kernel headers
+say "== kernel headers"
+if kh=$(rpm -q kernel-headers 2>/dev/null); then
+  ok "buildroot has $kh in the rpmdb"
+  sysroot=$(ls $B/RPMS/noarch/sysroot-x86_64-el10-glibc-*.rpm)
+  rpm -ql kernel-headers | grep '^/usr/include/.*\.h$' | sort > $out/kernel-headers.h.txt
+  rpm -qlp --nosignature "$sysroot" | sed -n 's|^/usr/x86_64-redhat-linux/sys-root/el10||p' | grep '^/usr/include/.*\.h$' | sort > $out/sysroot-headers.h.txt
+  nmiss=$(comm -23 $out/kernel-headers.h.txt $out/sysroot-headers.h.txt | wc -l)
+  if [ "$nmiss" = 0 ]; then ok "sysroot-x86_64-el10-glibc contains all $(wc -l < $out/kernel-headers.h.txt) kernel-headers .h files (rpm -ql kernel-headers in the spec)"
+  else bad "sysroot-x86_64-el10-glibc lacks $nmiss kernel-headers files"; fi
+else
+  say "info: no kernel-headers RPM in the buildroot (stage0 headers); sysroot package has no kernel headers"
+fi
+
 # ---------------------------------------------------------------- configure results
 say "== configure (from build.log; 32-bit build first, then x86_64)"
 for pat in 'checking for libgd\.\.\. ' 'checking for is_selinux_enabled in -lselinux\.\.\. ' \

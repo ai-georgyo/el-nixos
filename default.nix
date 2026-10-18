@@ -31,7 +31,20 @@ in
   inherit (fetch) fetchSrpm fetchRpm sources officialRpms;
   inherit stage0;
   inherit (parity) mkParityCheck;
-  parityChecks = parity.checks;
+  parityChecks = parity.checks // {
+    # milestone 1: every glibc subpackage vs the 221 official RPMs
+    # (allowlist: tools/parity/glibc.json -> stage0.json -> default.json)
+    glibc-parity = parity.mkParityCheck { name = "glibc"; ours = glibc.build; };
+    # the headers-only kernel build vs the official kernel-headers and
+    # kernel-modules-extra-matched (allowlist: tools/parity/kernel.json)
+    kernel-headers-parity = parity.mkParityCheck {
+      name = "kernel-headers";
+      ours = stage0.kernelHeadersBuild;
+      srpm = "kernel";
+      exclude = [ ".*" ];
+      keep = [ "kernel-headers\\..*" "kernel-modules-extra-matched\\..*" ];
+    };
+  };
   parityTool = parity.tool; # store path of tools/rpm-parity.py (+ tools/parity/)
 
   # rpmbuild results by SRPM name ($out/RPMS, $out/SRPMS, $out/logs)

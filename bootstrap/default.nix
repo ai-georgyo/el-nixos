@@ -203,6 +203,9 @@ let
 
   # glibc SRPM build inputs missing from the stage0 root (docs/glibc.md)
   glibcBuildDeps = import ./glibc-build-deps.nix { inherit pkgs; systemtapSrpm = srpm "systemtap"; };
+  # makeinfo 7.1 (Rocky's version) for packages that ship info pages.
+  # (NOT named `texinfo`: that would shadow pkgs.texinfo in `tools` above)
+  texinfo71 = import ./texinfo.nix { inherit pkgs; srpm = srpm "texinfo"; };
 in
 {
   inherit binutils gccPass1 glibc sysroot gcc rpm debugedit;
@@ -216,7 +219,7 @@ in
   srpm = srpmBuilds;
   srpmPassA = macrosA;
   inherit rpms tests dev;
-  inherit mkRoot fullRpms glibcBuildDeps;
+  inherit mkRoot fullRpms glibcBuildDeps texinfo71;
   lib = lib';
   # helper for later packages: build an SRPM from the lock in the full stage0 buildroot
   buildStage0 = args: buildSrpm ({ buildroot = buildrootFull; } // args);

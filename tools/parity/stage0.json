@@ -2,21 +2,38 @@
   "description": "Differences caused by the stage0 buildroot (docs/stage0.md, 'Every stage0 hack'). Extend this from per-SRPM allowlists of packages built with stage0.buildStage0 / buildrootFull.",
   "rewrite": [
     {
-      "field": "header.OPTFLAGS", "side": "official",
+      "field": "header.OPTFLAGS",
+      "side": "official",
       "pattern": "-specs=/usr/lib/rpm/redhat/redhat-annobin-cc1",
       "replace": "",
       "reason": "stage0 has no annobin plugin: macros.stage0 sets %_annobin_gcc_plugin %{nil}, which empties exactly this token of %optflags"
     },
     {
-      "field": "file.class:*", "side": "ours",
+      "field": "file.class:*",
+      "side": "ours",
       "pattern": ", original size modulo 2\\^32 \\d+",
       "replace": "",
       "optional": true,
-      "reason": "stage0's rpmbuild links nixpkgs' newer libmagic, which appends the original size to gzip descriptions (FILECLASS only, not content)"
+      "reason": "stage0's rpmbuild links nixpkgs' libmagic 5.47 (Rocky: file-5.45), which appends the original size to gzip descriptions (FILECLASS only, not content)"
     }
   ],
   "allow": [
-    { "id": "elf.section:*:-.annobin.notes", "optional": true, "reason": "stage0: no annobin plugin, so no .annobin.notes" },
-    { "id": "elf.section:*:-.gnu.build.attributes", "optional": true, "reason": "stage0: no annobin plugin (official objects carry its build attribute notes)" }
+    {
+      "id": "elf.section:*:-.annobin.notes",
+      "optional": true,
+      "reason": "stage0: no annobin plugin, so no .annobin.notes"
+    },
+    {
+      "id": "elf.section:*:-.gnu.build.attributes",
+      "optional": true,
+      "reason": "stage0: no annobin plugin (official objects carry its build attribute notes)"
+    },
+    {
+      "id": "file.class:*",
+      "ours": "dynamically linked",
+      "official": "static-pie linked",
+      "optional": true,
+      "reason": "stage0's rpmbuild links nixpkgs' libmagic 5.47 (Rocky: file-5.45), which describes ld.so-style static-pie objects as 'dynamically linked' (FILECLASS text only; PIE/INTERP/dynamic properties are compared by the elf.* checks)"
+    }
   ]
 }

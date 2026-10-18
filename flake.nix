@@ -26,12 +26,16 @@
     {
       legacyPackages.${system} = rocky;
       packages.${system} = {
-        glibc-srpm-build = rocky.srpm.glibc; # rpmbuild result (RPMS/, SRPMS/, logs/)
-        glibc = rocky.rpms.glibc;            # payload tree of the main glibc RPM
+        glibc = rocky.rpms.glibc;                        # payload tree of the main glibc RPM (allowedReferences = [ ])
+        glibc-rpms = rocky.srpm.glibc;                   # rpmbuild result: RPMS/{x86_64,noarch}, SRPMS/, logs/
+        kernel-headers = rocky.stage0.rpms.kernel-headers;  # payload tree of Rocky's kernel-headers RPM
+        kernel-headers-rpms = rocky.stage0.kernelHeadersBuild; # rpmbuild result of the kernel SRPM (headers only)
       };
-      # stage0 acceptance tests (docs/stage0.md) + RPM parity (docs/parity.md) + glibc (docs/glibc.md)
+      # stage0 acceptance tests (docs/stage0.md), RPM parity checks
+      # (docs/parity.md; includes glibc-parity, kernel-headers-parity) and the
+      # glibc checks (docs/glibc.md)
       checks.${system} = rocky.stage0.tests // rocky.parityChecks // {
-        glibc-trees = rocky.packageSets.glibc.trees;   # every subpackage via rpmTree (purity)
+        glibc-purity = rocky.packageSets.glibc.trees;  # all 224 subpackage trees, allowedReferences = [ ]
         glibc-sanity = rocky.packageSets.glibc.sanity; # NEVRs, configure results, ELF checks
       };
 

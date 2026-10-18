@@ -1,0 +1,22 @@
+{
+  "description": "Packages built from the kernel SRPM in stage0. Currently only the headers-only build (packages/kernel-headers.nix, docs/kernel-headers.md): kernel-headers and the always-emitted kernel-modules-extra-matched meta package.",
+  "extends": ["stage0"],
+  "allow": [
+    {
+      "id": "file.only-official:/usr/include/perf*", "packages": "kernel-headers.x86_64",
+      "reason": "leaked into the official kernel-headers by the full kernel build: libperf's install_headers writes into the same buildroot and %files headers is /usr/include/* (also owned by libperf-devel). A headers-only build cannot produce them; we do not fake them"
+    },
+    {
+      "id": "file.only-official:/usr/include/internal*", "packages": "kernel-headers.x86_64",
+      "reason": "libperf internal headers leaked into the official kernel-headers by the full kernel build (see /usr/include/perf)"
+    },
+    {
+      "id": "file.only-official:/usr/include/cpuidle.h", "packages": "kernel-headers.x86_64",
+      "reason": "cpupower header leaked into the official kernel-headers by the full kernel build's kernel-tools install (also owned by kernel-tools-libs-devel)"
+    },
+    {
+      "id": "file.only-official:/usr/include/powercap.h", "packages": "kernel-headers.x86_64",
+      "reason": "cpupower header leaked into the official kernel-headers by the full kernel build's kernel-tools install (also owned by kernel-tools-libs-devel)"
+    }
+  ]
+}

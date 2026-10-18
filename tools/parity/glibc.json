@@ -1,5 +1,25 @@
 {
-  "description": "glibc (glibc-2.39-142.el10_2) built in stage0 vs the 221 official RPMs. Starts from the stage0 expectations; add a rule (with a reason) for every difference that is understood and accepted, see docs/parity.md.",
-  "extends": ["stage0"],
-  "allow": [ ]
+  "description": "glibc (glibc-2.39-142.el10_2) built in stage0 vs the 221 official RPMs (packages/glibc.nix, docs/glibc.md). Every rule is a difference that is understood and accepted; anything else fails the check.",
+  "extends": [
+    "stage0"
+  ],
+  "allow": [
+    {
+      "id": "package.only-ours:glibc32.x86_64",
+      "reason": "glibc.spec builds glibc32 (the i686 libraries packaged for x86_64, used by Rocky's gcc multilib build) but Rocky does not publish it in BaseOS/AppStream/CRB, so the lock has no official RPM"
+    },
+    {
+      "id": "package.only-ours:sysroot-x86_64-el10-glibc.noarch",
+      "reason": "glibc.spec's cross-compiler sysroot package; built by Rocky but not published in any repo of the lock"
+    },
+    {
+      "id": "package.only-ours:compat-libpthread-nonshared.x86_64",
+      "reason": "glibc.spec builds it on x86_64; Rocky does not publish it in any repo of the lock"
+    },
+    {
+      "id": "file.only-*:/usr/lib/.build-id/<build-id>* -> ../../../../usr/libexec/getconf/*_LP64_OFF64",
+      "packages": "glibc.x86_64",
+      "reason": "POSIX_V7_LP64_OFF64 and XBS5_LP64_OFF64 are hard links to one getconf binary (one build-id); rpm names the build-id links <id> and <id>.2 in file-walk (readdir) order, which depends on the build filesystem (overlayfs here, xfs/ext4 on Rocky's builders). Same two targets on both sides"
+    }
+  ]
 }

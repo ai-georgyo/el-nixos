@@ -26,13 +26,16 @@ let
   # ------------------------------------------------------------------ buildroot
   # = stage0-full (same root contents + rocky-release + the macro packages)
   # + the build deps missing from it (bootstrap/glibc-build-deps.nix)
+  # + makeinfo 7.1 built from Rocky's texinfo SRPM (bootstrap/texinfo.nix)
   # + kernel headers: either stage0's (copied into the root) or Rocky's
   #   kernel-headers RPM (installed into the rpmdb, so the spec's
   #   `rpm -ql kernel-headers` fills the sysroot package).
   root = stage0.mkRoot {
     name = "stage0-root-glibc";
     kernelHeaders = if kernelHeadersRpm == null then stage0.kernelHeaders else null;
-    extraTrees = [ stage0.glibcBuildDeps ];
+    # glibcBuildDeps: -devel libraries/headers; texinfo71: Rocky's makeinfo
+    # version (nixpkgs' 7.2 formats glibc-doc's libc.info differently)
+    extraTrees = [ stage0.glibcBuildDeps stage0.texinfo71 ];
   };
   buildroot = mkBuildroot {
     name = "stage0-glibc";
