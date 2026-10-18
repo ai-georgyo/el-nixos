@@ -1,0 +1,181 @@
+== sandbox has /usr? ls: cannot access '/usr': No such file or directory ls: cannot access '/lib64': No such file or directory ls: cannot access '/usr/lib64': No such file or directory 
+$ /nix/store/011dbnq6fv2fmggfqwmazishdlpyjjdc-glibc-2.39-142.el10_2/lib64/ld-linux-x86-64.so.2 --version
+ld.so (GNU libc) stable release version 2.39.
+Copyright (C) 2024 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.
+There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.
+  [rc=0]
+$ sh -c /nix/store/011dbnq6fv2fmggfqwmazishdlpyjjdc-glibc-2.39-142.el10_2/lib64/ld-linux-x86-64.so.2 --list-diagnostics | grep -E '^path\.|^dl_platform|^env_filtered' 
+dl_platform="haswell"
+env_filtered[0x0]="SHELL"
+env_filtered[0x1]="NIX_BUILD_CORES"
+env_filtered[0x2]="configureFlags"
+env_filtered[0x3]="mesonFlags"
+env_filtered[0x4]="exportReferencesGraph"
+env_filtered[0x5]="shell"
+env_filtered[0x6]="depsHostHost"
+env_filtered[0x7]="depsTargetTarget"
+env_filtered[0x8]="stdenv"
+env_filtered[0x9]="builder"
+env_filtered[0xa]="PWD"
+env_filtered[0xb]="SOURCE_DATE_EPOCH"
+env_filtered[0xc]="NIX_ENFORCE_NO_NATIVE"
+env_filtered[0xd]="enableParallelInstalling"
+env_filtered[0xe]="_"
+env_filtered[0xf]="TEMPDIR"
+env_filtered[0x10]="system"
+env_filtered[0x12]="N"
+env_filtered[0x13]="HOST_PATH"
+env_filtered[0x14]="enableParallelBuilding"
+env_filtered[0x15]="doInstallCheck"
+env_filtered[0x16]="buildCommandPath"
+env_filtered[0x17]="HOME"
+env_filtered[0x18]="enableParallelChecking"
+env_filtered[0x19]="GZIP_NO_TIMESTAMPS"
+env_filtered[0x1a]="depsTargetTargetPropagated"
+env_filtered[0x1b]="cmakeFlags"
+env_filtered[0x1c]="NIX_SSL_CERT_FILE"
+env_filtered[0x1d]="outputs"
+env_filtered[0x1e]="NIX_STORE"
+env_filtered[0x20]="NIX_ENFORCE_PURITY"
+env_filtered[0x21]="NIX_LOG_FD"
+env_filtered[0x22]="doCheck"
+env_filtered[0x23]="depsBuildBuild"
+env_filtered[0x24]="TERM"
+env_filtered[0x25]="propagatedNativeBuildInputs"
+env_filtered[0x26]="strictDeps"
+env_filtered[0x27]="TEMP"
+env_filtered[0x28]="SHLVL"
+  [rc=0]
+$ /nix/store/011dbnq6fv2fmggfqwmazishdlpyjjdc-glibc-2.39-142.el10_2/lib64/ld-linux-x86-64.so.2 --list /nix/store/f90qcvc1200bdvvs48qxab6bnlvafvm1-glibc-2.39-142.el10_2-common/bin/locale
+	 (0x00007ffff7fb4000)
+	linux-vdso.so.1 (0x00007ffff7fc6000)
+	libc.so.6 => /nix/store/011dbnq6fv2fmggfqwmazishdlpyjjdc-glibc-2.39-142.el10_2//////////////////////////////////lib64/libc.so.6 (0x00007ffff7dd8000)
+	/nix/store/011dbnq6fv2fmggfqwmazishdlpyjjdc-glibc-2.39-142.el10_2//////////////////////////////////lib64/ld-linux-x86-64.so.2 => /nix/store/011dbnq6fv2fmggfqwmazishdlpyjjdc-glibc-2.39-142.el10_2/lib64/ld-linux-x86-64.so.2 (0x00007ffff7fc8000)
+  [rc=0]
+$ /nix/store/f90qcvc1200bdvvs48qxab6bnlvafvm1-glibc-2.39-142.el10_2-common/bin/locale -a
+C
+C.utf8
+POSIX
+  [rc=0]
+$ env LC_ALL=en_US.UTF-8 /nix/store/f90qcvc1200bdvvs48qxab6bnlvafvm1-glibc-2.39-142.el10_2-common/bin/locale -k LC_NUMERIC
+decimal_point="."
+thousands_sep=","
+grouping=3
+numeric-decimal-point-wc=46
+numeric-thousands-sep-wc=44
+numeric-codeset="UTF-8"
+  [rc=0]
+$ sh -c printf 'caf\xc3\xa9\n' | /nix/store/f90qcvc1200bdvvs48qxab6bnlvafvm1-glibc-2.39-142.el10_2-common/bin/iconv -f UTF-8 -t ISO-8859-1 | od -c
+0000000   c   a   f 351  \n
+0000005
+  [rc=0]
+$ sh -c printf 'abc\n' | /nix/store/f90qcvc1200bdvvs48qxab6bnlvafvm1-glibc-2.39-142.el10_2-common/bin/iconv -f UTF-8 -t IBM037 | od -An -tx1
+/nix/store/f90qcvc1200bdvvs48qxab6bnlvafvm1-glibc-2.39-142.el10_2-common/bin/iconv: conversion to `IBM037' is not supported
+Try `iconv --help' or `iconv --usage' for more information.
+  [rc=0]
+$ sh -c printf 'abc\n' | GCONV_PATH=/nix/store/011dbnq6fv2fmggfqwmazishdlpyjjdc-glibc-2.39-142.el10_2/lib64/gconv:/nix/store/l6a6l697vlbl424b00w31fskwz0n8icj-glibc-2.39-142.el10_2-gconv-extra/lib64/gconv /nix/store/f90qcvc1200bdvvs48qxab6bnlvafvm1-glibc-2.39-142.el10_2-common/bin/iconv -f UTF-8 -t IBM037 | od -An -tx1
+ 81 82 83 25
+  [rc=0]
+$ /nix/store/f90qcvc1200bdvvs48qxab6bnlvafvm1-glibc-2.39-142.el10_2-common/bin/getent passwd root
+root:x:0:0:Nix build user:/build:/noshell
+  [rc=0]
+$ /nix/store/f90qcvc1200bdvvs48qxab6bnlvafvm1-glibc-2.39-142.el10_2-common/bin/getconf GNU_LIBC_VERSION
+glibc 2.39
+  [rc=0]
+$ /nix/store/f90qcvc1200bdvvs48qxab6bnlvafvm1-glibc-2.39-142.el10_2-common/bin/ldd /nix/store/jyzfzdhlspx7267qb1dfn4himf78nxyp-xz-5.6.2-4.el10_2.1/bin/xz
+/build/.attr-0l2nkwhif96f51f4amnlf414lhl4rv9vh8iffyp431v6s28gsr90: /nix/store/f90qcvc1200bdvvs48qxab6bnlvafvm1-glibc-2.39-142.el10_2-common/bin/ldd: /usr/bin/bash: bad interpreter: No such file or directory
+  [rc=126]
+$ /nix/store/pwxj9ycwqd117yra6czifh3xfx5p88lh-bash-interactive-5.3p9/bin/bash /nix/store/f90qcvc1200bdvvs48qxab6bnlvafvm1-glibc-2.39-142.el10_2-common/bin/ldd /nix/store/jyzfzdhlspx7267qb1dfn4himf78nxyp-xz-5.6.2-4.el10_2.1/bin/xz
+	linux-vdso.so.1 (0x00007ffff7fc6000)
+	liblzma.so.5 => /nix/store/ddklpnvypm5gs803k5c4ki06gxd9j859-xz-5.6.2-4.el10_2.1-libs/lib64/liblzma.so.5 (0x00007ffff7f6b000)
+	libc.so.6 => /nix/store/011dbnq6fv2fmggfqwmazishdlpyjjdc-glibc-2.39-142.el10_2//////////////////////////////////lib64/libc.so.6 (0x00007ffff7d91000)
+	/nix/store/011dbnq6fv2fmggfqwmazishdlpyjjdc-glibc-2.39-142.el10_2/lib64/ld-linux-x86-64.so.2 => /nix/store/011dbnq6fv2fmggfqwmazishdlpyjjdc-glibc-2.39-142.el10_2//////////////////////////////////lib64/ld-linux-x86-64.so.2 (0x00007ffff7fc8000)
+  [rc=0]
+$ /nix/store/x2vm8kw4k5f5inc1yfyp2hqnb9hnx91l-which-2.21-44.el10_0/bin/which --version
+GNU which v2.21, Copyright (C) 1999 - 2015 Carlo Wood.
+GNU which comes with ABSOLUTELY NO WARRANTY;
+This program is free software; your freedom to use, change
+and distribute this program is protected by the GPL.
+  [rc=0]
+$ env PATH=/nix/store/jyzfzdhlspx7267qb1dfn4himf78nxyp-xz-5.6.2-4.el10_2.1/bin:/nix/store/z5j0xmxbld6xg442h417yr44dwnq210y-gzip-1.13-4.el10_2/bin /nix/store/x2vm8kw4k5f5inc1yfyp2hqnb9hnx91l-which-2.21-44.el10_0/bin/which xz gzip
+/nix/store/jyzfzdhlspx7267qb1dfn4himf78nxyp-xz-5.6.2-4.el10_2.1/bin/xz
+/nix/store/z5j0xmxbld6xg442h417yr44dwnq210y-gzip-1.13-4.el10_2/bin/gzip
+  [rc=0]
+$ /nix/store/jyzfzdhlspx7267qb1dfn4himf78nxyp-xz-5.6.2-4.el10_2.1/bin/xz --version
+xz (XZ Utils) 5.6.2
+liblzma 5.6.2
+  [rc=0]
+$ sh -c echo hello | /nix/store/jyzfzdhlspx7267qb1dfn4himf78nxyp-xz-5.6.2-4.el10_2.1/bin/xz | /nix/store/jyzfzdhlspx7267qb1dfn4himf78nxyp-xz-5.6.2-4.el10_2.1/bin/xz -d
+hello
+  [rc=0]
+$ sh -c echo hello | /nix/store/z5j0xmxbld6xg442h417yr44dwnq210y-gzip-1.13-4.el10_2/bin/gzip | /nix/store/z5j0xmxbld6xg442h417yr44dwnq210y-gzip-1.13-4.el10_2/bin/gzip -d
+hello
+  [rc=0]
+$ sh -c echo hello world | /nix/store/1mrrkw10xd33m587d6rg6bgsrklsd8vj-sed-4.9-5.el10/bin/sed s/world/rocky/
+hello rocky
+  [rc=0]
+$ /nix/store/18hgidl941s77yvmcdvfxccy7ykbhjqh-m4-1.4.19-11.el10/bin/m4 --version
+m4 (GNU M4) 1.4.19
+Copyright (C) 2021 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+Written by Rene' Seindal.
+  [rc=0]
+$ /nix/store/g83ar60d35izp426hyfy6f03iyvzszfj-diffutils-3.10-8.el10/bin/diff --version
+diff (GNU diffutils) 3.10
+Copyright (C) 2023 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+Written by Paul Eggert, Mike Haertel, David Hayes,
+Richard Stallman, and Len Tower.
+  [rc=0]
+$ /nix/store/011dbnq6fv2fmggfqwmazishdlpyjjdc-glibc-2.39-142.el10_2/lib64/ld-linux-x86-64.so.2 --list /nix/store/dzpqz778f86d7lpi3lfpgw4zx3vhfhfs-popt-1.19-8.el10/lib64/libpopt.so.0
+	 (0x00007ffff7fb0000)
+	linux-vdso.so.1 (0x00007ffff7fc6000)
+	libc.so.6 => /nix/store/011dbnq6fv2fmggfqwmazishdlpyjjdc-glibc-2.39-142.el10_2//////////////////////////////////lib64/libc.so.6 (0x00007ffff7dd4000)
+	/nix/store/011dbnq6fv2fmggfqwmazishdlpyjjdc-glibc-2.39-142.el10_2/lib64/ld-linux-x86-64.so.2 (0x00007ffff7fc8000)
+  [rc=0]
+$ gcc -O2 -nostdinc -isystem /nix/store/bxz0gx446vl8b1m106bqibngg88sv22c-stage0-gcc-14.3.1-4.4.el10/usr/bin/../lib/gcc/x86_64-redhat-linux/14/include -isystem /nix/store/6amp4mymni7a8jz5qsccrk2ixbch001n-glibc-2.39-142.el10_2-devel/include -B/nix/store/6amp4mymni7a8jz5qsccrk2ixbch001n-glibc-2.39-142.el10_2-devel/lib64/ -L/nix/store/6amp4mymni7a8jz5qsccrk2ixbch001n-glibc-2.39-142.el10_2-devel/lib64 -static-libgcc -Wl,--dynamic-linker=/nix/store/011dbnq6fv2fmggfqwmazishdlpyjjdc-glibc-2.39-142.el10_2/lib64/ld-linux-x86-64.so.2 hello.c -o hello -lm
+  [rc=0]
+$ /nix/store/n9knrf5xwmnihh4xvi2avglg6gnp2zj8-stage0-binutils-2.41-63.el10/usr/bin/readelf -l hello
+
+Elf file type is EXEC (Executable file)
+Entry point 0x4010f0
+There are 13 program headers, starting at offset 64
+
+Program Headers:
+  Type           Offset             VirtAddr           PhysAddr
+                 FileSiz            MemSiz              Flags  Align
+  [rc=0]
+$ env LC_ALL=en_US.UTF-8 ./hello
+hello from glibc 2.39, 1,234,567.89, sqrt2=1.414214
+  [rc=0]
+$ gcc -O2 -static -nostdinc -isystem /nix/store/bxz0gx446vl8b1m106bqibngg88sv22c-stage0-gcc-14.3.1-4.4.el10/usr/bin/../lib/gcc/x86_64-redhat-linux/14/include -isystem /nix/store/6amp4mymni7a8jz5qsccrk2ixbch001n-glibc-2.39-142.el10_2-devel/include -B/nix/store/6qmglvdahs1yykhlrf9k5xranap819jj-glibc-2.39-142.el10_2-static/lib64/ -B/nix/store/6amp4mymni7a8jz5qsccrk2ixbch001n-glibc-2.39-142.el10_2-devel/lib64/ -L/nix/store/6qmglvdahs1yykhlrf9k5xranap819jj-glibc-2.39-142.el10_2-static/lib64 -L/nix/store/6amp4mymni7a8jz5qsccrk2ixbch001n-glibc-2.39-142.el10_2-devel/lib64 hello.c -o hello-static -lm
+  [rc=0]
+$ env LC_ALL=en_US.UTF-8 ./hello-static
+hello from glibc 2.39, 1,234,567.89, sqrt2=1.414214
+  [rc=0]
+== closures
+closure-011dbnq6fv2fmggfqwmazishdlpyjjdc-glibc-2.39-142.el10_2: glibc-2.39-142.el10_2 
+closure-18hgidl941s77yvmcdvfxccy7ykbhjqh-m4-1.4.19-11.el10: glibc-2.39-142.el10_2 m4-1.4.19-11.el10 
+closure-1mrrkw10xd33m587d6rg6bgsrklsd8vj-sed-4.9-5.el10: glibc-2.39-142.el10_2 sed-4.9-5.el10 
+closure-221wjmq5fiymbvhharivmfm1r0n9b0df-glibc-2.39-142.el10_2-minimal-langpack: glibc-2.39-142.el10_2-minimal-langpack 
+closure-6amp4mymni7a8jz5qsccrk2ixbch001n-glibc-2.39-142.el10_2-devel: glibc-2.39-142.el10_2 glibc-2.39-142.el10_2-devel 
+closure-6qmglvdahs1yykhlrf9k5xranap819jj-glibc-2.39-142.el10_2-static: glibc-2.39-142.el10_2-static 
+closure-97z920s95a8r858c0vnwhi4jq7zkl70v-libffi-3.4.4-10.el10: libffi-3.4.4-10.el10 
+closure-bnis70w05wzmxpfi5312a50jik6j5r4p-glibc-2.39-142.el10_2-langpack-en: glibc-2.39-142.el10_2 glibc-2.39-142.el10_2-langpack-en glibc-2.39-142.el10_2-common 
+closure-ddklpnvypm5gs803k5c4ki06gxd9j859-xz-5.6.2-4.el10_2.1-libs: xz-5.6.2-4.el10_2.1-libs 
+closure-dzpqz778f86d7lpi3lfpgw4zx3vhfhfs-popt-1.19-8.el10: popt-1.19-8.el10 
+closure-f90qcvc1200bdvvs48qxab6bnlvafvm1-glibc-2.39-142.el10_2-common: glibc-2.39-142.el10_2 glibc-2.39-142.el10_2-common 
+closure-g83ar60d35izp426hyfy6f03iyvzszfj-diffutils-3.10-8.el10: glibc-2.39-142.el10_2 diffutils-3.10-8.el10 
+closure-jyzfzdhlspx7267qb1dfn4himf78nxyp-xz-5.6.2-4.el10_2.1: glibc-2.39-142.el10_2 xz-5.6.2-4.el10_2.1-libs xz-5.6.2-4.el10_2.1 
+closure-l6a6l697vlbl424b00w31fskwz0n8icj-glibc-2.39-142.el10_2-gconv-extra: glibc-2.39-142.el10_2-gconv-extra 
+closure-m5nsfr2az54b23v1b1phwjknh0ac6gz2-glibc-2.39-142.el10_2-utils: glibc-2.39-142.el10_2 glibc-2.39-142.el10_2-utils 
+closure-x2vm8kw4k5f5inc1yfyp2hqnb9hnx91l-which-2.21-44.el10_0: glibc-2.39-142.el10_2 which-2.21-44.el10_0 
+closure-z5j0xmxbld6xg442h417yr44dwnq210y-gzip-1.13-4.el10_2: glibc-2.39-142.el10_2 gzip-1.13-4.el10_2 

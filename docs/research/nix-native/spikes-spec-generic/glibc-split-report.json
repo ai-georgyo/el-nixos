@@ -1,0 +1,831 @@
+{
+ "P": "/nix/store/00000000000000000000000000000000-glibc-2.39-142.el10_2-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+ "outputs": 224,
+ "built": 224,
+ "ref_kinds": {
+  "union-dir": 181,
+  "bare": 82,
+  "soft-file": 24,
+  "overlapped-tail": 8,
+  "union-missing": 47,
+  "soft-dir": 5,
+  "self-dir": 25,
+  "self-file": 745,
+  "self-missing": 10,
+  "fragment-tail": 2,
+  "fragment-head": 1,
+  "file": 434,
+  "union-primary-dir": 152,
+  "symlink-file": 235,
+  "dangling": 1
+ },
+ "rewritten": {
+  "file": 455,
+  "symlink": 724,
+  "symlink-cross": 235
+ },
+ "elf_fixups": {
+  "runpath": 4
+ },
+ "unresolved_needed": {
+  "libGB.so": 4,
+  "libJISX0213.so": 3,
+  "libJIS.so": 4,
+  "libKSC.so": 5,
+  "libCNS.so": 3,
+  "libISOIR165.so": 1,
+  "libgd.so.3": 1,
+  "libpng16.so.16": 1,
+  "libz.so.1": 1,
+  "libselinux.so.1": 1
+ },
+ "edges": {
+  "glibc-benchtests": [
+   "glibc"
+  ],
+  "glibc-common": [
+   "glibc"
+  ],
+  "glibc-devel": [
+   "glibc"
+  ],
+  "glibc-langpack-aa": [
+   "glibc-common"
+  ],
+  "glibc-langpack-af": [
+   "glibc-common"
+  ],
+  "glibc-langpack-agr": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ak": [
+   "glibc-common"
+  ],
+  "glibc-langpack-an": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ar": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ast": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ayc": [
+   "glibc-common"
+  ],
+  "glibc-langpack-be": [
+   "glibc-common"
+  ],
+  "glibc-langpack-bem": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ber": [
+   "glibc-common"
+  ],
+  "glibc-langpack-bg": [
+   "glibc-common"
+  ],
+  "glibc-langpack-bhb": [
+   "glibc-common"
+  ],
+  "glibc-langpack-bi": [
+   "glibc-common"
+  ],
+  "glibc-langpack-bo": [
+   "glibc-common"
+  ],
+  "glibc-langpack-br": [
+   "glibc-common"
+  ],
+  "glibc-langpack-bs": [
+   "glibc-common"
+  ],
+  "glibc-langpack-byn": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ca": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ce": [
+   "glibc-common"
+  ],
+  "glibc-langpack-chr": [
+   "glibc-common"
+  ],
+  "glibc-langpack-crh": [
+   "glibc-common"
+  ],
+  "glibc-langpack-cs": [
+   "glibc-common"
+  ],
+  "glibc-langpack-csb": [
+   "glibc-common"
+  ],
+  "glibc-langpack-cv": [
+   "glibc-common"
+  ],
+  "glibc-langpack-cy": [
+   "glibc-common"
+  ],
+  "glibc-langpack-dv": [
+   "glibc-common"
+  ],
+  "glibc-langpack-dz": [
+   "glibc-common"
+  ],
+  "glibc-langpack-el": [
+   "glibc-common"
+  ],
+  "glibc-langpack-en": [
+   "glibc-common"
+  ],
+  "glibc-langpack-es": [
+   "glibc-common"
+  ],
+  "glibc-langpack-et": [
+   "glibc-common"
+  ],
+  "glibc-langpack-eu": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ff": [
+   "glibc-common"
+  ],
+  "glibc-langpack-fi": [
+   "glibc-common"
+  ],
+  "glibc-langpack-fil": [
+   "glibc-common"
+  ],
+  "glibc-langpack-fr": [
+   "glibc-common"
+  ],
+  "glibc-langpack-fur": [
+   "glibc-common"
+  ],
+  "glibc-langpack-fy": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ga": [
+   "glibc-common"
+  ],
+  "glibc-langpack-gd": [
+   "glibc-common"
+  ],
+  "glibc-langpack-gez": [
+   "glibc-common"
+  ],
+  "glibc-langpack-gl": [
+   "glibc-common"
+  ],
+  "glibc-langpack-gv": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ha": [
+   "glibc-common"
+  ],
+  "glibc-langpack-he": [
+   "glibc-common"
+  ],
+  "glibc-langpack-hif": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ht": [
+   "glibc-common"
+  ],
+  "glibc-langpack-hy": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ia": [
+   "glibc-common"
+  ],
+  "glibc-langpack-id": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ig": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ik": [
+   "glibc-common"
+  ],
+  "glibc-langpack-is": [
+   "glibc-common"
+  ],
+  "glibc-langpack-it": [
+   "glibc-common"
+  ],
+  "glibc-langpack-iu": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ka": [
+   "glibc-common"
+  ],
+  "glibc-langpack-kab": [
+   "glibc-common"
+  ],
+  "glibc-langpack-kk": [
+   "glibc-common"
+  ],
+  "glibc-langpack-km": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ks": [
+   "glibc-common"
+  ],
+  "glibc-langpack-kv": [
+   "glibc-common"
+  ],
+  "glibc-langpack-kw": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ky": [
+   "glibc-common"
+  ],
+  "glibc-langpack-lg": [
+   "glibc-common"
+  ],
+  "glibc-langpack-li": [
+   "glibc-common"
+  ],
+  "glibc-langpack-lij": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ln": [
+   "glibc-common"
+  ],
+  "glibc-langpack-lo": [
+   "glibc-common"
+  ],
+  "glibc-langpack-lt": [
+   "glibc-common"
+  ],
+  "glibc-langpack-lv": [
+   "glibc-common"
+  ],
+  "glibc-langpack-mai": [
+   "glibc-common"
+  ],
+  "glibc-langpack-mg": [
+   "glibc-common"
+  ],
+  "glibc-langpack-mhr": [
+   "glibc-common"
+  ],
+  "glibc-langpack-mi": [
+   "glibc-common"
+  ],
+  "glibc-langpack-miq": [
+   "glibc-common"
+  ],
+  "glibc-langpack-mjw": [
+   "glibc-common"
+  ],
+  "glibc-langpack-mk": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ms": [
+   "glibc-common"
+  ],
+  "glibc-langpack-mt": [
+   "glibc-common"
+  ],
+  "glibc-langpack-nan": [
+   "glibc-common"
+  ],
+  "glibc-langpack-nds": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ne": [
+   "glibc-common"
+  ],
+  "glibc-langpack-nhn": [
+   "glibc-common"
+  ],
+  "glibc-langpack-niu": [
+   "glibc-common"
+  ],
+  "glibc-langpack-nl": [
+   "glibc-common"
+  ],
+  "glibc-langpack-nr": [
+   "glibc-common"
+  ],
+  "glibc-langpack-oc": [
+   "glibc-common"
+  ],
+  "glibc-langpack-om": [
+   "glibc-common"
+  ],
+  "glibc-langpack-os": [
+   "glibc-common"
+  ],
+  "glibc-langpack-pap": [
+   "glibc-common"
+  ],
+  "glibc-langpack-pl": [
+   "glibc-common"
+  ],
+  "glibc-langpack-pt": [
+   "glibc-common"
+  ],
+  "glibc-langpack-quz": [
+   "glibc-common"
+  ],
+  "glibc-langpack-rif": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ru": [
+   "glibc-common"
+  ],
+  "glibc-langpack-rw": [
+   "glibc-common"
+  ],
+  "glibc-langpack-sa": [
+   "glibc-common"
+  ],
+  "glibc-langpack-sah": [
+   "glibc-common"
+  ],
+  "glibc-langpack-sc": [
+   "glibc-common"
+  ],
+  "glibc-langpack-sd": [
+   "glibc-common"
+  ],
+  "glibc-langpack-se": [
+   "glibc-common"
+  ],
+  "glibc-langpack-sgs": [
+   "glibc-common"
+  ],
+  "glibc-langpack-shn": [
+   "glibc-common"
+  ],
+  "glibc-langpack-shs": [
+   "glibc-common"
+  ],
+  "glibc-langpack-si": [
+   "glibc-common"
+  ],
+  "glibc-langpack-sk": [
+   "glibc-common"
+  ],
+  "glibc-langpack-sl": [
+   "glibc-common"
+  ],
+  "glibc-langpack-sm": [
+   "glibc-common"
+  ],
+  "glibc-langpack-so": [
+   "glibc-common"
+  ],
+  "glibc-langpack-sq": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ss": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ssy": [
+   "glibc-common"
+  ],
+  "glibc-langpack-st": [
+   "glibc-common"
+  ],
+  "glibc-langpack-su": [
+   "glibc-common"
+  ],
+  "glibc-langpack-sw": [
+   "glibc-common"
+  ],
+  "glibc-langpack-syr": [
+   "glibc-common"
+  ],
+  "glibc-langpack-szl": [
+   "glibc-common"
+  ],
+  "glibc-langpack-tg": [
+   "glibc-common"
+  ],
+  "glibc-langpack-th": [
+   "glibc-common"
+  ],
+  "glibc-langpack-the": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ti": [
+   "glibc-common"
+  ],
+  "glibc-langpack-tig": [
+   "glibc-common"
+  ],
+  "glibc-langpack-tl": [
+   "glibc-common"
+  ],
+  "glibc-langpack-tn": [
+   "glibc-common"
+  ],
+  "glibc-langpack-to": [
+   "glibc-common"
+  ],
+  "glibc-langpack-tpi": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ts": [
+   "glibc-common"
+  ],
+  "glibc-langpack-tt": [
+   "glibc-common"
+  ],
+  "glibc-langpack-unm": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ur": [
+   "glibc-common"
+  ],
+  "glibc-langpack-ve": [
+   "glibc-common"
+  ],
+  "glibc-langpack-wo": [
+   "glibc-common"
+  ],
+  "glibc-langpack-xh": [
+   "glibc-common"
+  ],
+  "glibc-langpack-yo": [
+   "glibc-common"
+  ],
+  "glibc-langpack-yuw": [
+   "glibc-common"
+  ],
+  "glibc-langpack-zgh": [
+   "glibc-common"
+  ],
+  "glibc-langpack-zu": [
+   "glibc-common"
+  ],
+  "glibc-nss-devel": [
+   "glibc",
+   "nss_db",
+   "nss_hesiod"
+  ],
+  "glibc-utils": [
+   "glibc"
+  ],
+  "nss_db": [
+   "glibc"
+  ]
+ },
+ "cycles": [],
+ "soft_refs": [
+  [
+   "glibc",
+   "lib/locale",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-aa,glibc-langpack-af,glibc-langpack-agr,glibc-langpack-ak,glibc-langpack",
+   2
+  ],
+  [
+   "glibc",
+   "lib/locale/locale-archive",
+   "->glibc-all-langpacks",
+   2
+  ],
+  [
+   "glibc",
+   "share/locale",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs,glibc-langpack-",
+   4
+  ],
+  [
+   "glibc",
+   "share/locale/%L/%N",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs,glibc-langpack-",
+   2
+  ],
+  [
+   "glibc",
+   "share/locale/%L/LC_MESSAGES/%N",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs,glibc-langpack-",
+   2
+  ],
+  [
+   "glibc",
+   "share/locale/%l/%N",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs,glibc-langpack-",
+   2
+  ],
+  [
+   "glibc",
+   "share/locale/%l/LC_MESSAGES/%N",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs,glibc-langpack-",
+   1
+  ],
+  [
+   "glibc",
+   "share/locale/%lshare/locale/%l/LC_MESSAGES/%N",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs,glibc-langpack-",
+   1
+  ],
+  [
+   "glibc-benchtests",
+   "bin",
+   "union:glibc-common,glibc-utils,nss_db",
+   76
+  ],
+  [
+   "glibc-benchtests",
+   "lib/locale",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-aa,glibc-langpack-af,glibc-langpack-agr,glibc-langpack-ak,glibc-langpack",
+   76
+  ],
+  [
+   "glibc-common",
+   "lib/ld-linux.so.2",
+   "->glibc32",
+   1
+  ],
+  [
+   "glibc-common",
+   "lib/locale/locale-archive",
+   "->glibc-all-langpacks",
+   3
+  ],
+  [
+   "glibc-static",
+   "lib/locale",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-aa,glibc-langpack-af,glibc-langpack-agr,glibc-langpack-ak,glibc-langpack",
+   1
+  ],
+  [
+   "glibc-static",
+   "lib/locale/locale-archive",
+   "->glibc-all-langpacks",
+   1
+  ],
+  [
+   "glibc-static",
+   "lib64/gconv",
+   "union:glibc,glibc-gconv-extra",
+   1
+  ],
+  [
+   "glibc-static",
+   "lib64/gconv/gconv-modules.cache",
+   "->glibc",
+   1
+  ],
+  [
+   "glibc-static",
+   "libexec/getconf",
+   "->glibc",
+   1
+  ],
+  [
+   "glibc-static",
+   "share/locale",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs,glibc-langpack-",
+   2
+  ],
+  [
+   "glibc-static",
+   "share/locale/%L/%N",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs,glibc-langpack-",
+   2
+  ],
+  [
+   "glibc-static",
+   "share/locale/%L/LC_MESSAGES/%N",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs,glibc-langpack-",
+   2
+  ],
+  [
+   "glibc-static",
+   "share/locale/%l/%N",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs,glibc-langpack-",
+   2
+  ],
+  [
+   "glibc-static",
+   "share/locale/%l/LC_MESSAGES/%N",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs,glibc-langpack-",
+   1
+  ],
+  [
+   "glibc-static",
+   "share/locale/%lshare/locale/%l/LC_MESSAGES/%N",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs,glibc-langpack-",
+   1
+  ],
+  [
+   "glibc-static",
+   "share/zoneinfo",
+   "union:glibc,glibc-all-langpacks,glibc-common,glibc-doc,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs",
+   2
+  ],
+  [
+   "glibc32",
+   "lib/locale",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-aa,glibc-langpack-af,glibc-langpack-agr,glibc-langpack-ak,glibc-langpack",
+   2
+  ],
+  [
+   "glibc32",
+   "lib/locale/locale-archive",
+   "->glibc-all-langpacks",
+   2
+  ],
+  [
+   "glibc32",
+   "libexec/getconf",
+   "->glibc",
+   2
+  ],
+  [
+   "glibc32",
+   "share/locale",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs,glibc-langpack-",
+   4
+  ],
+  [
+   "glibc32",
+   "share/locale/%L/%N",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs,glibc-langpack-",
+   2
+  ],
+  [
+   "glibc32",
+   "share/locale/%L/LC_MESSAGES/%N",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs,glibc-langpack-",
+   2
+  ],
+  [
+   "glibc32",
+   "share/locale/%l/%N",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs,glibc-langpack-",
+   2
+  ],
+  [
+   "glibc32",
+   "share/locale/%l/LC_MESSAGES/%N",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs,glibc-langpack-",
+   2
+  ],
+  [
+   "glibc32",
+   "share/zoneinfo",
+   "union:glibc,glibc-all-langpacks,glibc-common,glibc-doc,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs",
+   2
+  ],
+  [
+   "sysroot-x86_64-el10-glibc",
+   "lib/locale",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-aa,glibc-langpack-af,glibc-langpack-agr,glibc-langpack-ak,glibc-langpack",
+   2
+  ],
+  [
+   "sysroot-x86_64-el10-glibc",
+   "lib/locale/locale-archive",
+   "->glibc-all-langpacks",
+   2
+  ],
+  [
+   "sysroot-x86_64-el10-glibc",
+   "lib64",
+   "union:compat-libpthread-nonshared,glibc,glibc-devel,glibc-gconv-extra,glibc-nss-devel,glibc-static,glibc-utils,libnsl,nss_db,n",
+   5
+  ],
+  [
+   "sysroot-x86_64-el10-glibc",
+   "lib64/gconv",
+   "union:glibc,glibc-gconv-extra",
+   2
+  ],
+  [
+   "sysroot-x86_64-el10-glibc",
+   "lib64/gconv/gconv-modules.cache",
+   "->glibc",
+   2
+  ],
+  [
+   "sysroot-x86_64-el10-glibc",
+   "lib64/ld-linux-x86-64.so.2",
+   "->glibc",
+   4
+  ],
+  [
+   "sysroot-x86_64-el10-glibc",
+   "lib64/libc.so.6",
+   "->glibc",
+   1
+  ],
+  [
+   "sysroot-x86_64-el10-glibc",
+   "lib64/libc_nonshared.a",
+   "->glibc-devel",
+   1
+  ],
+  [
+   "sysroot-x86_64-el10-glibc",
+   "lib64/libm-2.39.a",
+   "->glibc-static",
+   1
+  ],
+  [
+   "sysroot-x86_64-el10-glibc",
+   "lib64/libm.so.6",
+   "->glibc",
+   1
+  ],
+  [
+   "sysroot-x86_64-el10-glibc",
+   "lib64/libmvec.a",
+   "->glibc-static",
+   1
+  ],
+  [
+   "sysroot-x86_64-el10-glibc",
+   "lib64/libmvec.so.1",
+   "->glibc",
+   1
+  ],
+  [
+   "sysroot-x86_64-el10-glibc",
+   "libexec/getconf",
+   "->glibc",
+   2
+  ],
+  [
+   "sysroot-x86_64-el10-glibc",
+   "share/locale",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs,glibc-langpack-",
+   4
+  ],
+  [
+   "sysroot-x86_64-el10-glibc",
+   "share/locale/%L/%N",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs,glibc-langpack-",
+   4
+  ],
+  [
+   "sysroot-x86_64-el10-glibc",
+   "share/locale/%L/LC_MESSAGES/%N",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs,glibc-langpack-",
+   4
+  ],
+  [
+   "sysroot-x86_64-el10-glibc",
+   "share/locale/%l/%N",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs,glibc-langpack-",
+   4
+  ],
+  [
+   "sysroot-x86_64-el10-glibc",
+   "share/locale/%l/LC_MESSAGES/%N",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs,glibc-langpack-",
+   2
+  ],
+  [
+   "sysroot-x86_64-el10-glibc",
+   "share/locale/%lshare/locale/%l/LC_MESSAGES/%N",
+   "union:glibc-all-langpacks,glibc-common,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs,glibc-langpack-",
+   2
+  ],
+  [
+   "sysroot-x86_64-el10-glibc",
+   "share/zoneinfo",
+   "union:glibc,glibc-all-langpacks,glibc-common,glibc-doc,glibc-langpack-be,glibc-langpack-bg,glibc-langpack-ca,glibc-langpack-cs",
+   3
+  ]
+ ],
+ "p_left": [],
+ "p_fragments_left": {
+  "x86_64-redhat-linux/sys-root/el10/usr/lib64/libc.so.6": 1
+ },
+ "weak_edges_admitted": [
+  "glibc-benchtests -> glibc"
+ ],
+ "weak_edges_dropped": [
+  "glibc -> glibc-common"
+ ],
+ "edge_reasons": {
+  "glibc-benchtests -> glibc": [
+   "lib64 (union-primary-dir)",
+   "lib64/ld-linux-x86-64.so.2 (file)",
+   "sbin (union-primary-dir)"
+  ],
+  "glibc-common -> glibc": [
+   "lib64/ld-linux-x86-64.so.2 (file)"
+  ],
+  "glibc-devel -> glibc": [
+   "lib64/ld-linux-x86-64.so.2 (file)",
+   "lib64/libc.so.6 (file)",
+   "lib64/libm.so.6 (file)",
+   "lib64/libmvec.so.1 (file)"
+  ],
+  "glibc-utils -> glibc": [
+   "lib64/ld-linux-x86-64.so.2 (file)"
+  ],
+  "nss_db -> glibc": [
+   "lib64/ld-linux-x86-64.so.2 (file)"
+  ]
+ }
+}

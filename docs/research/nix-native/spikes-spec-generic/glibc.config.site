@@ -1,0 +1,7 @@
+# per-package (glibc): glibc's configure special-cases prefix=/usr
+# (sysdeps/gnu/configure.ac, sysdeps/unix/sysv/linux/x86_64/64/configure.ac);
+# give P the same choices via glibc's own cache variables.
+libc_cv_slibdir=$prefix/$el_nixos_lib
+libc_cv_rtlddir=$prefix/$el_nixos_lib
+libc_cv_complocaledir=$prefix/lib/locale
+libc_cv_rootsbindir=$prefix/sbin

@@ -1,0 +1,471 @@
+warning: share/locale/be/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-be
+warning: share/locale/bg/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-bg
+warning: share/locale/ca/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-ca
+warning: share/locale/cs/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-cs
+warning: share/locale/da/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-da
+warning: share/locale/de/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-de
+warning: share/locale/el/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-el
+warning: share/locale/en_GB/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-en
+warning: share/locale/eo/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-eo
+warning: share/locale/es/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-es
+warning: share/locale/fi/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-fi
+warning: share/locale/fr/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-fr
+warning: share/locale/gl/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-gl
+warning: share/locale/hr/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-hr
+warning: share/locale/hu/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-hu
+warning: share/locale/ia/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-ia
+warning: share/locale/id/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-id
+warning: share/locale/it/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-it
+warning: share/locale/ja/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-ja
+warning: share/locale/ka/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-ka
+warning: share/locale/ko/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-ko
+warning: share/locale/lt/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-lt
+warning: share/locale/nb/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-nb
+warning: share/locale/nl/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-nl
+warning: share/locale/pl/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-pl
+warning: share/locale/pt/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-pt
+warning: share/locale/pt_BR/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-pt
+warning: share/locale/ro/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-ro
+warning: share/locale/ru/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-ru
+warning: share/locale/rw/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-rw
+warning: share/locale/sk/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-sk
+warning: share/locale/sl/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-sl
+warning: share/locale/sr/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-sr
+warning: share/locale/sv/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-sv
+warning: share/locale/tr/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-tr
+warning: share/locale/uk/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-uk
+warning: share/locale/vi/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-vi
+warning: share/locale/zh_CN/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-zh
+warning: share/locale/zh_TW/LC_MESSAGES/libc.mo in glibc-all-langpacks and glibc-langpack-zh
+prefix: /nix/store/nncpaslng931rr3ipkb4zsh3a4vabvdq-glibc-2.39-142.el10_2
+subpackages: 232  files scanned: 9219
+
+== cross-subpackage references (A -> B: count by file kind; examples)
+glibc -> glibc-all-langpacks: {'elf': 2}
+      lib64/libc.so.6  ->  lib/locale/locale-archive
+      sbin/ldconfig  ->  lib/locale/locale-archive
+glibc-benchtests -> glibc: {'elf': 416}
+      libexec/glibc-benchtests/bench-acos  ->  lib64/ld-linux-x86-64.so.2
+      libexec/glibc-benchtests/bench-acosh  ->  lib64/ld-linux-x86-64.so.2
+      libexec/glibc-benchtests/bench-arc4random  ->  lib64/ld-linux-x86-64.so.2
+glibc-common -> glibc: {'elf': 10, 'symlink-rel': 1, 'text': 1}
+      bin/gencat  ->  lib64/ld-linux-x86-64.so.2
+      bin/getconf  ->  lib64/ld-linux-x86-64.so.2
+      bin/getent  ->  lib64/ld-linux-x86-64.so.2
+glibc-common -> glibc-all-langpacks: {'elf': 2}
+      bin/locale  ->  lib/locale/locale-archive
+      bin/localedef  ->  lib/locale/locale-archive
+glibc-common -> glibc-locale-source: {'elf': 5}
+      bin/iconv  ->  share/i18n/charmaps
+      bin/locale  ->  share/i18n/charmaps
+      bin/localedef  ->  share/i18n
+glibc-common -> glibc32: {'text': 1}
+      bin/ldd  ->  lib/ld-linux.so.2
+glibc-devel -> glibc: {'text': 4, 'symlink-rel': 5}
+      lib64/libBrokenLocale.so  ->  lib64/libBrokenLocale.so.1
+      lib64/libanl.so  ->  lib64/libanl.so.1
+      lib64/libc.so  ->  lib64/ld-linux-x86-64.so.2
+glibc-langpack-aa -> glibc-common: {'symlink-rel': 3}
+      lib/locale/aa_DJ.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/aa_DJ.utf8/LC_NUMERIC  ->  lib/locale/C.utf8/LC_NUMERIC
+      lib/locale/aa_ER/LC_NUMERIC  ->  lib/locale/C.utf8/LC_NUMERIC
+glibc-langpack-af -> glibc-common: {'symlink-rel': 1}
+      lib/locale/af_ZA.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-agr -> glibc-common: {'symlink-rel': 1}
+      lib/locale/agr_PE/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ak -> glibc-common: {'symlink-rel': 1}
+      lib/locale/ak_GH/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-an -> glibc-common: {'symlink-rel': 1}
+      lib/locale/an_ES.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ar -> glibc-common: {'symlink-rel': 20}
+      lib/locale/ar_AE.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/ar_BH.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/ar_DZ.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ast -> glibc-common: {'symlink-rel': 1}
+      lib/locale/ast_ES.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ayc -> glibc-common: {'symlink-rel': 1}
+      lib/locale/ayc_PE/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-be -> glibc-common: {'symlink-rel': 1}
+      lib/locale/be_BY.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-bem -> glibc-common: {'symlink-rel': 1}
+      lib/locale/bem_ZM/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ber -> glibc-common: {'symlink-rel': 2}
+      lib/locale/ber_DZ/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/ber_MA/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-bg -> glibc-common: {'symlink-rel': 1}
+      lib/locale/bg_BG.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-bhb -> glibc-common: {'symlink-rel': 1}
+      lib/locale/bhb_IN.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-bi -> glibc-common: {'symlink-rel': 1}
+      lib/locale/bi_VU/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-bo -> glibc-common: {'symlink-rel': 2}
+      lib/locale/bo_CN/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/bo_IN/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-br -> glibc-common: {'symlink-rel': 1}
+      lib/locale/br_FR.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-bs -> glibc-common: {'symlink-rel': 1}
+      lib/locale/bs_BA.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-byn -> glibc-common: {'symlink-rel': 1}
+      lib/locale/byn_ER/LC_NUMERIC  ->  lib/locale/C.utf8/LC_NUMERIC
+glibc-langpack-ca -> glibc-common: {'symlink-rel': 5}
+      lib/locale/ca_AD.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/ca_ES.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/ca_ES@valencia/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ce -> glibc-common: {'symlink-rel': 1}
+      lib/locale/ce_RU/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-chr -> glibc-common: {'symlink-rel': 1}
+      lib/locale/chr_US/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-crh -> glibc-common: {'symlink-rel': 1}
+      lib/locale/crh_RU/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-cs -> glibc-common: {'symlink-rel': 1}
+      lib/locale/cs_CZ.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-csb -> glibc-common: {'symlink-rel': 1}
+      lib/locale/csb_PL/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-cv -> glibc-common: {'symlink-rel': 1}
+      lib/locale/cv_RU/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-cy -> glibc-common: {'symlink-rel': 1}
+      lib/locale/cy_GB.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-dv -> glibc-common: {'symlink-rel': 1}
+      lib/locale/dv_MV/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-dz -> glibc-common: {'symlink-rel': 1}
+      lib/locale/dz_BT/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-el -> glibc-common: {'symlink-rel': 2}
+      lib/locale/el_CY.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/el_GR.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-en -> glibc-common: {'symlink-rel': 19}
+      lib/locale/en_AG/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/en_AU.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/en_BW.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-es -> glibc-common: {'symlink-rel': 21}
+      lib/locale/es_AR.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/es_BO.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/es_CL.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-et -> glibc-common: {'symlink-rel': 1}
+      lib/locale/et_EE.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-eu -> glibc-common: {'symlink-rel': 1}
+      lib/locale/eu_ES.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ff -> glibc-common: {'symlink-rel': 1}
+      lib/locale/ff_SN/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-fi -> glibc-common: {'symlink-rel': 1}
+      lib/locale/fi_FI.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-fil -> glibc-common: {'symlink-rel': 1}
+      lib/locale/fil_PH/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-fr -> glibc-common: {'symlink-rel': 5}
+      lib/locale/fr_BE.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/fr_CA.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/fr_CH.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-fur -> glibc-common: {'symlink-rel': 1}
+      lib/locale/fur_IT/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-fy -> glibc-common: {'symlink-rel': 2}
+      lib/locale/fy_DE/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/fy_NL/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ga -> glibc-common: {'symlink-rel': 1}
+      lib/locale/ga_IE.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-gd -> glibc-common: {'symlink-rel': 1}
+      lib/locale/gd_GB.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-gez -> glibc-common: {'symlink-rel': 2}
+      lib/locale/gez_ER/LC_NUMERIC  ->  lib/locale/C.utf8/LC_NUMERIC
+      lib/locale/gez_ER@abegede/LC_NUMERIC  ->  lib/locale/C.utf8/LC_NUMERIC
+glibc-langpack-gl -> glibc-common: {'symlink-rel': 1}
+      lib/locale/gl_ES.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-gv -> glibc-common: {'symlink-rel': 1}
+      lib/locale/gv_GB.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ha -> glibc-common: {'symlink-rel': 1}
+      lib/locale/ha_NG/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-he -> glibc-common: {'symlink-rel': 1}
+      lib/locale/he_IL.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-hif -> glibc-common: {'symlink-rel': 1}
+      lib/locale/hif_FJ/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ht -> glibc-common: {'symlink-rel': 1}
+      lib/locale/ht_HT/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-hy -> glibc-common: {'symlink-rel': 1}
+      lib/locale/hy_AM/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ia -> glibc-common: {'symlink-rel': 1}
+      lib/locale/ia_FR/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-id -> glibc-common: {'symlink-rel': 1}
+      lib/locale/id_ID.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ig -> glibc-common: {'symlink-rel': 1}
+      lib/locale/ig_NG/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ik -> glibc-common: {'symlink-rel': 1}
+      lib/locale/ik_CA/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-is -> glibc-common: {'symlink-rel': 1}
+      lib/locale/is_IS.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-it -> glibc-common: {'symlink-rel': 2}
+      lib/locale/it_CH.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/it_IT.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-iu -> glibc-common: {'symlink-rel': 1}
+      lib/locale/iu_CA/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ka -> glibc-common: {'symlink-rel': 1}
+      lib/locale/ka_GE.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-kab -> glibc-common: {'symlink-rel': 1}
+      lib/locale/kab_DZ/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-kk -> glibc-common: {'symlink-rel': 1}
+      lib/locale/kk_KZ.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-km -> glibc-common: {'symlink-rel': 1}
+      lib/locale/km_KH/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ks -> glibc-common: {'symlink-rel': 2}
+      lib/locale/ks_IN/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/ks_IN@devanagari/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-kv -> glibc-common: {'symlink-rel': 1}
+      lib/locale/kv_RU/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-kw -> glibc-common: {'symlink-rel': 1}
+      lib/locale/kw_GB.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ky -> glibc-common: {'symlink-rel': 1}
+      lib/locale/ky_KG/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-lg -> glibc-common: {'symlink-rel': 1}
+      lib/locale/lg_UG.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-li -> glibc-common: {'symlink-rel': 2}
+      lib/locale/li_BE/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/li_NL/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-lij -> glibc-common: {'symlink-rel': 1}
+      lib/locale/lij_IT/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ln -> glibc-common: {'symlink-rel': 1}
+      lib/locale/ln_CD/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-lo -> glibc-common: {'symlink-rel': 1}
+      lib/locale/lo_LA/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-lt -> glibc-common: {'symlink-rel': 1}
+      lib/locale/lt_LT.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-lv -> glibc-common: {'symlink-rel': 1}
+      lib/locale/lv_LV.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-mai -> glibc-common: {'symlink-rel': 1}
+      lib/locale/mai_NP/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-mg -> glibc-common: {'symlink-rel': 1}
+      lib/locale/mg_MG.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-mhr -> glibc-common: {'symlink-rel': 1}
+      lib/locale/mhr_RU/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-mi -> glibc-common: {'symlink-rel': 1}
+      lib/locale/mi_NZ.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-miq -> glibc-common: {'symlink-rel': 1}
+      lib/locale/miq_NI/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-mjw -> glibc-common: {'symlink-rel': 1}
+      lib/locale/mjw_IN/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-mk -> glibc-common: {'symlink-rel': 1}
+      lib/locale/mk_MK.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ms -> glibc-common: {'symlink-rel': 1}
+      lib/locale/ms_MY.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-mt -> glibc-common: {'symlink-rel': 1}
+      lib/locale/mt_MT.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-nan -> glibc-common: {'symlink-rel': 1}
+      lib/locale/nan_TW@latin/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-nds -> glibc-common: {'symlink-rel': 2}
+      lib/locale/nds_DE/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/nds_NL/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ne -> glibc-common: {'symlink-rel': 1}
+      lib/locale/ne_NP/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-nhn -> glibc-common: {'symlink-rel': 1}
+      lib/locale/nhn_MX/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-niu -> glibc-common: {'symlink-rel': 2}
+      lib/locale/niu_NU/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/niu_NZ/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-nl -> glibc-common: {'symlink-rel': 3}
+      lib/locale/nl_AW/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/nl_BE.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/nl_NL.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-nr -> glibc-common: {'symlink-rel': 1}
+      lib/locale/nr_ZA/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-oc -> glibc-common: {'symlink-rel': 1}
+      lib/locale/oc_FR.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-om -> glibc-common: {'symlink-rel': 1}
+      lib/locale/om_KE.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-os -> glibc-common: {'symlink-rel': 1}
+      lib/locale/os_RU/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-pap -> glibc-common: {'symlink-rel': 2}
+      lib/locale/pap_AW/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/pap_CW/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-pl -> glibc-common: {'symlink-rel': 1}
+      lib/locale/pl_PL.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-pt -> glibc-common: {'symlink-rel': 2}
+      lib/locale/pt_BR.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/pt_PT.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-quz -> glibc-common: {'symlink-rel': 1}
+      lib/locale/quz_PE/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-rif -> glibc-common: {'symlink-rel': 1}
+      lib/locale/rif_MA/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ru -> glibc-common: {'symlink-rel': 2}
+      lib/locale/ru_RU.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/ru_UA.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-rw -> glibc-common: {'symlink-rel': 1}
+      lib/locale/rw_RW/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-sa -> glibc-common: {'symlink-rel': 1}
+      lib/locale/sa_IN/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-sah -> glibc-common: {'symlink-rel': 1}
+      lib/locale/sah_RU/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-sc -> glibc-common: {'symlink-rel': 1}
+      lib/locale/sc_IT/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-sd -> glibc-common: {'symlink-rel': 2}
+      lib/locale/sd_IN/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/sd_IN@devanagari/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-se -> glibc-common: {'symlink-rel': 1}
+      lib/locale/se_NO/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-sgs -> glibc-common: {'symlink-rel': 1}
+      lib/locale/sgs_LT/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-shn -> glibc-common: {'symlink-rel': 1}
+      lib/locale/shn_MM/LC_NAME  ->  lib/locale/C.utf8/LC_NAME
+glibc-langpack-shs -> glibc-common: {'symlink-rel': 1}
+      lib/locale/shs_CA/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-si -> glibc-common: {'symlink-rel': 1}
+      lib/locale/si_LK/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-sk -> glibc-common: {'symlink-rel': 1}
+      lib/locale/sk_SK.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-sl -> glibc-common: {'symlink-rel': 1}
+      lib/locale/sl_SI.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-sm -> glibc-common: {'symlink-rel': 1}
+      lib/locale/sm_WS/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-so -> glibc-common: {'symlink-rel': 4}
+      lib/locale/so_DJ.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/so_DJ.utf8/LC_NUMERIC  ->  lib/locale/C.utf8/LC_NUMERIC
+      lib/locale/so_KE.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-sq -> glibc-common: {'symlink-rel': 2}
+      lib/locale/sq_AL.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/sq_MK/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ss -> glibc-common: {'symlink-rel': 1}
+      lib/locale/ss_ZA/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ssy -> glibc-common: {'symlink-rel': 1}
+      lib/locale/ssy_ER/LC_NUMERIC  ->  lib/locale/C.utf8/LC_NUMERIC
+glibc-langpack-st -> glibc-common: {'symlink-rel': 1}
+      lib/locale/st_ZA.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-su -> glibc-common: {'symlink-rel': 1}
+      lib/locale/su_ID/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-sw -> glibc-common: {'symlink-rel': 2}
+      lib/locale/sw_KE/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+      lib/locale/sw_TZ/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-syr -> glibc-common: {'symlink-rel': 1}
+      lib/locale/syr/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-szl -> glibc-common: {'symlink-rel': 1}
+      lib/locale/szl_PL/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-tg -> glibc-common: {'symlink-rel': 1}
+      lib/locale/tg_TJ.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-th -> glibc-common: {'symlink-rel': 1}
+      lib/locale/th_TH.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-the -> glibc-common: {'symlink-rel': 1}
+      lib/locale/the_NP/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ti -> glibc-common: {'symlink-rel': 1}
+      lib/locale/ti_ER/LC_NUMERIC  ->  lib/locale/C.utf8/LC_NUMERIC
+glibc-langpack-tig -> glibc-common: {'symlink-rel': 1}
+      lib/locale/tig_ER/LC_NUMERIC  ->  lib/locale/C.utf8/LC_NUMERIC
+glibc-langpack-tl -> glibc-common: {'symlink-rel': 1}
+      lib/locale/tl_PH.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-tn -> glibc-common: {'symlink-rel': 1}
+      lib/locale/tn_ZA/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-to -> glibc-common: {'symlink-rel': 1}
+      lib/locale/to_TO/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-tpi -> glibc-common: {'symlink-rel': 1}
+      lib/locale/tpi_PG/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ts -> glibc-common: {'symlink-rel': 1}
+      lib/locale/ts_ZA/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-tt -> glibc-common: {'symlink-rel': 1}
+      lib/locale/tt_RU/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-unm -> glibc-common: {'symlink-rel': 1}
+      lib/locale/unm_US/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ur -> glibc-common: {'symlink-rel': 1}
+      lib/locale/ur_IN/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-ve -> glibc-common: {'symlink-rel': 1}
+      lib/locale/ve_ZA/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-wo -> glibc-common: {'symlink-rel': 1}
+      lib/locale/wo_SN/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-xh -> glibc-common: {'symlink-rel': 1}
+      lib/locale/xh_ZA.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-yo -> glibc-common: {'symlink-rel': 1}
+      lib/locale/yo_NG/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-yuw -> glibc-common: {'symlink-rel': 1}
+      lib/locale/yuw_PG/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-zgh -> glibc-common: {'symlink-rel': 1}
+      lib/locale/zgh_MA/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-langpack-zu -> glibc-common: {'symlink-rel': 1}
+      lib/locale/zu_ZA.utf8/LC_CTYPE  ->  lib/locale/C.utf8/LC_CTYPE
+glibc-nss-devel -> glibc: {'symlink-rel': 1}
+      lib64/libnss_compat.so  ->  lib64/libnss_compat.so.2
+glibc-nss-devel -> nss_db: {'symlink-rel': 1}
+      lib64/libnss_db.so  ->  lib64/libnss_db.so.2
+glibc-nss-devel -> nss_hesiod: {'symlink-rel': 1}
+      lib64/libnss_hesiod.so  ->  lib64/libnss_hesiod.so.2
+glibc-static -> glibc: {'archive': 3}
+      lib64/libc.a  ->  etc/ld.so.cache
+      lib64/libc.a  ->  lib64/gconv/gconv-modules.cache
+      lib64/libc.a  ->  libexec/getconf
+glibc-static -> glibc-all-langpacks: {'archive': 1}
+      lib64/libc.a  ->  lib/locale/locale-archive
+glibc-utils -> glibc: {'elf': 2}
+      bin/memusagestat  ->  lib64/ld-linux-x86-64.so.2
+      bin/pcprofiledump  ->  lib64/ld-linux-x86-64.so.2
+glibc32 -> glibc: {'archive': 2, 'elf': 2}
+      lib/ld-linux.so.2  ->  etc/ld.so.cache
+      lib/libc.a  ->  etc/ld.so.cache
+      lib/libc.a  ->  libexec/getconf
+glibc32 -> glibc-all-langpacks: {'archive': 1, 'elf': 1}
+      lib/libc.a  ->  lib/locale/locale-archive
+      lib/libc.so.6  ->  lib/locale/locale-archive
+nss_db -> glibc: {'elf': 1}
+      bin/makedb  ->  lib64/ld-linux-x86-64.so.2
+sysroot-x86_64-el10-glibc -> glibc: {'archive': 3, 'elf': 5, 'text': 4}
+      x86_64-redhat-linux/sys-root/el10/usr/lib64/ld-linux-x86-64.so.2  ->  etc/ld.so.cache
+      x86_64-redhat-linux/sys-root/el10/usr/lib64/ld-linux-x86-64.so.2  ->  lib64/ld-linux-x86-64.so.2
+      x86_64-redhat-linux/sys-root/el10/usr/lib64/libc.a  ->  etc/ld.so.cache
+sysroot-x86_64-el10-glibc -> glibc-all-langpacks: {'archive': 1, 'elf': 1}
+      x86_64-redhat-linux/sys-root/el10/usr/lib64/libc.a  ->  lib/locale/locale-archive
+      x86_64-redhat-linux/sys-root/el10/usr/lib64/libc.so.6  ->  lib/locale/locale-archive
+sysroot-x86_64-el10-glibc -> glibc-devel: {'text': 1}
+      x86_64-redhat-linux/sys-root/el10/usr/lib64/libc.so  ->  lib64/libc_nonshared.a
+sysroot-x86_64-el10-glibc -> glibc-static: {'archive': 2}
+      x86_64-redhat-linux/sys-root/el10/usr/lib64/libm.a  ->  lib64/libm-2.39.a
+      x86_64-redhat-linux/sys-root/el10/usr/lib64/libm.a  ->  lib64/libmvec.a
+
+== references to union directories (dir: referencing subpackages / kinds)
+bin  [3 providers]  referenced by {'glibc-benchtests': 76}  kinds {'elf': 76}
+      libexec/glibc-benchtests/bench-arc4random
+      libexec/glibc-benchtests/bench-bzero
+      libexec/glibc-benchtests/bench-bzero-large
+lib  [224 providers]  referenced by {'glibc32': 3}  kinds {'elf': 2, 'archive': 1}
+      lib/ld-linux.so.2
+      lib/libc.a
+      lib/libc.so.6
+lib/locale  [208 providers]  referenced by {'glibc-benchtests': 76, 'glibc32': 2, 'sysroot-x86_64-el10-glibc': 2, 'glibc-common': 2, 'glibc': 2, 'glibc-static': 1}  kinds {'elf': 82, 'archive': 3}
+      lib64/libc.so.6
+      sbin/ldconfig
+      libexec/glibc-benchtests/bench-arc4random
+lib64  [10 providers]  referenced by {'glibc-benchtests': 76, 'sysroot-x86_64-el10-glibc': 2, 'glibc': 2, 'glibc-static': 1}  kinds {'elf': 79, 'archive': 2}
+      lib64/ld-linux-x86-64.so.2
+      sbin/ldconfig
+      libexec/glibc-benchtests/bench-arc4random
+lib64/gconv  [2 providers]  referenced by {'glibc': 3, 'glibc-static': 1, 'sysroot-x86_64-el10-glibc': 2}  kinds {'elf': 4, 'archive': 2}
+      lib64/libc.so.6
+      sbin/iconvconfig
+      sbin/ldconfig
+sbin  [2 providers]  referenced by {'glibc-benchtests': 76}  kinds {'elf': 76}
+      libexec/glibc-benchtests/bench-arc4random
+      libexec/glibc-benchtests/bench-bzero
+      libexec/glibc-benchtests/bench-bzero-large
+share  [42 providers]  referenced by {'glibc': 1, 'glibc32': 2, 'glibc-static': 1, 'sysroot-x86_64-el10-glibc': 2, 'glibc-common': 2}  kinds {'elf': 4, 'archive': 3, 'text': 1}
+      lib64/libc.so.6
+      bin/tzselect
+      sbin/zic
+share/locale  [38 providers]  referenced by {'glibc-common': 3, 'glibc': 2, 'glibc32': 2, 'glibc-static': 1, 'sysroot-x86_64-el10-glibc': 2}  kinds {'elf': 5, 'archive': 3, 'text': 2}
+      lib64/libc.so.6
+      sbin/ldconfig
+      bin/ldd
+
+== references to paths that no subpackage ships (dangling)
+glibc: lib64/ld-linux-x86-64.so.2 ->  (elf)
+glibc-benchtests: libexec/glibc-benchtests/bench-arc4random ->  (elf)
+glibc-benchtests: libexec/glibc-benchtests/bench-bzero ->  (elf)
+glibc-benchtests: libexec/glibc-benchtests/bench-bzero-large ->  (elf)
+glibc-benchtests: libexec/glibc-benchtests/bench-bzero-walk ->  (elf)
+glibc-benchtests: libexec/glibc-benchtests/bench-dl-elf-hash ->  (elf)
+glibc-benchtests: libexec/glibc-benchtests/bench-dl-new-hash ->  (elf)
+glibc-benchtests: libexec/glibc-benchtests/bench-math-inlines ->  (elf)
+glibc-benchtests: libexec/glibc-benchtests/bench-memccpy ->  (elf)
+glibc-benchtests: libexec/glibc-benchtests/bench-memchr ->  (elf)
+glibc-benchtests: libexec/glibc-benchtests/bench-memcmp ->  (elf)
+glibc-benchtests: libexec/glibc-benchtests/bench-memcmpeq ->  (elf)
+glibc-benchtests: libexec/glibc-benchtests/bench-memcpy ->  (elf)
+glibc-common: bin/ldd -> libx32/ld-linux-x32.so.2 (text)
+glibc-common: bin/sotruss -> $LIB/audit/sotruss-lib.so (text)
+glibc-utils: bin/memusage ->  (text)
+glibc-utils: bin/xtrace ->  (text)
+glibc32: lib/ld-linux.so.2 ->  (elf)
+sysroot-x86_64-el10-glibc: x86_64-redhat-linux/sys-root/el10/usr/lib64/ld-linux-x86-64.so.2 ->  (elf)
+
+== SCCs with more than one subpackage (reference cycles)
+
+== refs into non-glibc subpackages, by referencing file kind (would need rewriting with prefix=glibc output)
+{'archive': 5, 'elf': 11, 'symlink-rel': 228, 'text': 2}

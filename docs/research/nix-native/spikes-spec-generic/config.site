@@ -1,0 +1,15 @@
+# el-nixos (spike): autoconf site defaults for the relocated prefix P
+# ($EL_NIXOS_PREFIX), mirroring what autoconf distros / glibc do for /usr.
+if test -n "$EL_NIXOS_PREFIX" && test "$prefix" = "$EL_NIXOS_PREFIX"; then
+  test "$sysconfdir" = '${prefix}/etc' && sysconfdir=/etc
+  test "$localstatedir" = '${prefix}/var' && localstatedir=/var
+  test "$sharedstatedir" = '${prefix}/com' && sharedstatedir=/var/lib
+  test "$runstatedir" = '${localstatedir}/run' && runstatedir=/run
+  case "$host_alias $CC" in
+    *i?86*|*-m32*) el_nixos_lib=lib ;;
+    *) el_nixos_lib=lib64; test "$libdir" = '${exec_prefix}/lib' && libdir='${exec_prefix}/lib64' ;;
+  esac
+  if test -n "$EL_NIXOS_CONFIG_SITE_EXTRA" && test -r "$EL_NIXOS_CONFIG_SITE_EXTRA"; then
+    . "$EL_NIXOS_CONFIG_SITE_EXTRA"
+  fi
+fi

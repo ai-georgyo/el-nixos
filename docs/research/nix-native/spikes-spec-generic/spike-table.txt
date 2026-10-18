@@ -1,0 +1,30 @@
+| SRPM | control | relocated | subpkgs | files: P / via /usr alias / FHS | P refs (kinds) | cross-subpkg hard edges | SCC |
+|---|---|---|---|---|---|---|---|
+| attr | ok | ok | 6 | 41 / 76 / 1 | 15 (bare 2, missing 4, self 4, self-dir 5) | – | 0 |
+| bash | FAIL | FAIL | | | | | |
+| bzip2 | ok | ok | 7 | 40 / 46 / 0 | 7 (missing 3, self 3, self-dir 1) | – | 0 |
+| cpio | FAIL | FAIL | | | | | |
+| diffutils | ok | ok | 3 | 50 / 164 / 0 | 12 (missing 4, self 4, self-dir 4) | – | 0 |
+| expat | ok | ok | 5 | 27 / 45 / 0 | 8 (bare 2, missing 2, self 2, self-dir 2) | – | 0 |
+| gmp | ok | ok | 7 | 26 / 767 / 0 | 12 (bare 4, missing 2, self 2, self-dir 4) | – | 0 |
+| gzip | ok | ok | 3 | 33 / 77 / 2 | 2 (missing 1, self 1) | – | 0 |
+| json-c | FAIL | FAIL | | | | | |
+| libffi | ok | ok | 4 | 17 / 34 / 0 | 6 (bare 2, missing 1, self 1, self-dir 2) | – | 0 |
+| libsepol | ok | ok | 7 | 62 / 206 / 0 | 15 (missing 7, self 7, self-dir 1) | – | 0 |
+| libunistring | ok | ok | 4 | 61 / 846 / 0 | 2 (missing 1, self 1) | – | 0 |
+| libxcrypt | FAIL | FAIL | | | | | |
+| libyaml | ok | ok | 4 | 111 / 28 / 0 | 6 (bare 2, missing 1, self 1, self-dir 2) | – | 0 |
+| lz4 | ok | ok | 7 | 25 / 48 / 0 | 5 (bare 1, missing 2, self 2) | – | 0 |
+| m4 | ok | ok | 3 | 40 / 205 / 0 | 3 (missing 1, self 1, self-dir 1) | – | 0 |
+| ncurses | ok | ok | 11 | 4005 / 485 / 1 | 449 (bare 28, dir 3, file 302, missing 21, self 23, self-dir 46, split-dir 26) | ncurses-term→ncurses-base; ncurses→ncurses-base; ncurses-devel→ncurses-base; ncurses-libs→ncurses-c++-libs | 0 |
+| popt | ok | ok | 5 | 47 / 23 / 1 | 6 (bare 2, missing 1, self 1, self-dir 2) | – | 0 |
+| redhat-rpm-config | ok | ok | 1 | 6 / 36 / 0 | 0 () | – | 0 |
+| rocky-release | ok | ok | 4 | 109 / 0 / 112 | 89 (self 89) | – | 0 |
+| sed | ok | ok | 3 | 52 / 76 / 0 | 3 (missing 1, self 1, self-dir 1) | – | 0 |
+| which | ok | ok | 3 | 10 / 25 / 2 | 2 (missing 1, self 1) | – | 0 |
+| xz | ok | ok | 9 | 234 / 247 / 2 | 16 (bare 2, dir 1, missing 5, self 5, self-dir 3) | xz-lzma-compat→xz | 0 |
+| zlib-ng | ok | ok | 8 | 27 / 123 / 0 | 16 (bare 4, file 6, missing 2, self 2, self-dir 2) | zlib-ng-compat-devel→zlib-ng-compat,zlib-ng-compat-static; zlib-ng-devel→zlib-ng | 0 |
+
+kinds {'self-dir': 76, 'self': 151, 'missing': 60, 'bare': 49, 'file': 308, 'split-dir': 26, 'dir': 4}
+contexts {'elf:.rodata': 13, 'symlink': 209, 'text': 125, 'binary': 308, 'gzip': 19}
+sccs 0

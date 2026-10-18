@@ -1,0 +1,53 @@
+# el-nixos relocation macros (spike v1, designer spec-generic)
+# %_el_nixos_prefix is passed with --define by the runner: the build-time
+# placeholder prefix P (a /nix/store path that does not exist as a store
+# object; inside the chroot it is an alias of the buildroot's /usr).
+
+# --- target prefix: everything a package installs under /usr goes to P ------
+%_prefix                %{_el_nixos_prefix}
+%_exec_prefix           %{_prefix}
+%_usr                   %{_prefix}
+%_usrsrc                %{_prefix}/src
+%_oldincludedir         %{_prefix}/include
+%_rpmmacrodir           %{_prefix}/lib/rpm/macros.d
+%rpmmacrodir            %{_rpmmacrodir}
+%_rpmluadir             %{_prefix}/lib/rpm/lua
+%_sysusersdir           %{_prefix}/lib/sysusers.d
+%_fontbasedir           %{_datadir}/fonts
+%_fontconfig_templatedir %{_datadir}/fontconfig/conf.avail
+%gopath                 %{_datadir}/gocode
+
+# --- machine-local state stays FHS at runtime ---------------------------------
+%_sysconfdir            /etc
+%_localstatedir         /var
+%_sharedstatedir        /var/lib
+%_rundir                /run
+
+# --- build tools: the build environment's FHS paths (do NOT follow _prefix) ---
+%__perl                 /usr/bin/perl
+%__plugindir            /usr/lib64/rpm-plugins
+
+# --- %buildroot/usr aliases %buildroot/P: hard-coded /usr in %install and in
+#     %files, brp-compress (./usr/share/man), find-debuginfo (/usr/lib/debug,
+#     /usr/src/debug) all land in the relocated tree -----------------------------
+%__spec_install_pre %{___build_pre}\
+    [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf "${RPM_BUILD_ROOT}"\
+    mkdir -p "`dirname "$RPM_BUILD_ROOT"`"\
+    mkdir "$RPM_BUILD_ROOT"\
+    mkdir -p "$RPM_BUILD_ROOT%{_prefix}"\
+    ln -s "%{lua:print((rpm.expand('%{_prefix}'):gsub('^/','')))}" "$RPM_BUILD_ROOT/usr"\
+    %{?_auto_set_build_flags:%{set_build_flags}}\
+%{nil}
+
+# the unpackaged-files check sees files under P but %files may name them via /usr
+%__check_files /etc/el-nixos/check-files %{buildroot} %{_prefix}
+
+# Specs that `rm -rf %{buildroot}` in %install (6% of Rocky 10 specs) remove
+# the alias; re-establish it (merging a real %buildroot/usr into P) before the
+# brp scripts / find-debuginfo / build-id links run.
+%__spec_install_post \
+    /etc/el-nixos/realias "$RPM_BUILD_ROOT" "%{_prefix}"\
+    %{?__debug_package:%{__debug_install_post}}\
+    %{__arch_install_post}\
+    %{__os_install_post}\
+%{nil}

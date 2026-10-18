@@ -1,0 +1,10 @@
+#!/usr/bin/sh
+# check-files for relocated builds: $1 = buildroot, $2 = P.
+# The packaged list (stdin) may name files as $BR/usr/... (via the usr -> P
+# symlink); canonicalize to $BR/P/... and never report the symlink itself.
+BR="$1"; P="$2"
+[ -d "$BR" ] || { cat >/dev/null; exit 1; }
+T=`mktemp "${TMPDIR:-/tmp}/rpmXXXXXX"`; trap 'rm -f "$T" "$T.m"' 0
+find "$BR" \( -type f -o -type l \) ! -path "$BR/usr" | LC_ALL=C sort > "$T"
+sed -e "s|^$BR/usr/|$BR$P/|" -e "s|^$BR/usr\$|$BR$P|" | LC_ALL=C sort -u > "$T.m"
+LC_ALL=C sort "$T.m" | diff -d "$T" - | sed -n 's!^\(-\|< \)'"$BR"'\(.*\)$!   \2!gp'

@@ -1,0 +1,12 @@
+#!/usr/bin/bash
+# re-establish %buildroot/usr -> P (merge a real usr/ tree into P first)
+set -euo pipefail
+BR=$1 P=$2
+mkdir -p "$BR$P"
+[ -L "$BR/usr" ] && exit 0
+if [ -d "$BR/usr" ]; then
+  echo "el-nixos: %buildroot/usr is a real directory (spec removed the alias); merging it into $P" >&2
+  (cd "$BR/usr" && find . -mindepth 1 -maxdepth 1 -exec cp -a -t "$BR$P/" {} +)
+  rm -rf "$BR/usr"
+fi
+ln -s "${P#/}" "$BR/usr"

@@ -1,0 +1,32 @@
+packages: 233 placement: {'prefix': 9246, 'hardcoded-usr': 9189, 'fhs-etc': 5, 'fhs-var': 3}
+P refs: 2416 {'split-dir': 332, 'bare': 82, 'file': 458, 'dangling': 9, 'missing': 754, 'dir': 5, 'self-dir': 23, 'self': 745, 'missing-self': 8}
+contexts: {'elf:.rodata': 450, 'binary': 69, 'text': 28, 'elf:.interp': 435, 'symlink': 1432, 'elf': 2}
+edges: {'sysroot-x86_64-el10-glibc': ['glibc', 'glibc-all-langpacks', 'glibc-common', 'glibc-devel', 'glibc-doc', 'glibc-langpack-be', 'glibc-langpack-bg', 'glibc-langpack-ca', 'glibc-langpack-cs', 'glibc-langpack-da', 'glibc-langpack-de', 'glibc-langpack-el', 'glibc-langpack-en', 'glibc-langpack-eo', 'glibc-langpack-es', 'glibc-langpack-fi', 'glibc-langpack-fr', 'glibc-langpack-gl', 'glibc-langpack-hr', 'glibc-langpack-hu', 'glibc-langpack-ia', 'glibc-langpack-id', 'glibc-langpack-it', 'glibc-langpack-ja', 'glibc-langpack-ka', 'glibc-langpack-ko', 'glibc-langpack-lt', 'glibc-langpack-nb', 'glibc-langpack-nl', 'glibc-langpack-pl', 'glibc-langpack-pt', 'glibc-langpack-ro', 'glibc-langpack-ru', 'glibc-langpack-rw', 'glibc-langpack-sk', 'glibc-langpack-sl', 'glibc-langpack-sr', 'glibc-langpack-sv', 'glibc-langpack-tr', 'glibc-langpack-uk', 'glibc-langpack-vi', 'glibc-langpack-zh', 'glibc-locale-source', 'glibc-static', 'nss_hesiod'], 'glibc': ['glibc-all-langpacks', 'glibc-common', 'glibc-langpack-be', 'glibc-langpack-bg', 'glibc-langpack-ca', 'glibc-langpack-cs', 'glibc-langpack-da', 'glibc-langpack-de', 'glibc-langpack-el', 'glibc-langpack-en', 'glibc-langpack-eo', 'glibc-langpack-es', 'glibc-langpack-fi', 'glibc-langpack-fr', 'glibc-langpack-gl', 'glibc-langpack-hr', 'glibc-langpack-hu', 'glibc-langpack-ia', 'glibc-langpack-id', 'glibc-langpack-it', 'glibc-langpack-ja', 'glibc-langpack-ka', 'glibc-langpack-ko', 'glibc-langpack-lt', 'glibc-langpack-nb', 'glibc-langpack-nl', 'glibc-langpack-pl', 'glibc-langpack-pt', 'glibc-langpack-ro', 'glibc-langpack-ru', 'glibc-langpack-rw', 'glibc-langpack-sk', 'glibc-langpack-sl', 'glibc-langpack-sr', 'glibc-langpack-sv', 'glibc-langpack-tr', 'glibc-langpack-uk', 'glibc-langpack-vi', 'glibc-langpack-zh'], 'glibc-benchtests': ['glibc'], 'glibc-benchtests-debuginfo': ['glibc-benchtests'], 'glibc-common': ['glibc', 'glibc-all-langpacks', 'glibc32'], 'glibc-common-debuginfo': ['glibc', 'glibc-common', 'glibc-locale-source', 'glibc-utils', 'nss_db'], 'glibc-debuginfo': ['compat-libpthread-nonshared', 'glibc', 'glibc-common', 'glibc-devel', 'glibc-gconv-extra', 'glibc-nss-devel', 'glibc-static', 'glibc-utils', 'libnsl', 'nss_db', 'nss_hesiod'], 'glibc-devel': ['glibc'], 'glibc-gconv-extra-debuginfo': ['glibc', 'glibc-gconv-extra'], 'glibc-static': ['glibc', 'glibc-all-langpacks', 'glibc-common', 'glibc-doc', 'glibc-langpack-be', 'glibc-langpack-bg', 'glibc-langpack-ca', 'glibc-langpack-cs', 'glibc-langpack-da', 'glibc-langpack-de', 'glibc-langpack-el', 'glibc-langpack-en', 'glibc-langpack-eo', 'glibc-langpack-es', 'glibc-langpack-fi', 'glibc-langpack-fr', 'glibc-langpack-gl', 'glibc-langpack-hr', 'glibc-langpack-hu', 'glibc-langpack-ia', 'glibc-langpack-id', 'glibc-langpack-it', 'glibc-langpack-ja', 'glibc-langpack-ka', 'glibc-langpack-ko', 'glibc-langpack-lt', 'glibc-langpack-nb', 'glibc-langpack-nl', 'glibc-langpack-pl', 'glibc-langpack-pt', 'glibc-langpack-ro', 'glibc-langpack-ru', 'glibc-langpack-rw', 'glibc-langpack-sk', 'glibc-langpack-sl', 'glibc-langpack-sr', 'glibc-langpack-sv', 'glibc-langpack-tr', 'glibc-langpack-uk', 'glibc-langpack-vi', 'glibc-langpack-zh', 'glibc-locale-source', 'nss_hesiod'], 'glibc-utils': ['glibc'], 'glibc-utils-debuginfo': ['compat-libpthread-nonshared', 'glibc', 'glibc-common', 'glibc-devel', 'glibc-gconv-extra', 'glibc-nss-devel', 'glibc-static', 'glibc-utils', 'libnsl', 'nss_db', 'nss_hesiod'], 'glibc32': ['glibc', 'glibc-all-langpacks', 'glibc-common', 'glibc-doc', 'glibc-langpack-be', 'glibc-langpack-bg', 'glibc-langpack-ca', 'glibc-langpack-cs', 'glibc-langpack-da', 'glibc-langpack-de', 'glibc-langpack-el', 'glibc-langpack-en', 'glibc-langpack-eo', 'glibc-langpack-es', 'glibc-langpack-fi', 'glibc-langpack-fr', 'glibc-langpack-gl', 'glibc-langpack-hr', 'glibc-langpack-hu', 'glibc-langpack-ia', 'glibc-langpack-id', 'glibc-langpack-it', 'glibc-langpack-ja', 'glibc-langpack-ka', 'glibc-langpack-ko', 'glibc-langpack-lt', 'glibc-langpack-nb', 'glibc-langpack-nl', 'glibc-langpack-pl', 'glibc-langpack-pt', 'glibc-langpack-ro', 'glibc-langpack-ru', 'glibc-langpack-rw', 'glibc-langpack-sk', 'glibc-langpack-sl', 'glibc-langpack-sr', 'glibc-langpack-sv', 'glibc-langpack-tr', 'glibc-langpack-uk', 'glibc-langpack-vi', 'glibc-langpack-zh', 'glibc-locale-source', 'nss_hesiod'], 'libnsl-debuginfo': ['compat-libpthread-nonshared', 'glibc', 'glibc-devel', 'glibc-gconv-extra', 'glibc-nss-devel', 'glibc-static', 'glibc-utils', 'libnsl', 'nss_db', 'nss_hesiod'], 'nss_db': ['glibc'], 'nss_db-debuginfo': ['compat-libpthread-nonshared', 'glibc', 'glibc-common', 'glibc-devel', 'glibc-gconv-extra', 'glibc-nss-devel', 'glibc-static', 'glibc-utils', 'libnsl', 'nss_db', 'nss_hesiod'], 'nss_hesiod-debuginfo': ['compat-libpthread-nonshared', 'glibc', 'glibc-devel', 'glibc-gconv-extra', 'glibc-nss-devel', 'glibc-static', 'glibc-utils', 'libnsl', 'nss_db', 'nss_hesiod']}
+SCCs: [['glibc', 'glibc-common', 'glibc32']]
+foreign store refs: {}
+FHS /usr refs (top):
+   2804 elf /usr/src/debug
+    710 elf /usr/lib/gcc
+      8 binary /usr/bin
+      7 elf /usr/include/sys
+      6 gzip /usr/share/locale
+      6 shebang text /usr/bin/bash
+      5 gzip /usr/share/zoneinfo
+      5 gzip /usr/include
+      5 elf /usr/include/linux
+      4 gzip /usr/local
+      4 text /usr/bin
+      4 elf /usr/bin
+      3 gzip /usr/local/share
+      3 shebang text /usr/bin/python3
+      3 elf /usr/include/asm-generic
+      3 text /usr/share/locale
+      2 gzip /usr/lib64
+      2 gzip /usr/bin/emacs
+      2 gzip /usr/lib/locale
+      2 text /usr/sbin
+      2 text /usr/share/man
+      2 text /usr/sbin/sendmail
+      2 text /usr/bin/vi
+      2 text /usr/include/linux
+      2 text /usr/libexec/glibc-benchtests
