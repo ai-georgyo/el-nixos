@@ -11,5 +11,5 @@ in
   inherit (fetch) fetchSrpm fetchRpm sources officialRpms;
 
   # stage0 buildroot machinery (docs/stage0.md)
-  stage0 = import ./bootstrap { pkgs = bootPkgs; inherit lock; };
+  stage0 = import ./bootstrap { pkgs = bootPkgs; inherit lock; inherit (fetch) officialRpms; };
 }

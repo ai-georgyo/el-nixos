@@ -25,6 +25,7 @@ binary-package names an SRPM produces are only *selected* at build time (by
 | `srpmPassA.<srpm-name>` | the pass-A builds of the macro packages |
 | `rpms.<binary-name>` | `rpmTree`: one binary RPM's payload as an FHS tree, `allowedReferences = [ ]` |
 | `tests.{toolchain,toolchainFull,macros,whichRpms,whichTree}` | acceptance tests (output: `report.txt`) |
+| `kernelHeadersBuild`, `rpms.kernel-headers`, `buildrootKernel`, `buildrootFullKernelHeaders`, `tests.{kernelHeaders,kernelHeadersBuildroot,toolchainKernelHeaders}` | Rocky kernel-headers from the kernel SRPM (headers-only rpmbuild) — see [kernel-headers.md](kernel-headers.md) |
 | `buildStage0 { srpm = "<name>"; ... }` | helper: build any lock SRPM in stage0-full |
 | `lib` | `{ buildSrpm, mkBuildroot, rpmTree, runInBuildroot, fetchSrpm, unpackSrpm, distOf, ... }` |
 | `dev.*` | machinery smoke tests on a root without the FHS toolchain (fast iteration) |
@@ -393,7 +394,10 @@ Provides, file list, file digests and modes).
   libstdc++-static, glibc-static, libidn2, texinfo: those must be built from
   their SRPMs with `buildStage0` and installed with `mkBuildroot` (or switched
   off with bconds) before the glibc build itself.
-* Kernel headers: swap in Rocky's kernel-headers via `kernelHeaders`.
+* Kernel headers: Rocky's kernel-headers RPM is built (`kernelHeadersBuild`) and
+  installed in `buildrootFullKernelHeaders` (stage0-full minus nixpkgs' headers);
+  the stage0 *toolchain* still uses nixpkgs' headers (swapping would rebuild
+  glibc/gcc for no shipped benefit). See [kernel-headers.md](kernel-headers.md).
 * `mkBuildroot` cannot represent deletions of lower-layer files (fails
   loudly); later stages installing with scriptlets may need a "flatten" mode.
 * Later stages: `rpm --root` installs with `installFlags = [ ]` (deps +
