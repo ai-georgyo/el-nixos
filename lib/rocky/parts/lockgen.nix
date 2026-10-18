@@ -44,7 +44,7 @@ let
     let
       e = lock.srpms.${name};
       src = fetch.fetchSrpm name;
-      dist = l0.distOf name;
+      dist = l0.distOf name; # -> %distcore (see rpmspec-query.sh)
     in
     pkgs.stdenvNoCC.mkDerivation {
       name = "lockgen-subpackages-${name}-${e.version}-${e.release}.json";

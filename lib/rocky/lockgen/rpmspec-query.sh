@@ -32,17 +32,22 @@ fi
 echo "$spec" > "$out/spec"
 rpm --version > "$out/rpm-version"
 
-common=(--target x86_64 --define "dist $dist" --define "_sourcedir $src"
+# rocky-release's macros.dist: %dist = %{?distprefix...}%{distcore}%{?distsuffix};
+# so the release is set through %distcore -- defining %dist itself would drop
+# the prefix %forgemeta adds (".git<commit>") and give the wrong release.
+common=(--target x86_64 --define "distcore $dist" --define "_sourcedir $src"
   --define "_topdir /builddir/build")
+# Every result line starts with "LOCKGEN<TAB>": macros may print to stdout
+# while the spec is parsed (e.g. `%forgemeta -v`), so other lines are noise.
 q() {  # q NAME RPMSPEC-ARGS...
   local n=$1; shift
   timeout 900 rpmspec -q "${common[@]}" "$@" "$spec" > "$out/$n.tsv" 2> "$out/$n.err"
   echo $? > "$out/$n.rc"
 }
 # source header: NEVR (checked against the lock) and arch restrictions
-q srpm --srpm --qf '%{NAME}\t%{EPOCHNUM}:%{VERSION}-%{RELEASE}\t[%{EXCLUSIVEARCH} ]\t[%{EXCLUDEARCH} ]\n'
+q srpm --srpm --qf 'LOCKGEN\t%{NAME}\t%{EPOCHNUM}:%{VERSION}-%{RELEASE}\t[%{EXCLUSIVEARCH} ]\t[%{EXCLUDEARCH} ]\n'
 # binary packages that rpmbuild would produce (%package with a %files section)
-q builtrpms --builtrpms --qf '%{NAME}\t%{ARCH}\n'
+q builtrpms --builtrpms --qf 'LOCKGEN\t%{NAME}\t%{ARCH}\n'
 # every declared %package (to report the ones without %files)
-q rpms --rpms --qf '%{NAME}\t%{ARCH}\n'
+q rpms --rpms --qf 'LOCKGEN\t%{NAME}\t%{ARCH}\n'
 exit 0

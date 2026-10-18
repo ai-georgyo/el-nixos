@@ -175,7 +175,7 @@ def make_doc(release, srpms, res, failed, rpm_versions):
         "target": "x86_64",
         "rpm": sorted(rpm_versions),
         "generator": "nn.lockgen.subpackages: rpmspec -q --builtrpms --target x86_64 "
-                     "--define 'dist <dist of the locked release>' in stage0-full + *-rpm-macros",
+                     "--define 'distcore <dist of the locked release>' in stage0-full + *-rpm-macros",
         "coverage": {"srpms": len(srpms), "ok": len(res), "failed": len(failed),
                      "missing": len(srpms) - len(res) - len(failed)},
         "srpms": dict(sorted(res.items())),

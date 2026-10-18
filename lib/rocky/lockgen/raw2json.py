@@ -13,6 +13,7 @@ Fields (consumed by tools/lock_subpackages.py):
   notBuilt                     declared %package names without %files
   ok                           every query exited 0 and `built` is non-empty
   errors                       {query: last stderr lines} for failed queries
+  stdoutNoise                  number of non-result stdout lines (macros that print)
 Store paths in messages are normalised (the result must not reference them).
 """
 import json
@@ -31,8 +32,16 @@ def read(d, n, default=""):
         return default
 
 
+MARK = "LOCKGEN\t"
+
+
 def rows(text):
-    return [line.split("\t") for line in text.splitlines() if line.strip()]
+    """Result rows (lines carrying the LOCKGEN marker), split at tabs."""
+    return [line[len(MARK):].split("\t") for line in text.splitlines() if line.startswith(MARK)]
+
+
+def noise(text):
+    return sum(1 for line in text.splitlines() if line.strip() and not line.startswith(MARK))
 
 
 def strip_epoch(evr):
@@ -72,6 +81,7 @@ def main():
         if r and r[0] not in seen and r[0] not in declared:
             declared.append(r[0])
     doc["notBuilt"] = declared
+    doc["stdoutNoise"] = sum(noise(read(d, q + ".tsv")) for q in ("srpm", "builtrpms", "rpms"))
     doc["ok"] = all(v == 0 for v in rc.values()) and bool(built)
     json.dump(doc, sys.stdout, indent=1, sort_keys=True)
     sys.stdout.write("\n")
