@@ -1,7 +1,6 @@
 """plan.json: loading, defaults, validation (schema: ../PLAN.md)."""
 import fnmatch
 import json
-import os
 import re
 
 
@@ -60,9 +59,6 @@ class Plan:
             if isinstance(v, (list, dict)):
                 v = json.loads(json.dumps(v))  # private copy
             setattr(self, k, v)
-
-    def get(self, k):
-        return getattr(self, k)
 
 
 def _check(d):
@@ -143,11 +139,3 @@ def output_rel_match(output, rel, entries):
             return e
     return None
 
-
-def outputs_from_env(names):
-    out = {}
-    for n in names:
-        v = os.environ.get(n)
-        if v:
-            out[n] = v
-    return out

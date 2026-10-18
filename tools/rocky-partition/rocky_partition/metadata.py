@@ -13,7 +13,6 @@ import os
 import stat
 
 from . import headers as H
-from .plan import rel_match
 
 
 def _dump(path, doc, prefix=None):
@@ -111,6 +110,3 @@ def write_out_files(ctx, late_doc):
     if late_doc:
         _dump(os.path.join(d, "rocky-late.json"), late_doc)
 
-
-def rel_in_search(ctx, rel):
-    return rel_match(rel, ctx.plan.runtimeSearchPaths)

@@ -5,7 +5,6 @@ import re
 
 from .decoders import compression_of
 
-NIX32 = b"0123456789abcdfghijklmnpqrsvwxyz"
 HASH_RUN = re.compile(rb"[0-9a-df-np-sv-z]{32,}")
 # path characters, plus ld.so's dynamic string tokens ($LIB, ${PLATFORM}, also
 # shell-escaped \$LIB as in glibc's memusage/xtrace scripts)

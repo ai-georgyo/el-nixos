@@ -286,7 +286,7 @@ def t_split():
     true("prefix=%s\n" % c.P in pc, "unused prefix variable kept")
     # Requires-gated text: doc does not Require common -> kept as $out/... (warning)
     true(c.P + "/share/foo/data.txt" in c.read("doc", "share/doc/foo/README"), "not-required text kept")
-    c.has("not-required", "warning", "doc/share/doc/foo/README")
+    c.has("not-required", "info", "doc/share/doc/foo/README")      # documentation: never an error
     # Phase G: gzip'ed man page -> hidden-references
     true(c.P in c.read("doc", "nix-support/hidden-references"), "nested ref registered")
     c.has("nested-ref", "info", "share/man/man1/foo.1.gz")
@@ -457,6 +457,28 @@ def t_replay():
     eq(c.report["replay"]["leftovers"], [], "nothing of the old prefix left")
 
 
+def t_layout_and_docs():
+    """a `layout` build (a macro dir compiled as another output's path: the
+    header names $common/share/foo) and references from documentation
+    (recorded, never errors)"""
+    c = Case("layout")
+    c.sub("foo", ["foo-common"]).sub("foo-common").sub("foo-doc")
+    common = c.out("common")
+    os.makedirs(c.br + common + "/share/foo")
+    with open(c.br + common + "/share/foo/data.txt", "w") as f:
+        f.write("data\n")
+    c.own("foo-common", common + "/share/foo/data.txt")
+    c.cc("foo", "bin/foo", '#include <stdio.h>\nint main(void) { puts("%s/share/foo"); return 0; }\n' % common)
+    c.text("foo", "bin/other", "#!/bin/sh\n")
+    c.text("foo-doc", "share/doc/foo/index.html", "<p>installs into @P@/bin and @P@/share/nothing</p>\n")
+    c.run({"foo": "out", "foo-common": "common", "foo-doc": "doc"}, expect_rc=0)
+    c.no_errors()
+    true(os.path.isfile(c.p("common", "share/foo/data.txt")), "layout file in common")
+    true("common" in c.report["graph"]["edges"].get("out", {}), "out -> common (compiled-in layout path)")
+    c.has("dangling", "info", "share/nothing")
+    eq([i for i in c.report["findings"] if i["severity"] == "warning"], [], "no warnings (#!/bin/sh is runtime FHS)")
+
+
 def t_plan_errors():
     c = Case("planerr")
     c.sub("foo")
@@ -466,7 +488,7 @@ def t_plan_errors():
 
 
 CASES = [t_split, t_libs_self_cycle, t_search_path, t_text_cycle, t_dangling_foreign_union, t_pieced,
-         t_prefix_relative, t_late, t_subpackages_unclaimed, t_replay, t_plan_errors]
+         t_prefix_relative, t_late, t_subpackages_unclaimed, t_replay, t_layout_and_docs, t_plan_errors]
 
 
 def main():

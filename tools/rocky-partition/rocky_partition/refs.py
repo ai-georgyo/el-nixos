@@ -10,6 +10,10 @@ from .decoders import nested_blobs
 from .model import STD_TOP, norm_rel
 from .plan import output_rel_match, rel_match
 
+# interpreters that stay FHS at run time (design §1.4)
+RUNTIME_FHS = ("/bin/sh", "/usr/bin/env")
+# documentation: references there are recorded (Nix edges) but not errors
+DOC_DIRS = ("share/doc/", "share/man/", "share/info/", "share/gtk-doc/", "share/help/")
 FHS_LITERAL = re.compile(rb"(?<![A-Za-z0-9_.+@%/-])/(?:usr|lib64|bin|sbin)/[A-Za-z0-9._+-]+")
 
 
@@ -104,6 +108,7 @@ class Refs:
         full = S.prefix_refs(data, self.rx)
         edits = []
         file_subs = ctx.subs_of(y, rel)
+        doc = rel.startswith(DOC_DIRS)
         for start, end, tail in full:
             r = norm_rel(tail) if tail.startswith("/") else None
             if not r:
@@ -124,6 +129,8 @@ class Refs:
                 ack = output_rel_match(y, rel, plan.prefixRelativeOk) or (anc and rel_match(anc, plan.unionDirs))
                 if not ack and not anc and kind == "text" and rel.endswith(".pc") and self._unused_pc_var(data, start):
                     ack = "pkg-config variable defined as the prefix and not used in the file"
+                if not ack and doc:
+                    ack = "documentation"
                 if y == out or in_rpath or y == ctx.debug_output:
                     rep.info("prefix-relative-out", "%s/%s: %s" % (y, rel, what), **where)
                 elif ack:
@@ -139,7 +146,7 @@ class Refs:
                 ctx.add_edge(y, out, "%s: %s (union)" % (rel, tail))
                 ack = rel_match(anc, plan.unionDirs) or rel_match(r, plan.runtimeSearchPaths) \
                     or rel_match(anc, plan.runtimeSearchPaths) or output_rel_match(y, rel, plan.prefixRelativeOk)
-                if ack or y == ctx.debug_output or in_rpath:
+                if ack or y == ctx.debug_output or in_rpath or doc:
                     pass
                 else:
                     rep.error("union-unacked", "%s/%s references %s, owned by %s: ack it in unionDirs (with the"
@@ -147,7 +154,8 @@ class Refs:
                               owners=sorted(x), **where)
             elif case == "dangling":
                 ctx.add_edge(y, out, "%s: %s (dangling)" % (rel, tail))
-                ok = rel_match(r, plan.danglingOk) or rel_match(r, plan.runtimeSearchPaths)
+                ok = rel_match(r, plan.danglingOk) or rel_match(r, plan.runtimeSearchPaths) \
+                    or output_rel_match(y, rel, plan.prefixRelativeOk) or (doc and "documentation")
                 if ok or y == ctx.debug_output:
                     rep.info("dangling", "%s/%s: %s exists in no output (acked)" % (y, rel, tail), **where)
                 elif in_rpath:
@@ -167,7 +175,7 @@ class Refs:
                             self.rewrite_samples.append([y, rel, tail, x])
                     else:
                         ctx.add_edge(y, out, "%s: %s (not required)" % (rel, tail))
-                        rep.warning("not-required", "%s/%s: %s is in %s, which %s does not Require: kept as $%s%s"
+                        (rep.info if doc else rep.warning)("not-required", "%s/%s: %s is in %s, which %s does not Require: kept as $%s%s"
                                     % (y, rel, tail, x, y, out, tail), owner=x, **where)
                 else:
                     ctx.add_edge(y, out, "%s: %s (binary)" % (rel, tail))
@@ -192,7 +200,7 @@ class Refs:
         # FHS literals and shebangs
         if kind == "text":
             sb = S.shebang(data)
-            if sb and sb.startswith(("/usr/", "/bin/", "/sbin/")):
+            if sb and sb.startswith(("/usr/", "/bin/", "/sbin/")) and sb not in RUNTIME_FHS:
                 late = plan.lateBind.get(y, {}).get("interpreters", [])
                 if ("#!" + sb) in plan.fhsAllowlist or sb in plan.fhsAllowlist or os.path.basename(sb) in late:
                     rep.info("fhs-shebang", "%s/%s: #!%s (allowlisted / late-bound)" % (y, rel, sb), output=y, file=rel)

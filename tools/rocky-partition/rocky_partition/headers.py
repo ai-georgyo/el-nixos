@@ -174,7 +174,7 @@ def read_all(rpm, rpms_dir, configdir=None):
     return out
 
 
-def sibling_requires(subs, canon_rel=None):
+def sibling_requires(subs):
     """Unique-provider Requires between sibling subpackages ([SG] rule): s
     requires p if some Require of s is provided (by name, or as a file path)
     by p alone among the siblings. -> {s: set(p)}"""

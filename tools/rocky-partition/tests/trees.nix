@@ -86,6 +86,8 @@ in
         '') ];
       extraMacros = systemdMacros;
       failTail = 3000;
+      # some usr/lib/.build-id links stay unpackaged in the spike tree (the partitioner reports them)
+      defines = { __brp_ldconfig = "%{nil}"; _unpackaged_files_terminate_build = "0"; };
       # %autosetup -S git + git am: auto gc during `git am` races ("invalid object")
       env = { QA_RPATHS = "0x0002"; GIT_CONFIG_COUNT = "2"; GIT_CONFIG_KEY_0 = "gc.auto"; GIT_CONFIG_VALUE_0 = "0";
               GIT_CONFIG_KEY_1 = "maintenance.auto"; GIT_CONFIG_VALUE_1 = "false"; };

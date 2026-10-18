@@ -53,8 +53,8 @@ Unknown keys are an error (exit 2); every key but `subpackages` has a default.
 * **P**, the compile prefix: `%_prefix` of the build = the path of
   `prefixOutput` (unless `--replay`). `prefix` must equal it in a build.
 * **rel**: a path relative to an output root. Header paths are mapped
-  (design §2.2): `P/x`, `/usr/x`, `/bin/x`, `/sbin/x`, `/lib/x`, `/lib64/x`
-  -> `x`; `/etc/x`, `/var/x`, `/run/x` -> `etc/x`, `var/x`, `run/x`;
+  (design §2.2): `P/x`, `/usr/x`, `/bin/x`, `/sbin/x`, `/lib/x`, `/lib64/x`,
+  and `$X/x` for any other output X (a `layout` build) -> `x`; `/etc/x`, `/var/x`, `/run/x` -> `etc/x`, `var/x`, `run/x`;
   debuginfo/debugsource subpackages: `lib/debug/...`, `src/debug/...` in the
   debug output; `usr/lib/.build-id` links of other subpackages are dropped;
   any other absolute path `/a/b` -> `a/b` (reported).
@@ -89,13 +89,13 @@ Unknown keys are an error (exit 2); every key but `subpackages` has a default.
 | `unmanagedOutputs` | [output] | `[]` | B, H | outputs the partitioner neither creates nor scans (e.g. `"logs"`, written by the builder). Nothing may reference them |
 | `requires` | {subpkg: [subpkg]} / null | null (from headers) | D, E, F | sibling unique-provider Requires (design §2.1: resolved at eval time from `deps.json.gz`); null: computed from the transient headers with the same rule |
 | `mergeOutputs` | [[subpkg]] | `[]` | report | the merge groups the caller applied in `subpackages` (first = representative); the report lists references between members and flags groups without any (`merge-unneeded`) |
-| `layout` | {macro: output} | `{}` | – | informational (the caller compiles with it); accepted, not used |
+| `layout` | {macro: output} | `{}` | A | informational: the caller compiles with it (`--define "_datadir $common/share"`); header paths below any output path are mapped anyway. References to such a path are not classified (§2.7: valid only when the whole dir belongs to X) |
 | `runtimeSearchPaths` | {rel pattern: VAR} | `{}` | D, F, I | a compiled-in default that dangles: references at/below rel are allowed to dangle (no stub, no error) and every output that has rel gets a setup hook for VAR (dir: `addToSearchPath VAR $o/rel`; file: `export VAR=${VAR:-$o/rel}`). Also acks union references |
 | `searchPaths` | {rel: VAR} | `{}` | I | extra setup-hook entries (generic table, `lib/rocky/unions.nix`) |
 | `unionDirs` | {rel pattern: reason} | `{}` | D | acks references to a directory several outputs fill (design case 3); the reason names the mechanism (search path, profile) |
 | `danglingOk` | [rel pattern] | `[]` | C, D | references / symlink targets allowed to exist nowhere (`share/zoneinfo`) |
 | `opaqueRefs` | [output pattern] | `[]` | G | acks store-by-pieces references to P in a non-prefix output (a behaviour test is expected). The reference is registered in `hidden-references` with or without ack |
-| `prefixRelativeOk` | [output pattern] | `[]` | D | acks references from a non-prefix output to the bare P, to a top-level dir several outputs fill (`$P/bin`), or to a union, in matching files (test support, a cross sysroot, `*-config` scripts). Not in design §8.1: requested for `overrides.nix` |
+| `prefixRelativeOk` | [output pattern] | `[]` | D | acks references from a non-prefix output to the bare P, to a top-level dir several outputs fill (`$P/bin`), to a union, or to a path that exists nowhere, in matching files (test support, a cross sysroot, a copied build tree like krb5-tests, `*-config` scripts). Not in design §8.1: requested for `overrides.nix` |
 | `forward` | {deny: [rel pattern]} | `{}` | F | rels for which no forwarding stub may be created |
 | `lateBind` | {output: {interpreters: [name], libs: [srpm], sonames: [glob]}} | `{}` | E, H | outputs bound later (design §2.9, §11.3). `interpreters`: FHS shebangs of these basenames are expected (info); `libs`/`sonames`: unresolved DT_NEEDED of the output are left to the bind step (all of them if `sonames` is absent) |
 | `lateReferrers` | {late output: [output pattern]} | `{}` | H | the static L* list of the bind derivation: every sibling that reaches a late output (except debug/unmanaged) must match, else `late-referrer-missing` |
@@ -207,6 +207,12 @@ no anchor = dangling.
   points at the unversioned `.so` link).
 * bare P from a non-prefix output: `prefix-relative`, except a pkg-config
   variable defined as P that no other line uses (also via `exec_prefix=${prefix}`).
+* files below `share/doc`, `share/man`, `share/info`, `share/gtk-doc`,
+  `share/help`: references are classified and recorded (edges) but never
+  errors (prose mentions install dirs).
+* shebangs: `#!/bin/sh` and `#!/usr/bin/env` are runtime FHS (design §1.4);
+  other FHS interpreters are `fhs-shebang` warnings unless allowlisted or
+  late-bound (patchShebangs in fixupPhase is expected to bind them).
 
 Store-by-pieces windows: 8-byte windows of P holding at least 6 bytes of its
 hash, in loaded sections of ELF files, outside full occurrences.

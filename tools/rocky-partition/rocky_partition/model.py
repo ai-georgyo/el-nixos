@@ -69,6 +69,7 @@ class Ctx:
             raise PlanError("prefix %s differs from output %s (%s): use --replay/--remap"
                             % (self.P, self.prefix_output, self.out[self.prefix_output]))
         self.Pb = self.P.encode()
+        self.layout_prefixes = sorted((p for o, p in self.out.items() if o != self.prefix_output), key=len, reverse=True)
         self.system_dirs = [substitute(d, self.out) for d in p.systemLibDirs]
         self.input_dirs = [substitute(d, self.out) for d in p.inputLibDirs]
         self.allowed = None
@@ -94,8 +95,14 @@ class Ctx:
         debug subpackage), dropped (build-id links of other subpackages),
         fhs (/etc, /var, /run), other (any other absolute path)"""
         P = self.P
+        lay = None
+        if not (path == P or path.startswith(P + "/")):
+            # a `layout` build compiles some macro dirs as another output's path
+            lay = next((q for q in self.layout_prefixes if path == q or path.startswith(q + "/")), None)
         if path == P or path.startswith(P + "/"):
             urel = path[len(P):].strip("/")
+        elif lay is not None:
+            urel = path[len(lay):].strip("/")
         elif path == "/usr" or path.startswith("/usr/"):
             urel = path[4:].strip("/")
         else:
