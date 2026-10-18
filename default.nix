@@ -25,6 +25,9 @@ let
 
   # parity/purity checks against the official RPMs (docs/parity.md)
   parity = import ./lib/parity.nix { pkgs = bootPkgs; inherit rpmsLock stage0; inherit (fetch) fetchRpm; };
+
+  # relocated, Nix-native packages from the same specs (docs/nix-native-design.md)
+  nn = import ./lib/rocky { inherit bootPkgs lock rpmsLock readLock release fetch stage0; };
 in
 {
   inherit lock rpmsLock;
@@ -53,4 +56,8 @@ in
   rpms = glibc.rpms;
   # per-SRPM extras: buildroot, `trees` (all rpms.* in one linkFarm), `sanity`
   packageSets = { inherit glibc; };
+
+  # Nix-native machinery and packages (lib/rocky); rockyBoot.<stage>.<srpm> once it exists
+  inherit nn;
+  rockyBoot = nn.rockyBoot or { };
 }

@@ -39,7 +39,7 @@
         glibc-sanity = rocky.packageSets.glibc.sanity; # NEVRs, configure results, ELF checks
         glibc-abi = rocky.packageSets.glibc.abi;       # binutils: dynsyms/versions, archive symbols, headers vs official
         glibc-runtime = rocky.packageSets.glibc.runtime; # RPM-only roots without /nix/store: same behaviour as official
-      };
+      } // rocky.nn.checks;                            # nix-native checks (nn-*, lib/rocky/checks)
 
       # Every job for CI / tools/build-jobs.sh (nix-eval-jobs): the packages,
       # the checks, and the per-SRPM results (rpmbuild outputs and payload
@@ -48,6 +48,7 @@
       hydraJobs = {
         packages.${system} = self.packages.${system};
         checks.${system} = self.checks.${system};
+        nixNative.${system} = rocky.rockyBoot;       # relocated packages per bootstrap stage
         srpm.${system} = rocky.srpm;                 # rpmbuild results (out + logs)
         rpms.${system} = rocky.rpms;                 # payload trees of every glibc subpackage
         stage0.${system} = {
