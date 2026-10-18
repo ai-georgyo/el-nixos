@@ -90,6 +90,9 @@ let
       dev = libc.dev or out;
     in
     out // {
+      # out of a multi-output derivation has outputSpecified = true, which
+      # makes lib.getDev / getLib return it unchanged
+      outputSpecified = false;
       inherit out dev;
       lib = dev;   # crt*.o, the libc.so ld script, libc_nonshared.a: -devel [NF-S6]
       bin = dev;   # keeps glibc's tools (ldd, iconv, localedef) off the build PATH

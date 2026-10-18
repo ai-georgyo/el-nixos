@@ -10,6 +10,9 @@ let
   pkgs = bootPkgs;
   cc = self.cc;
   wrapper = cc.stage0;
+  # part C: the same libc split into out/dev as the relocated glibc will be
+  split = import ../cc/stage0-libc-split.nix { inherit bootPkgs; inherit (cc) stage0Libc; };
+  wrapperSplit = cc.wrap { libc = split; name = "rocky-s1-splitlibc"; };
 in
 {
   nn-cc-toolchain = pkgs.stdenvNoCC.mkDerivation {
@@ -25,6 +28,10 @@ in
     # part B: nothing but the wrapper, a shell, coreutils and make (lto-wrapper
     # runs make for -flto=auto)
     PATH_B = pkgs.lib.makeBinPath [ wrapper pkgs.bash pkgs.coreutils pkgs.gnugrep pkgs.gnumake ];
+    PATH_C = pkgs.lib.makeBinPath [ wrapperSplit pkgs.bash pkgs.coreutils pkgs.gnugrep pkgs.gnumake ];
+    WRAPPER_C = wrapperSplit;
+    LIBC_OUT = split.out;
+    LIBC_DEV = split.dev;
     buildCommand = ''
       set +e -uo pipefail   # failures are counted by check()
       source ${../cc/toolchain-test.sh}

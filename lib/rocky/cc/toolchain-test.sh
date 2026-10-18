@@ -212,4 +212,29 @@ check "B: producer without -ffile-prefix-map or store paths" \
 check "B: no store path in the DWARF (full or pieced)" 'dwarfClean hello hellocc usefoo libfoo.so.1 foo.o'
 
 echo
+echo "== C: libc split into out/dev (the relocated glibc's shape), from PATH, empty environment"
+mkdir -p ../c && cp hello.c hello.cc ../c/ && cd ../c
+rc() { env -i PATH="$PATH_C" HOME=/homeless-shelter TMPDIR="$TMPDIR" "$@"; }
+check "C: gcc is the split-libc wrapper" '[ "$(rc sh -c "command -v gcc")" = "$WRAPPER_C/bin/gcc" ]'
+fromDev() { local f; for f in "$@"; do inStore "$(rc gcc -print-file-name=$f)" "$LIBC_DEV" || return 1; done; }
+check "C: crt1.o, libc.so, libc_nonshared.a, libc.a from dev" 'fromDev crt1.o libc.so libc_nonshared.a libc.a'
+check "C: -m32 crt1.o and libc.so from out/lib (glibc32 merged into out)" \
+  '[ "$(realpath "$(rc gcc -m32 -print-file-name=crt1.o)")" = "$(realpath "$LIBC_OUT")/lib/crt1.o" ] && [ "$(realpath "$(rc gcc -m32 -print-file-name=libc.so)")" = "$(realpath "$LIBC_OUT")/lib/libc.so" ]'
+check "C: C hello (Rocky flags) builds" 'rc gcc $CFLAGS_R $LDFLAGS_R -o hello hello.c'
+check "C: C++ hello (Rocky flags) builds" 'rc g++ $CXXFLAGS_R $LDFLAGS_R -o hellocc hello.cc'
+check "C: -m32 hello builds" 'rc gcc -m32 -O2 -g -o hello32 hello.c'
+check "C: -static hello builds" 'rc gcc -static -O2 -g -o hello-static hello.c'
+check "C: hello: PT_INTERP is out's loader" '[ "$(interp hello)" = "$LIBC_OUT/lib64/ld-linux-x86-64.so.2" ]'
+check "C: hello32: PT_INTERP is out's 32-bit loader" '[ "$(interp hello32)" = "$LIBC_OUT/lib/ld-linux.so.2" ]'
+check "C: no DT_RPATH" '! hasRpath hello && ! hasRpath hellocc && ! hasRpath hello32'
+# out/lib64 is the relocated glibc loader's system dir (design §4.2); stage0's
+# loader gets it through LD_LIBRARY_PATH
+check "C: hello runs" 'LD_LIBRARY_PATH=$LIBC_OUT/lib64 ./hello'
+check "C: C++ hello runs" 'LD_LIBRARY_PATH=$LIBC_OUT/lib64 ./hellocc'
+check "C: -m32 hello runs" './hello32 || LD_LIBRARY_PATH=$LIBC_OUT/lib ./hello32'
+check "C: static hello runs" './hello-static'
+check "C: no store path in the DWARF (full or pieced)" \
+  '"$PYTHON" -I "$STORESCAN" --debug-only --input "$WRAPPER_C" --input "$LIBC_OUT" --input "$LIBC_DEV" --input "$GCC" hello hellocc hello32 hello-static'
+
+echo
 if [ $fail = 0 ]; then echo "ALL CC-WRAPPER CHECKS PASSED"; else echo "SOME CC-WRAPPER CHECKS FAILED"; exit 1; fi
