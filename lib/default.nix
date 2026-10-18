@@ -24,7 +24,7 @@ let
   #   - { from = <buildSrpm result>; names = [ "<%{NAME}>" ... ]; }
   rpmSpecToShell = s:
     if lib.isAttrs s && s ? from then "${s.from}|${lib.concatStringsSep "," s.names}"
-    else if lib.isDerivation s && (s.passthru.isSrpmBuild or false) then "${s}|"
+    else if lib.isDerivation s && (s.isSrpmBuild or false) then "${s}|"
     else "${s}|=file";
 
   # shell snippet: expand rpm specs into the list of .rpm paths in $rpmlist
@@ -82,7 +82,8 @@ let
           source ${./chroot.sh}
           ${collectRpms rpms}
           chroot_setup $TMPDIR/st ${lib.escapeShellArgs base.layers}
-          printf '%s\n' "''${rpmlist[@]}" > $TMPDIR/rpmlist
+          : > $TMPDIR/rpmlist
+          for r in "''${rpmlist[@]}"; do echo "$r" >> $TMPDIR/rpmlist; done
           chroot_tools --root -- bash ${installScript installFlags extraCommands} $TMPDIR/rpmlist
           chroot_layer_out $TMPDIR/st $out
           mkdir -p $out

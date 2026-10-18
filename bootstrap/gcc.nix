@@ -61,8 +61,8 @@ let
     "--enable-libstdcxx-backtrace" "--with-libstdcxx-zoneinfo=/usr/share/zoneinfo"
     "--enable-host-pie" "--enable-host-bind-now"
     "--enable-languages=${lib.concatStringsSep "," languages}"
-    # FHS-native: no sysroot at run time, the stage0 libc tree while building
-    "--with-sysroot=/" "--with-build-sysroot=${sysroot}"
+    # FHS-native, no sysroot (like Rocky): configure/make/install run in a
+    # namespace where the stage0 libc tree *is* /usr (see fhsRun below)
     "--with-native-system-header-dir=/usr/include"
     "--with-build-time-tools=${binutils}/usr/bin"
     # stage0 deviations (docs/stage0.md): no 3-stage/profiled bootstrap, no
@@ -101,7 +101,8 @@ pkgs.gcc14Stdenv.mkDerivation {
     mv isl-0.24 isl
   '';
 
-  nativeBuildInputs = with pkgs; [ perl flex bison texinfo m4 python3 ];
+  nativeBuildInputs = with pkgs; [ perl flex bison texinfo m4 python3 ]
+    ++ lib.optional (pass == 2) pkgs.bubblewrap;
   buildInputs = with pkgs; [ gmp mpfr libmpc zlib ];
 
   configurePlatforms = [ ];
@@ -113,6 +114,23 @@ pkgs.gcc14Stdenv.mkDerivation {
     export CONFIG_SITE=NONE
     mkdir ../obj && cd ../obj
     configureScript=../$sourceRoot/configure
+  '' + lib.optionalString (pass == 2) ''
+    # A native gcc build compiles *and runs* target test programs (libstdc++,
+    # libgomp, ... configure), which have PT_INTERP /lib64/ld-linux-x86-64.so.2
+    # and link /usr/lib64/libc.so.  Run configure/make/install in a user+mount
+    # namespace whose /usr is the stage0 sysroot (/lib64, /lib -> usr/...),
+    # i.e. on a genuine FHS system.  The nixpkgs host compiler and tools are
+    # unaffected (they only use store paths).
+    fhsRun() {
+      bwrap --unshare-user --uid "$(id -u)" --gid "$(id -g)" \
+        --tmpfs / --bind /nix /nix --bind "$NIX_BUILD_TOP" "$NIX_BUILD_TOP" \
+        --dev /dev --proc /proc --tmpfs /tmp --ro-bind /etc /etc --ro-bind /bin /bin \
+        --ro-bind ${sysroot}/usr /usr --symlink usr/lib64 /lib64 --symlink usr/lib /lib \
+        --chdir "$PWD" "$@"
+    }
+    make() { fhsRun make "$@"; }
+    configureScript="fhsRun ../$sourceRoot/configure"
+    fhsRun /lib64/ld-linux-x86-64.so.2 --version | head -1
   '';
 
   # Host programs: plain -O2 (no -g: keeps the stage0 build small/fast).

@@ -52,6 +52,10 @@ pkgs.runCommand name {
     chmod -R u+w usr etc
   done
 
+  # gcc.spec deletes libssp (glibc provides SSP) -- done here rather than in
+  # gcc.nix to keep the expensive gcc derivation stable
+  rm -f usr/lib64/libssp* usr/lib/libssp*
+
   # --- rpm + debugedit -------------------------------------------------------
   cp -a --no-preserve=ownership ${rpm}/usr/lib/rpm usr/lib/rpm
   chmod -R u+w usr/lib/rpm
@@ -135,7 +139,10 @@ EOF
   ls -la usr/lib/sysimage/rpm
 '' + lib.optionalString withToolchain ''
   # dynamic linker cache (the stage0 glibc's static ldconfig)
-  usr/sbin/ldconfig -r $out
+  # (`ldconfig -r` refuses the relative `include ld.so.conf.d/*.conf` that
+  # Rocky's ld.so.conf uses, so run it chrooted)
+  ${pkgs.bubblewrap}/bin/bwrap --unshare-user --bind $out / --dev /dev --proc /proc /usr/sbin/ldconfig
+  test -s etc/ld.so.cache
   # --- sanity ----------------------------------------------------------------
   test -x usr/bin/gcc && test -x usr/bin/ld && test -e usr/lib64/libc.so.6 && test -e lib64/ld-linux-x86-64.so.2
 '')

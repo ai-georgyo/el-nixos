@@ -21,9 +21,11 @@ echo | g++ -xc++ -E -v - 2>&1 | sed -n '/search starts here/,/End of search/p' |
 check "no store dirs in C include path" '! grep -q /nix/store c-inc.txt'
 check "no store dirs in C++ include path" '! grep -q /nix/store cxx-inc.txt'
 check "/usr/include is the last C include dir" '[ "$(grep -v "^End" c-inc.txt | tail -1 | tr -d " ")" = /usr/include ]'
-check "libstdc++ headers at /usr/include/c++/14" 'grep -q "^ /usr/include/c++/14$" cxx-inc.txt'
+grep "^ /" cxx-inc.txt | while read -r d; do realpath "$d"; done > cxx-inc-real.txt
+check "libstdc++ headers at /usr/include/c++/14" 'grep -qx /usr/include/c++/14 cxx-inc-real.txt'
 echo "== -print-file-name"
-for f in libgcc_s.so libgcc.a libstdc++.so libstdc++.a libc.so libc.so.6 crt1.o crti.o crtbeginS.o liblto_plugin.so include; do
+check "lto-wrapper is FHS" '[[ "$(gcc -print-prog-name=lto-wrapper)" == /usr/libexec/gcc/x86_64-redhat-linux/14/lto-wrapper ]]'
+for f in libgcc_s.so libgcc.a libstdc++.so libstdc++.a libc.so libc.so.6 crt1.o crti.o crtbeginS.o include; do
   printf '%-18s %s\n' "$f" "$(gcc -print-file-name=$f)"
   check "-print-file-name=$f is FHS" '[[ "$(gcc -print-file-name=$f)" == /usr/* ]]'
 done

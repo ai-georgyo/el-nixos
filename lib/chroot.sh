@@ -57,11 +57,36 @@ chroot__merged_ro() {
   fi
 }
 
+# An overlay's upper/work dirs stay "in use" until the previous namespace's
+# superblock is torn down, which the kernel may finish only after that bwrap
+# exited.
+# (Observed on the builders: the 2nd overlay mount on the same upper/work,
+# right after the 1st bwrap exited, fails with "Device or resource busy".)
+# overlayfs locks only the upper and work *directory inodes*, so before each
+# rw mount we move the upper's entries into a fresh directory (renames, cheap)
+# and use a fresh work dir: a lingering superblock can never conflict.
+chroot__n=0
+chroot__fresh_dirs() {
+  local st=$chroot__state
+  chroot__n=$((chroot__n + 1))
+  local new=$st/upper.$chroot__n
+  mkdir "$new"
+  chmod --reference="$st/upper" "$new"
+  find "$st/upper" -mindepth 1 -maxdepth 1 -exec mv -t "$new" {} +
+  rmdir "$st/upper"
+  mv "$new" "$st/upper"
+  # old work dirs contain an overlay-made 000 dir; remove best-effort
+  chmod -R u+rwx "$st/work" 2>/dev/null || true
+  rm -rf "$st/work" 2>/dev/null || mv "$st/work" "$st/work.old.$chroot__n"
+  mkdir "$st/work"
+}
+chroot__bwrap() { bwrap "$@"; }
+
 # run "bash -c SCRIPT _ ARGS..." with the merged read-only lower view at STATE/merged
 chroot__in_merged() {
   local -a ro
   mapfile -d '' ro < <(chroot__merged_ro "$chroot__state/merged")
-  bwrap --unshare-user --bind / / "${ro[@]}" bash -c "$@"
+  chroot__bwrap --unshare-user --bind / / "${ro[@]}" bash -c "$@"
 }
 
 chroot_setup() {
@@ -129,6 +154,7 @@ chroot__env_default() {
 
 chroot_exec() {
   chroot__parse "$@" || return 1
+  chroot__fresh_dirs
   local st=$chroot__state home=/root
   [ "$chroot__uid" != 0 ] && home=/builddir
   local -a lowers envs
@@ -136,7 +162,7 @@ chroot_exec() {
   mapfile -d '' envs < <(chroot__env_default "$home")
   local -a store=()
   [ "$chroot__store" = 1 ] && store=(--ro-bind /nix/store /nix/store)
-  bwrap "${chroot__args[@]}" \
+  chroot__bwrap "${chroot__args[@]}" \
     "${lowers[@]}" --overlay "$st/upper" "$st/work" / \
     "${store[@]}" \
     --proc /proc --dev /dev --perms 1777 --tmpfs /dev/shm \
@@ -149,13 +175,14 @@ chroot_exec() {
 
 chroot_tools() {
   chroot__parse "$@" || return 1
+  chroot__fresh_dirs
   local st=$chroot__state
   local -a lowers
   mapfile -d '' lowers < <(chroot__lowers)
   mkdir -p "$st/mnt"
   # the outer sandbox filesystem (nixpkgs tools, $TMPDIR, $out) stays as is;
   # the merged root appears rw at $BUILDROOT (= STATE/mnt)
-  bwrap "${chroot__args[@]}" --bind / / \
+  chroot__bwrap "${chroot__args[@]}" --bind / / \
     "${lowers[@]}" --overlay "$st/upper" "$st/work" "$st/mnt" \
     --proc "$st/mnt/proc" --dev "$st/mnt/dev" \
     "${chroot__binds[@]}" "${chroot__env[@]}" --setenv BUILDROOT "$st/mnt" \
