@@ -145,6 +145,9 @@ let
       prep_t() {  # dir bins
         mkdir -p $1; cp -r $2/. $1/; chmod -R u+w $1
         cp ${busybox} $1/busybox; cp ${./driver.sh} $1/driver.sh
+        # glibc-locale-source Requires gzip: localedef reads the gzipped
+        # charmaps through `gzip -dc` (the official root has Rocky's gzip)
+        mkdir -p $1/xbin; ln -s ../busybox $1/xbin/gzip
       }
 
       # ---------------------------------------------------------- official
@@ -181,6 +184,7 @@ let
       for d in ${lib.escapeShellArgs i18nDirs}; do [ -d "$d" ] && i18n="$i18n''${i18n:+:}$d"; done
       path=""
       for d in ${lib.escapeShellArgs binDirs}; do [ -d "$d" ] && path="$path''${path:+:}$d"; done
+      path="$path:/t/xbin"
       archive=${outPaths.all_langpacks or "/nonexistent"}/lib/locale/locale-archive
       [ -e "$archive" ] || archive=$archive.real
       relocated() {   # extra bwrap args -- cmd...
