@@ -106,7 +106,7 @@ so headers should be read in the shim as §2.1 says.
 ```
 git add -A
 nix build -L --cores 6 --max-jobs 2 --no-link --print-out-paths .#checks.x86_64-linux.nn-rpm-config
-# -> /nix/store/qzfkr23dv332n45ajlp7379lq5ki83y3-nn-rpm-config
+# -> /nix/store/mv09rj2rf6nzpji21abla98m2iyrb7d6-nn-rpm-config
 #    results.txt: 126 ok, 0 FAIL
 ```
 
