@@ -22,7 +22,8 @@ What it emulates (mock + dnf/libsolv, approximately):
    Both with ``install_weak_deps=0`` (mock's dnf.conf), so only Requires.
 
 Resolution rules (tuned until they matched dnf5/libsolv exactly on 110 of 110
-sampled SRPMs, see docs/research/glibc-buildroot-closure.md):
+sampled SRPMs, then 150/150 on a held-out sample; see
+docs/research/glibc-buildroot-closure.md):
 
 - Top-level jobs (install args, BuildRequires): a package whose *name*
   matches (and whose EVR satisfies the version) wins, as in ``dnf install``.

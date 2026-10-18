@@ -756,7 +756,9 @@ AppStream, CRB and extras; `devel` is present but `enabled=0`.
 --assumeno <buildsys list> <BuildRequires>` (dnf5 5.4.4 / libsolv from nixpkgs,
 against the live Rocky 10.2 BaseOS+AppStream+CRB repos) for 110 SRPMs (10
 core ones incl. glibc, gcc, binutils, systemd, kernel, python3.12, plus 100
-random): **110/110 identical package sets**. The buildsys transaction alone
+random; the rules were tuned on these): **110/110 identical package sets**.
+A further 150 random SRPMs, *not* used for tuning, also gave **150/150
+identical** (260/260 overall). The buildsys transaction alone
 (145 packages) is also identical. The table above uses mock's real two
 transaction order, which is why it has one package more than a one-shot dnf
 install: `rpm-build` needs `/usr/bin/gdb-add-index` in transaction 1, where only

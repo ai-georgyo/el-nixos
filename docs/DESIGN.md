@@ -95,8 +95,8 @@ Store names map `^`/`~` (legal in RPM file names) to `_`.
 [--recursive]` emulates mock rocky-10: transaction 1 installs the
 `chroot_setup_cmd` list (Rocky's comps has no buildsys-build group), and
 transaction 2 installs the SRPM's BuildRequires, both with
-`install_weak_deps=0`. It matched real dnf5 exactly for 110 of 110 sampled
-SRPMs; see `docs/research/glibc-buildroot-closure.md`.
+`install_weak_deps=0`. It matched real dnf5 exactly for 260 of 260 sampled
+SRPMs (150 of them held out from tuning); see `docs/research/glibc-buildroot-closure.md`.
 
 ## Build model
 
