@@ -16,7 +16,43 @@ Branch `nn/wp6` (base b9fdc83). Design: `docs/nix-native-design.md` §5.3–5.6,
 
 ## Results (real builds, this branch)
 
-RESULTS_PLACEHOLDER
+All with `nix build -L --cores 8 --max-jobs 2` in the local sandbox.
+
+| attribute | outputs | partition report | result |
+|---|---|---|---|
+| `rockyBoot.s1.which` | out debug logs | 0 errors, 0 warnings | built; closure = out + stage0 libc tree; `which --version` runs from the store |
+| `rockyBoot.s1.xz` | out dev lib lzma_compat static debug logs (= subpackages.json: xz, xz-devel, xz-libs, xz-lzma-compat, xz-static (unshipped)) | 0 errors, 4 warnings (`fhs-shebang` `#!/usr/bin/sh` in xzdiff/xzgrep/xzless/xzmore) | built; `xz` RUNPATH `$lib/lib64:<stage0Libc>/lib64`, liblzma RUNPATH `<stage0Libc>/lib64`; closures = own outputs + stage0 libc tree |
+| `rockyBoot.s1.zlib-ng` | out dev compat compat_devel compat_static debug logs | 0 errors, 2 warnings (`not-required`: compat_devel's ZLIB-release.cmake names compat_static's libz.a) | built, after `packages/zlib-ng` (S1: WITH_GTEST=OFF) and the partitioner's CMake export rule; closures = own outputs + stage0 libc tree |
+| `rockyBoot.s1.gzip` | out debug logs | 0 errors, 12 warnings (`fhs-shebang` `#!/usr/bin/sh`, as Rocky's) | built; gzip/gunzip round trip from the store; closure = out + stage0 libc tree |
+| `rockyBoot.s1.glibc` (packages/glibc/default.nix = WP7 draft) | 225 (223 + debug + logs) | rpmbuild completes; partition **235 errors**: 229 `prefix-relative` (benchtests), 6 `dangling` (ldd → libx32, libc.so.6/libc.a → lib/gconv, memusage → lib/libmemusage.so) | fails; exactly the entries the replay found (tools/rocky-partition/tests/glibc-overrides.nix), missing from WP7's draft |
+| same + those entries (ad-hoc expression, not committed: draft // danglingOk `libx32 lib/gconv lib/libmemusage.so`, prefixRelativeOk + opaqueRefs `benchtests sysroot_x86_64_el10_glibc`) | 225 | **0 errors**, 3 warnings | **built, all outputChecks passed**; out/common/utils/dev closure = own outputs + `libgccForGlibc`; `ld.so --list-diagnostics`: prefix and rtld in `$out`, system dirs `$out/lib64/`, `<libgccForGlibc>/lib64/`, `<libgccForGlibc>/lib/` (the `env 'user-defined-trusted-dirs=…'` route works); `getconf GNU_LIBC_VERSION` and `iconv` from `common` run with no RUNPATH; memusagestat NEEDs libgd/libpng/libz with no RUNPATH (build-only glibcBuildDeps never leak) |
+| `checks.nn-s1-smoke` | | | **passes** (10 eval + 20 build assertions; below) |
+| `nix build --rebuild` which, xz | | | every output but `logs` bit-identical; `logs` differs (configure-diff timestamps, `make -jN`) |
+
+First runs that failed and what fixed them (all in this branch): which —
+`foreign-store-path` for the gcc copy in RUNPATH (deviation 7); gzip/xz —
+`#!<nixpkgs bash>` from CONFIG_SHELL (deviation 1); zlib-ng — googletest
+fetched at configure time (packages/zlib-ng), `--verbose` broken by a
+`%__cmake` define (moved to `%_cmake_lib_suffix64`), `prefix-relative` in
+CMake export files (deviation 8); glibc — `-fplugin=annobin` (S1 stage
+define `_annotated_build 0`, as M1), logs referencing the Nix patches by
+basename (logs normalisation of every store hash); smoke — a consumer of
+`xz.dev` did not start (deviation 6).
+
+`checks.nn-s1-smoke` covers: outputs of which/xz = `names.outputsFor`,
+rpmOutputs/shippedRpmOutputs/unshipped, `nn.stages.s1.rpm."xz-libs"` =
+`xz.lib`, no alias for unshipped xz-static, plan subpackages; partition
+reports with 0 errors; in a sandbox without /usr: `which --version`, `which
+which`, `xz --version` (liblzma 5.6.2), xz|unxz, xz --format=lzma|lzcat (the
+cross-output symlink of lzma_compat), xzdec; exact RUNPATHs, no DT_RPATH,
+PT_INTERP; dev's liblzma.so → lib, dev propagates lib, liblzma.pc points at
+dev; closures = own outputs + the S1 exception; a program compiled by
+`nn.cc.stage0` with `buildInputs = [ xz.dev ]` runs and has `$lib/lib64` in
+its RUNPATH.
+
+Component self-tests after the integration changes: nn-partition-selftest
+(18 cases incl. 2 new: cmake_export, rpath_foreign), nn-names, nn-rpm-config,
+nn-purity, nn-shim, nn-cc-toolchain, nn-order: all pass.
 
 ## The derivation (what mkRpmPackage does)
 
@@ -245,6 +281,7 @@ integration owner of `lib/rocky/**`, `tools/rocky-partition/**`,
   (glibc-devel → kernel-headers) need a lock file of Requires (§5.6).
 * Phase E's NEEDED guard skips `noPatchelf` files; view-leak detection in DWARF
   is directory-granular (handoff open items, unchanged).
-* No `nix build --rebuild` reproducibility run of the S1 packages.
+* `logs` is not reproducible (timestamps, `make -jN`); only which and xz were
+  `--rebuild`-checked.
 * The partitioner's hook writer ignores the unions table's provider/yieldsTo.
 
