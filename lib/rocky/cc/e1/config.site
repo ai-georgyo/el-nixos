@@ -1,0 +1,12 @@
+# Rocky stdenv config.site (sourced by every autoconf configure via CONFIG_SITE):
+# relocated store prefix, FHS runtime state, multilib libdir -- what Fedora's
+# /usr/share/config.site does for prefix=/usr.
+case "$prefix" in /nix/store/*)
+  case "${host_alias:-${build_alias:-x86_64}}" in
+    x86_64*|aarch64*|ppc64*|s390x*) test "$libdir" = '${exec_prefix}/lib' && libdir='${exec_prefix}/lib64' ;;
+  esac
+  test "$sysconfdir" = '${prefix}/etc' && sysconfdir=/etc
+  test "$localstatedir" = '${prefix}/var' && localstatedir=/var
+  test "$sharedstatedir" = '${prefix}/com' && sharedstatedir=/var/lib
+  ;;
+esac
