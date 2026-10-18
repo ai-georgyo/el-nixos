@@ -1,0 +1,218 @@
+# RPM parity + purity checks
+
+`tools/rpm-parity.py` compares RPMs we build against the **official Rocky
+RPMs** (fetched as FODs from `lock/rocky-<rel>/rpms.json`) and fails on any
+difference that is not declared as expected in an allowlist. It also fails,
+unconditionally, on any `/nix/store` string in our headers or payloads.
+`lib/parity.nix` wraps it as a plain derivation (`mkParityCheck`), so a parity
+check is just another `checks.x86_64-linux.*` attribute. No IFD: the official
+package list comes from the lock at evaluation time; which binary packages a
+build produced is discovered by the tool at build time.
+
+## TL;DR
+
+```nix
+# legacyPackages.x86_64-linux.mkParityCheck
+parity-glibc = mkParityCheck {
+  name = "glibc";
+  ours = glibcBuild;   # a buildSrpm result ($out/RPMS/*/*.rpm), or rpm files/dirs, or a list
+  # srpm     ? ours.srpmName                     -> official = rpmsLock.bySrpm.glibc (221 RPMs)
+  # allow    ? tools/parity/glibc.json if it exists (it does: extends stage0.json)
+  # exclude  ? [ ]  keep ? [ ]                   regexes over NAME.ARCH, both sides
+  # deep ? false   failOnDiff ? true   extraArgs ? [ ]
+};
+```
+
+```
+nix build .#checks.x86_64-linux.parity-glibc          # fails on unexpected differences
+nix build .#checks.x86_64-linux.parity-glibc.report   # same, never fails: read result/report.md
+nix log   .#checks.x86_64-linux.parity-glibc          # unexpected findings are printed to the log
+nix run   .#rpm-parity -- --ours a/RPMS --official b.rpm --allow tools/parity/x.json --out /tmp/r
+```
+
+Output (`$out`): `report.md` (human) and `report.json` (machine-readable, same
+content, every difference with its id, both values, allowed/reason).
+
+## Checks in the flake
+
+| check | what | result |
+|---|---|---|
+| `parity-which` | `stage0.srpm.which` vs official `which-2.21-44.el10_0` (`tools/parity/which.json` → stage0) | PASS: 0 unexpected, 13 allowed; `/usr/bin/which` differs in content only, every ELF property equal |
+| `parity-redhat-rpm-config` | `stage0.srpm.redhat-rpm-config` vs official (`--deep`) | PASS: 37/37 files byte-identical (even the payload digest is equal); only header identity fields differ |
+| `parity-glibc-official-self` | the 16 official glibc RPMs (all but the langpacks, `glibc-langpack-en` kept) vs themselves, `--deep --fail-on-unused`, no SRPM allowlist | PASS: 0 differences; 718 ELF + 12 ar files parsed and compared, 2 120 payload digests per side verified against the headers; 205 langpacks listed as excluded |
+| `parity-selftest-noallow` | which vs official **without** any allowlist must FAIL with the known differences (BUILDHOST, OPTFLAGS/annobin, `content.elf:/usr/bin/which`, debuginfo only-ours, FILECLASS) | negative test, passes |
+| `parity-selftest-purity` | a tiny rpm built with nixpkgs' `rpmbuild` whose file, symlink and header mention `/nix/store` must FAIL with 3 purity violations | negative test, passes |
+
+The stage0 checks reuse the existing `stage0.srpm.*` builds (nothing in
+`bootstrap/` is rebuilt). Each parity check runs in seconds (the glibc
+16-package self comparison: ~2-3 s of CPU, 34 MB of RPMs).
+
+The ELF reader was cross-checked against binutils `readelf` on all 718 ELF
+files of those 16 glibc packages (NEEDED, SONAME, RUNPATH, INTERP, build-id,
+GNU properties, stapsdt notes, section lists, BIND_NOW, PIE, GNU_HASH): no
+mismatch apart from readelf's own formatting.
+
+## How it works
+
+`rpm-parity.py` is Python 3 stdlib only (runs with nixpkgs' python3 outside
+any chroot; needs the `zstd` binary on Python < 3.14). It does not use rpm or
+readelf, so its results do not depend on tool versions:
+
+1. **Headers** are parsed directly (lead, signature header — ignored — and the
+   main header). Tag numbers come from rpm's `rpmtag.h`; unknown tags are still
+   compared, by number.
+2. Packages from both sides are **paired by `NAME.ARCH`**; source RPMs are
+   skipped (`--include-src` to compare them). Unpaired packages are listed as
+   `package.only-ours:` / `package.only-official:` differences.
+3. For each pair, header, dependency, scriptlet, trigger, changelog and file
+   metadata comparisons are made from the headers; the set of regular files
+   whose **header digests differ** is computed.
+4. Each **payload** is streamed once (zstd/xz/gzip/bzip2 → newc cpio): every
+   file's digest is recomputed and checked against the header (`integrity`),
+   our payloads are scanned for `/nix/store` (file contents and symlink
+   targets), and the files whose content differs are classified as `elf`, `ar`
+   or `other` and analysed (ELF facts, ar member list, unified diff of small
+   text files). Hard links are handled by inode group.
+5. Every difference gets a **stable id**; allowlist rules are matched against
+   it. A package FAILs on any unallowed difference, any purity hit, or any
+   integrity error. The tool exits 0 (PASS), 1 (FAIL) or 2 (tool error).
+
+### What is compared (difference ids)
+
+| id | compared |
+|---|---|
+| `nevr` | `name-[epoch:]version-release` |
+| `header.<TAG>` | every other main-header tag not listed below, by value (`LICENSE`, `GROUP`, `URL`, `SUMMARY`, `DESCRIPTION`, `ARCH`, `OPTFLAGS`, `PLATFORM`, `SOURCERPM`, `RPMVERSION`, `PAYLOADCOMPRESSOR`, `PAYLOADFLAGS`, `FILEDIGESTALGO`, `VENDOR`, `BUILDHOST`, `COOKIE`, …). Space-separated strings (OPTFLAGS) also get a token diff in the report |
+| `changelog` | all changelog entries (time, name, text) |
+| `provides:+X` / `provides:-X` | dependency only in ours (+) / only official (−); same for `requires`, `conflicts`, `obsoletes`, `recommends`, `suggests`, `supplements`, `enhances`, `order`. X is rendered like `name >= evr (pre,post)` with scriptlet qualifiers (`pre post preun postun pretrans posttrans preuntrans postuntrans verify interp meta`) |
+| `script.<name>` | `pretrans prein postin preun postun posttrans preuntrans postuntrans verify`: interpreter (+args), flags (e.g. macro expansion) and body |
+| `trigger<type>: <conditions> [prog …]` | each trigger script, likewise `filetrigger…`/`transfiletrigger…` (with priority) |
+| `file.only-ours:<path>`, `file.only-official:<path>` | file list |
+| `file.<attr>:<path>` | `mode` (octal, incl. type), `user`, `group`, `linkto` (symlink target), `flags` (letters: `c`onfig `d`oc `m`issingok `n`oreplace `s`pecfile `g`host `l`icense `r`eadme `p`ubkey `a`rtifact), `verifyflags` (hex), `lang`, `caps`, `color` (ELF class), `class` (libmagic text, build-id masked), `rdev`, `nlink` (hard-link count within the package) |
+| `content.<kind>:<path>` | regular files (not ghosts) in both whose header digests differ; kind `elf`, `ar` or `other`. For `other` text files ≤ 1 MiB the report shows a unified diff |
+| `ar.members:<path>` | member names of a differing static archive |
+| `elf.<prop>:<path>` | for differing ELF files: `class machine type interp needed soname rpath runpath gnu_hash sysv_hash bind_now pie textrel relr execstack relro build_id`(presence) `gnu_property` (x86 feature IBT/SHSTK, ISA needed/used, feature used, …) `abi_tag stapsdt` (note count) `package_note` (the FDO packaging-metadata JSON) `comment` (.comment strings) |
+| `elf.section:<path>:+S` / `:-S` | section only in ours / only official (`.gnu_debugdata`, `.gnu_debuglink`, `.annobin.notes`, `.gnu.build.attributes`, `.symtab`, `.debug_*`, …) |
+| `elf.error:<path>` | unparseable ELF |
+| `package.only-ours:<key>`, `package.only-official:<key>` | subpackage present on one side only |
+| purity | `/nix/store` in any header string, payload file or symlink target of OUR packages (debuginfo/debugsource included). **Cannot be allowlisted.** |
+| integrity | payload file digest ≠ header digest (either side). Cannot be allowlisted. |
+
+Not compared: signatures, `FILEMTIMES`, inode/device numbers (only used for
+`nlink`), the per-file dependency tables (package-level deps cover them).
+`--deep` additionally compares ELF/ar facts of files whose content is
+identical (exercises the parsers; used by the self comparison).
+
+**Build-id normalization** (option `normalize_build_id`, on by default): the
+`/usr/lib/.build-id/xx/yyyy…` links (and `/usr/lib/debug/.build-id/…`) are
+keyed by their target, e.g. `/usr/lib/.build-id/<build-id> -> ../../../../usr/bin/which`,
+and the `xx` fan-out directories are dropped, because build-ids always differ
+between builds. `BuildID[sha1]=…` is masked in FILECLASS strings.
+
+## Allowlists
+
+JSON files; `tools/parity/default.json` is always loaded (unless
+`--no-default-allow`), then each `--allow` file (`mkParityCheck`'s `allow`,
+default `tools/parity/<srpm>.json` when that file exists).
+
+```json
+{
+  "description": "why this file exists",
+  "extends": ["stage0"],                  // other allowlists: by path, or name in tools/parity/
+  "options": { "normalize_build_id": true },
+  "rewrite": [                            // normalize a value BEFORE comparing
+    { "field": "header.OPTFLAGS", "side": "official",     // ours | official | both (default)
+      "pattern": "-specs=/usr/lib/rpm/redhat/redhat-annobin-cc1", "replace": "",
+      "packages": "*", "reason": "…" }
+  ],
+  "allow": [                              // accept a difference
+    { "id": "elf.section:*:-.annobin.notes", "packages": ["glibc*.x86_64"],
+      "ours": "^null$", "official": "regex", "reason": "…" }
+  ]
+}
+```
+
+* `allow[].id` and `rewrite[].field` are shell-style globs (`fnmatch`, `*`
+  also matches `/`; write a literal `[` as `[[]`) over the difference id /
+  field. `packages` (glob or list, default `*`) matches `NAME.ARCH`.
+  `ours` / `official` are optional regexes searched in the JSON encoding of
+  that side's value (`null` when absent), so a rule can say "allowed only
+  while ours is unset".
+* A `rewrite` applies `re.sub(pattern, replace)` to the field value on the
+  given side (to each element for lists such as dependency sets, dropping
+  elements that become empty unless `"drop_empty": false`). Fields:
+  `header.<TAG>`, `nevr`, `changelog`, `script.<name>`, trigger keys,
+  `file.<attr>:<path>`, `elf.<prop>:<path>`, `elf.section:<path>`, and the
+  dependency kinds (`requires`, `provides`, …). Values made equal by a rewrite
+  are listed under "Normalized by rewrite rules" in the report.
+* `reason` is mandatory. Rules that match nothing are listed in the report
+  ("unused"); `--fail-on-unused` turns that into a failure. Rules from
+  `default.json` and rules with `"optional": true` are never reported unused.
+* Purity and integrity findings cannot be allowed.
+
+### Shipped allowlists (`tools/parity/`)
+
+* **`default.json`** — true for any rebuild: `BUILDTIME`, `BUILDHOST`,
+  `COOKIE` (rpmbuild `--rebuild` copies the SRPM's cookie, i.e. Rocky's build
+  host, into the binaries; Koji-built official binaries have none), `SIZE`/
+  `LONGSIZE`, `PAYLOADDIGEST`/`PAYLOADDIGESTALT`; `VENDOR`, `PACKAGER`,
+  `DISTRIBUTION` (`Rocky Linux 10`), `BUGURL` (`https://bugs.rockylinux.org`)
+  **only while ours is unset** (Rocky's build system sets these four macros;
+  `buildSrpm` deliberately does not claim Rocky's identity — set them via
+  `vendor`/`packager`/`defines` if that policy changes, and the rule stops
+  matching); `content.elf:*` and `content.ar:*` (their properties are compared
+  instead); `package.only-ours:*-debuginfo.*` / `*-debugsource.*` (the lock
+  has no debug repos).
+* **`stage0.json`** — stage0 hacks (docs/stage0.md): the
+  `-specs=/usr/lib/rpm/redhat/redhat-annobin-cc1` token is removed from the
+  official `OPTFLAGS` (macros.stage0 empties `%_annobin_gcc_plugin`; the rest
+  of the string must still match exactly, including the extra space it
+  leaves); missing `.annobin.notes` / `.gnu.build.attributes` sections are
+  allowed (optional rules); stage0's rpmbuild uses nixpkgs' newer libmagic,
+  whose gzip FILECLASS text appends `, original size modulo 2^32 N` (rewritten
+  away on our side; content is unaffected).
+* **`which.json`, `redhat-rpm-config.json`** — `extends: ["stage0"]`, nothing else.
+* **`glibc.json`** — `extends: ["stage0"]`, empty `allow`: the starting point
+  for the milestone-1 check.
+
+## Adding the glibc parity check (integrator)
+
+1. Build glibc, e.g. `glibc = stage0.buildStage0 { srpm = "glibc"; extraRpms = …; }`.
+2. Add the check next to the others, e.g. in `default.nix`:
+
+   ```nix
+   parityChecks = parity.checks // {
+     parity-glibc = parity.mkParityCheck { name = "glibc"; ours = glibc; };
+   };
+   ```
+
+   `srpm` defaults to `glibc.srpmName` ("glibc"), so `official` = all 221
+   RPMs of `rpmsLock.bySrpm.glibc` (136 MB of FODs, fetched once) and
+   `allow` = `tools/parity/glibc.json`. To keep the first runs small,
+   compare like the self check: `exclude = [ "glibc-langpack-.*" ]; keep = [ "glibc-langpack-en\\..*" ];`
+   (excluded keys are not even fetched and are listed in the report).
+3. `nix build .#checks.x86_64-linux.parity-glibc.report` and read
+   `result/report.md`. For every unexpected difference either fix the build
+   or add a rule with a reason to `tools/parity/glibc.json` (stage0-wide
+   causes go to `stage0.json`). Likely candidates, judging from the research
+   notes: `elf.stapsdt:*` if built without systemtap-sdt-devel, subpackages
+   switched off by bconds (`package.only-official:glibc-benchtests.x86_64`),
+   `.annobin.notes` handling in `wrap-find-debuginfo.sh`.
+4. `nix build .#checks.x86_64-linux.parity-glibc` must then pass.
+
+## Files
+
+* `tools/rpm-parity.py` — the tool (docstring = CLI reference).
+* `tools/parity/*.json` — allowlists.
+* `lib/parity.nix` — `mkParityCheck`, the checks above, `impureRpm`
+  (the purity test fixture), `tool` (store path of the script).
+* Attributes: `legacyPackages.x86_64-linux.{mkParityCheck, parityChecks, parityTool}`,
+  `checks.x86_64-linux.parity-*`, app `rpm-parity`.
+
+## Limitations
+
+* rpm's "stripped" cpio format for payloads with files ≥ 4 GiB is not
+  supported (error, never silent).
+* Only x86 GNU property bits are decoded by name (others shown in hex).
+* Text diffs are shown for files ≤ 1 MiB; bigger differing files are only
+  reported by size/digest.

@@ -1,0 +1,4 @@
+{
+  "description": "redhat-rpm-config (stage0.srpm.redhat-rpm-config) vs official: content must be identical.",
+  "extends": ["stage0"]
+}

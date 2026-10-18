@@ -18,11 +18,17 @@ let
     inherit stage0 rpmsLock kernelHeadersRpm;
     inherit (fetch) officialRpms;
   };
+
+  # parity/purity checks against the official RPMs (docs/parity.md)
+  parity = import ./lib/parity.nix { pkgs = bootPkgs; inherit rpmsLock stage0; inherit (fetch) fetchRpm; };
 in
 {
   inherit lock rpmsLock;
   inherit (fetch) fetchSrpm fetchRpm sources officialRpms;
   inherit stage0;
+  inherit (parity) mkParityCheck;
+  parityChecks = parity.checks;
+  parityTool = parity.tool; # store path of tools/rpm-parity.py (+ tools/parity/)
 
   # rpmbuild results by SRPM name ($out/RPMS, $out/SRPMS, $out/logs)
   srpm = { glibc = glibc.build; };

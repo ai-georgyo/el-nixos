@@ -1,0 +1,23 @@
+{
+  "description": "Differences expected between ANY rebuild and the official Rocky RPM. Always loaded by rpm-parity (unless --no-default-allow). See docs/parity.md.",
+  "options": {
+    "normalize_build_id": true
+  },
+  "allow": [
+    { "id": "header.BUILDTIME", "reason": "build time: ours is the changelog date (use_source_date_epoch_as_buildtime), Rocky's the wall clock" },
+    { "id": "header.BUILDHOST", "reason": "build host name" },
+    { "id": "header.COOKIE", "reason": "rpmbuild --rebuild carries the source package's cookie (Rocky's build host + time) into the binaries; Koji-built official binaries have none" },
+    { "id": "header.SIZE", "reason": "installed size follows the (expected) ELF size differences; file sizes are compared per file" },
+    { "id": "header.LONGSIZE", "reason": "installed size, see header.SIZE" },
+    { "id": "header.PAYLOADDIGEST", "reason": "payload digest differs whenever any byte differs (ELF content, mtimes)" },
+    { "id": "header.PAYLOADDIGESTALT", "reason": "uncompressed payload digest, see header.PAYLOADDIGEST" },
+    { "id": "header.VENDOR", "ours": "^null$", "reason": "Rocky's build system sets %vendor; we do not claim Rocky's identity (buildSrpm vendor = null)" },
+    { "id": "header.PACKAGER", "ours": "^null$", "reason": "Rocky's build system sets %packager; we do not claim it (buildSrpm packager = null)" },
+    { "id": "header.DISTRIBUTION", "ours": "^null$", "reason": "Rocky's build system sets %distribution 'Rocky Linux 10'; not set by our builds" },
+    { "id": "header.BUGURL", "ours": "^null$", "reason": "Rocky's build system sets %bugurl https://bugs.rockylinux.org; not set by our builds" },
+    { "id": "content.elf:*", "reason": "ELF objects are not bit-identical across builds (build-id, code layout); their properties are compared separately (elf.*)" },
+    { "id": "content.ar:*", "reason": "static archives contain ELF objects (see content.elf); member lists are compared separately (ar.members)" },
+    { "id": "package.only-ours:*-debuginfo.*", "reason": "debuginfo packages are not in the lock (Rocky ships them in separate debug repos)" },
+    { "id": "package.only-ours:*-debugsource.*", "reason": "debugsource packages are not in the lock (separate debug repos)" }
+  ]
+}

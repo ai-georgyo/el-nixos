@@ -1,0 +1,4 @@
+{
+  "description": "which (stage0.srpm.which) vs official which: only stage0 differences expected.",
+  "extends": ["stage0"]
+}

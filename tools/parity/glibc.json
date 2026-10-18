@@ -1,0 +1,5 @@
+{
+  "description": "glibc (glibc-2.39-142.el10_2) built in stage0 vs the 221 official RPMs. Starts from the stage0 expectations; add a rule (with a reason) for every difference that is understood and accepted, see docs/parity.md.",
+  "extends": ["stage0"],
+  "allow": [ ]
+}
