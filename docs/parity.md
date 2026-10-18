@@ -40,6 +40,8 @@ content, every difference with its id, both values, allowed/reason).
 | `parity-which` | `stage0.srpm.which` vs official `which-2.21-44.el10_0` (`tools/parity/which.json` → stage0) | PASS: 0 unexpected, 13 allowed; `/usr/bin/which` differs in content only, every ELF property equal |
 | `parity-redhat-rpm-config` | `stage0.srpm.redhat-rpm-config` vs official (`--deep`) | PASS: 37/37 files byte-identical (even the payload digest is equal); only header identity fields differ |
 | `parity-glibc-official-self` | the 16 official glibc RPMs (all but the langpacks, `glibc-langpack-en` kept) vs themselves, `--deep --fail-on-unused`, no SRPM allowlist | PASS: 0 differences; 718 ELF + 12 ar files parsed and compared, 2 120 payload digests per side verified against the headers; 205 langpacks listed as excluded |
+| `glibc-parity` | `srpm.glibc` (233 RPMs) vs **all 221** official glibc RPMs (`tools/parity/glibc.json` → stage0 → default) | PASS — numbers and every remaining difference in [glibc.md](glibc.md#parity-with-the-official-rpms) |
+| `kernel-headers-parity` | `stage0.kernelHeadersBuild` vs official `kernel-headers` + `kernel-modules-extra-matched` (`tools/parity/kernel.json`; the other 28 kernel binaries are excluded) | PASS: 0 unexpected, 34 allowed; 1015/1015 common files identical; the 21 leaked tools headers are the only file-list difference |
 | `parity-selftest-noallow` | which vs official **without** any allowlist must FAIL with the known differences (BUILDHOST, OPTFLAGS/annobin, `content.elf:/usr/bin/which`, debuginfo only-ours, FILECLASS) | negative test, passes |
 | `parity-selftest-purity` | a tiny rpm built with nixpkgs' `rpmbuild` whose file, symlink and header mention `/nix/store` must FAIL with 3 purity violations | negative test, passes |
 
@@ -171,34 +173,30 @@ default `tools/parity/<srpm>.json` when that file exists).
   allowed (optional rules); stage0's rpmbuild uses nixpkgs' newer libmagic,
   whose gzip FILECLASS text appends `, original size modulo 2^32 N` (rewritten
   away on our side; content is unaffected).
+  `stage0.json` also allows libmagic 5.47's "dynamically linked" FILECLASS text
+  where Rocky's 5.45 says "static-pie linked" (ld.so).
 * **`which.json`, `redhat-rpm-config.json`** — `extends: ["stage0"]`, nothing else.
-* **`glibc.json`** — `extends: ["stage0"]`, empty `allow`: the starting point
-  for the milestone-1 check.
+* **`glibc.json`** — `extends: ["stage0"]`: the three subpackages glibc.spec
+  builds but Rocky does not publish (`glibc32`, `sysroot-x86_64-el10-glibc`,
+  `compat-libpthread-nonshared`), and the `<id>`/`<id>.2` build-id link names
+  of the hard-linked getconf binaries (readdir order of the build filesystem).
+* **`kernel.json`** — `extends: ["stage0"]`: the 21 tools headers (`perf/`,
+  `internal/`, `cpuidle.h`, `powercap.h`) that the full kernel build leaks
+  into the official kernel-headers.
 
-## Adding the glibc parity check (integrator)
+## Adding a parity check for a new SRPM
 
-1. Build glibc, e.g. `glibc = stage0.buildStage0 { srpm = "glibc"; extraRpms = …; }`.
-2. Add the check next to the others, e.g. in `default.nix`:
+```nix
+# default.nix, parityChecks
+foo-parity = parity.mkParityCheck { name = "foo"; ours = <buildSrpm result>; };
+```
 
-   ```nix
-   parityChecks = parity.checks // {
-     parity-glibc = parity.mkParityCheck { name = "glibc"; ours = glibc; };
-   };
-   ```
-
-   `srpm` defaults to `glibc.srpmName` ("glibc"), so `official` = all 221
-   RPMs of `rpmsLock.bySrpm.glibc` (136 MB of FODs, fetched once) and
-   `allow` = `tools/parity/glibc.json`. To keep the first runs small,
-   compare like the self check: `exclude = [ "glibc-langpack-.*" ]; keep = [ "glibc-langpack-en\\..*" ];`
-   (excluded keys are not even fetched and are listed in the report).
-3. `nix build .#checks.x86_64-linux.parity-glibc.report` and read
-   `result/report.md`. For every unexpected difference either fix the build
-   or add a rule with a reason to `tools/parity/glibc.json` (stage0-wide
-   causes go to `stage0.json`). Likely candidates, judging from the research
-   notes: `elf.stapsdt:*` if built without systemtap-sdt-devel, subpackages
-   switched off by bconds (`package.only-official:glibc-benchtests.x86_64`),
-   `.annobin.notes` handling in `wrap-find-debuginfo.sh`.
-4. `nix build .#checks.x86_64-linux.parity-glibc` must then pass.
+`srpm` defaults to `ours.srpmName`, so `official` = every RPM of
+`rpmsLock.bySrpm.<srpm>` and `allow` = `tools/parity/<srpm>.json` if present
+(start it with `"extends": ["stage0"]`). Build `.report`, read
+`result/report.md`, and for every unexpected difference either fix the build
+or add a rule with a reason. `glibc-parity` and `kernel-headers-parity` in
+`default.nix` are the worked examples (the latter with `exclude`/`keep`).
 
 ## Files
 

@@ -35,21 +35,28 @@ binary-package names an SRPM produces are only *selected* at build time (by
 
 ## The pieces
 
-### 1. Fetching SRPMs (`lib/fetch-srpm-seed.nix`)
+### 1. Fetching SRPMs (`lib/fetch-srpm.nix`, `lib/srpm.nix`)
 
-Temporary, driven by the seed lock `lock/rocky-10.2/srpms.json` (format in
-DESIGN.md). `fetchSrpm name` is a `fetchurl` over all mirrors
+Driven by the generated lock `lock/rocky-10.2/srpms.json` (format in
+DESIGN.md). `fetchSrpm name` (`lib/fetch-srpm.nix`, also behind
+`legacyPackages.sources.<srpm>`) is a `fetchurl` FOD over all mirrors
 (`<mirror>/<repo>/source/tree/<path>`) with the lock's sha256.
-`unpackSrpm name` unpacks spec + sources + patches with `bsdtar` (reads the rpm
-container directly). `distOf name` recovers the `%dist` an SRPM was built with
+`lib/srpm.nix` adds `unpackSrpm name` (spec + sources + patches, unpacked with
+`bsdtar`, which reads the rpm container directly), `entry name` (the lock
+entry) and `distOf name`, which recovers the `%dist` an SRPM was built with
 from its lock release (`142.el10_2` → `.el10_2`, `44.el10_0` → `.el10_0`,
 `295-1.el10.rocky.0.2` → `.el10`), so rebuilt NEVRs equal the official ones.
 
-Seed-lock additions made by this track (same format, generated with the seed
-generator from repodata): `debugedit dwz efi-rpm-macros filesystem
-fonts-rpm-macros forge-srpm-macros go-rpm-macros lua-rpm-macros package-notes
-qt6 setup` (macro packages whose SRPM name differs from the binary name were
-found through the binary repodata `sourcerpm` field).
+(Until the integration, stage0 used a temporary seed fetcher,
+`lib/fetch-srpm-seed.nix`, over a hand-extended seed lock. The generated lock
+is a superset with the same path/sha256 for every seed entry, so the switch
+changed no store path: same FOD name + hash, hence the same downstream
+derivations.)
+
+Which binary packages an SRPM produces (`rpms.<name>` trees) comes from
+`lock/rocky-10.2/rpms.json`'s `bySrpm`, except where a stage0 build
+deliberately produces a subset (the headers-only kernel build, the noarch
+go-rpm-macros build).
 
 ### 2. The stage0 toolchain (`bootstrap/{binutils,gcc,glibc,kernel-headers}.nix`)
 

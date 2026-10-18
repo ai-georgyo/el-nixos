@@ -13,18 +13,22 @@ Code: `packages/glibc.nix` (buildroot, build, trees, sanity),
 
 | attr | what |
 |---|---|
-| `legacyPackages.x86_64-linux.srpm.glibc` = `packages.x86_64-linux.glibc-srpm-build` | the rpmbuild result: `RPMS/{x86_64,noarch}/*.rpm` (233), `SRPMS/`, `logs/{build.log,srpm.log,files}` |
+| `legacyPackages.x86_64-linux.srpm.glibc` = `packages.x86_64-linux.glibc-rpms` | the rpmbuild result: `RPMS/{x86_64,noarch}/*.rpm` (233), `SRPMS/`, `logs/{build.log,srpm.log,files}` |
 | `legacyPackages.x86_64-linux.rpms.<name>` | payload tree (`rpmTree`, `allowedReferences = [ ]`) of every glibc subpackage: the 221 Rocky ships (`rpmsLock.bySrpm.glibc`) + `glibc32`, `sysroot-x86_64-el10-glibc`, `compat-libpthread-nonshared` |
 | `packages.x86_64-linux.glibc` | `rpms.glibc` (tree of the main `glibc` RPM) |
-| `checks.x86_64-linux.glibc-trees` = `legacyPackages.….packageSets.glibc.trees` | linkFarm of all 224 trees: **one `nix build` = the purity check** |
+| `packages.x86_64-linux.glibc-rpms` | = `srpm.glibc` |
+| `checks.x86_64-linux.glibc-purity` = `legacyPackages.….packageSets.glibc.trees` | linkFarm of all 224 trees: **one `nix build` = the purity check** |
+| `checks.x86_64-linux.glibc-parity` (`.report`) | `tools/rpm-parity.py` vs all 221 official RPMs (see "Parity with the official RPMs") |
 | `checks.x86_64-linux.glibc-sanity` = `….packageSets.glibc.sanity` | post-build checks, `report.txt` (below) |
 | `legacyPackages.….packageSets.glibc.{buildroot,root,subpackages,expected}` | the buildroot (layers), its root layer, the subpackage names, the expected NEVRA list |
 
 Debuginfo/debugsource RPMs (9) are in `srpm.glibc/RPMS` but get no `rpms.*`
 tree (Rocky ships them in separate debug repos).
 
+The glibc buildroot uses Rocky's kernel-headers RPM, rebuilt from the kernel
+SRPM (`stage0.kernelHeadersBuild`, [kernel-headers.md](kernel-headers.md));
 `import ./default.nix { bootPkgs; kernelHeadersRpm = <rpm spec>; }` swaps in
-Rocky's kernel-headers (see "Kernel headers").
+another one (see "Kernel headers").
 
 ## How it is built
 
@@ -80,14 +84,21 @@ so configure records `/usr/bin/bash`, `/usr/bin/perl`).
    gcc 14.3.1-4.4 multilib, stage0 glibc 2.39 x86_64+i686, all built from
    Rocky's tarballs), Rocky's rpm 4.19.1.1 + debugedit 5.1 (FHS paths), the
    nixpkgs buildsys tools as `/usr/bin` symlinks, `/etc`, empty rpmdb — plus:
-   * kernel headers: stage0's (nixpkgs `linuxHeaders` 6.18) when
-     `kernelHeadersRpm = null`; none when an RPM is given (installed in 2.);
+   * kernel headers: none — Rocky's kernel-headers RPM is installed in 2.
+     (`packages/glibc.nix` still supports `kernelHeadersRpm = null`, which
+     copies stage0's nixpkgs 6.18 headers instead);
+   * `texinfo71` (`bootstrap/texinfo.nix`): makeinfo **7.1** built from
+     Rocky's texinfo SRPM (tarball + all 5 spec patches, `--disable-perl-xs`)
+     with nixpkgs' recipe, as `/usr/bin/{makeinfo,texi2any,…}` symlinks that
+     win over nixpkgs' texinfo 7.2 (whose output differs: banner, index sort
+     order, sentence spacing — every `libc.info*` page differed);
    * `glibcBuildDeps` (`bootstrap/glibc-build-deps.nix`), copied in as real
      files (headers in `/usr/include`, `.so*` in `/usr/lib64`).
    Rebuilding this root costs seconds; the toolchain is untouched.
 2. **Layer** `buildroot-stage0-glibc`: `rocky-release` + the pass-B macro
    packages (`fullRpms`, i.e. exactly what stage0-full installs) and
-   optionally the kernel-headers RPM, installed with `rpm --root`.
+   Rocky's `kernel-headers-6.12.0-211.66.1.el10_2`, installed with
+   `rpm --root` (registered in the rpmdb).
 
 What the spec needs, and where it comes from:
 
@@ -95,7 +106,8 @@ What the spec needs, and where it comes from:
 |---|---|---|
 | gcc (multilib, `-m32` build), binutils | stage0 gcc 14.3.1-4.4, binutils 2.41-63 | built from Rocky tarballs (stage0) |
 | make, gawk, bison, sed, python3 (configure-critical; `%prep` parse-SUPPORTED.py) | `/usr/bin/{make,gawk,bison,sed,python3}` | nixpkgs (4.4.1, 5.4.1, 3.8.2, 4.10, 3.13) |
-| gettext `msgfmt` (libc.mo), texinfo `makeinfo` (glibc-doc), perl (mtrace, manual) | `/usr/bin/{msgfmt,makeinfo,perl}` | nixpkgs (1.0, 7.2, 5.42) |
+| gettext `msgfmt` (libc.mo), perl (mtrace, manual) | `/usr/bin/{msgfmt,perl}` | nixpkgs (1.0, 5.42) |
+| texinfo `makeinfo` (glibc-doc's `libc.info*`) | `/usr/bin/makeinfo` | **Rocky texinfo-7.1-6.el10 sources**, built with nixpkgs' recipe (`stage0.texinfo71`) |
 | diffutils (`diff` in %prep/%install), util-linux `hardlink -c`, procps, coreutils `df`/`truncate`, findutils, grep, gzip, xz, zstd, cpio, patch, tar | `/usr/bin/*` | nixpkgs |
 | debuginfo: find-debuginfo/debugedit, dwz, eu-strip/eu-elfclassify, gdb-add-index, objcopy/strip/nm | debugedit 5.1 (Rocky SRPM, stage0), dwz 0.16, elfutils 0.194, gdb 17.2, binutils (stage0) | stage0 / nixpkgs |
 | `/proc` mounted, working `df` | chroot runner (`--proc /proc`) | — |
@@ -104,7 +116,7 @@ What the spec needs, and where it comes from:
 | gd + libpng + zlib (memusagestat, `LIBGD`) | `/usr/include/{gd*.h,png*.h,libpng16/,zlib.h,zconf.h}`, `/usr/lib64/lib{gd,png16,png,z}.so*` | **nixpkgs** gd 2.3.3, libpng(-apng) 1.6.58, zlib 1.3.2 |
 | libselinux (makedb, `have-selinux`) | `/usr/include/selinux/`, `/usr/lib64/libselinux.so*` | **nixpkgs** libselinux 3.10 (= Rocky's version) |
 | audit-libs, libcap (configure probes only: nscd/pt_chown, neither built) | `libaudit.h`…, `sys/capability.h`, `/usr/lib64/lib{audit,auparse,auplugin,cap,psx}.so*` | **nixpkgs** audit 4.2.1, libcap 2.77 |
-| kernel headers (`--with-headers=/usr/include`) | `/usr/include/{linux,asm,asm-generic,…}` | stage0 (nixpkgs `linuxHeaders` 6.18.7) or Rocky's kernel-headers RPM (`kernelHeadersRpm`) |
+| kernel headers (`--with-headers=/usr/include`; `rpm -ql kernel-headers` for the sysroot package) | `/usr/include/{linux,asm,asm-generic,…}` | **Rocky kernel-headers-6.12.0-211.66.1.el10_2, rebuilt from the kernel SRPM** (`stage0.kernelHeadersBuild`), installed with rpm |
 | not needed with `--nocheck`: gcc-c++/libstdc++-static/glibc-static (configure C++ probes gate tests only), libidn2, valgrind, python3-devel | (g++ and libstdc++ are there anyway) | — |
 
 **Why nixpkgs for the -devel libraries, not their Rocky SRPMs**: none of
@@ -153,9 +165,10 @@ RPM: inside the buildroot `rpm -q kernel-headers` answers, `rpm -ql` lists
 | `--nocheck` | none on the RPMs (`%check` only tests) |
 | `--nodeps` (stage0: nixpkgs tools are not in the rpmdb) | none; the rebuilt `.src.rpm` keeps the official BuildRequires |
 | annobin off (`_annotated_build 0`, `_annobin_gcc_plugin %{nil}`) | no `.annobin.notes` section (libc.so.6: 0x1eade bytes, ld.so: 0x315d), shorter `.shstrtab`, fewer `.debug_str` bytes in ld.so (its DWARF producer strings lack `-fplugin=gcc-annobin`) |
-| build tools from nixpkgs (python 3.13, gettext 1.0, texinfo 7.2, gawk 5.4, perl 5.42, …) instead of Rocky's | none visible in the compared RPMs (same file lists; .mo/.info contents not byte-compared) |
+| build tools from nixpkgs (python 3.13, gettext 1.0, gawk 5.4, perl 5.42, …) instead of Rocky's | none visible: the parity check finds every non-ELF file byte-identical (incl. the `.mo` catalogs and, with makeinfo 7.1, the info pages) |
+| rpmbuild links nixpkgs' libmagic 5.47 (Rocky: file 5.45) | FILECLASS header strings only: gzip descriptions gain `, original size modulo 2^32 N`; ld.so is "dynamically linked" instead of "static-pie linked" |
 | -devel libraries from nixpkgs (above) | `memusagestat` `.bss` is 0x78 vs 0x50 bytes and `.gnu_debugdata` 4 bytes smaller — it is the one object glibc compiles with the *system* headers (`sysincludes = # nothing`), here the stage0 glibc's (unpatched 2.39) `/usr/include` + nixpkgs gd.h, on Rocky the previous Rocky glibc-devel |
-| kernel headers 6.18 (nixpkgs) instead of 6.12.0-211 (until `kernelHeadersRpm`) | no difference found in the compared ELF files; sysroot package lacks kernel headers |
+| ~~kernel headers 6.18 (nixpkgs)~~ — fixed: Rocky's 6.12.0-211 RPM | (the sysroot package now carries them) |
 | buildhost `el-nixos.localdomain`, BUILDTIME = changelog date (1789344000), no vendor/packager | RPM headers only |
 | rpm runs `--nodeps --noscripts` installs into the buildroot | none |
 | SIGPIPE: reset to default in the chroot (the Nix sandbox ignores it) | none (matches mock); before the fix, `manual/check-safety.sh` printed two harmless "grep: write error: Broken pipe" |

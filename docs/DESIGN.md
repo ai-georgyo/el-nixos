@@ -20,14 +20,16 @@ binary RPM's `sourcerpm`/provides) and writes JSON lockfiles that Nix reads with
 ## Layout
 
 ```
-flake.nix               inputs: nixpkgs (bootstrap only)
-default.nix             entry: { bootPkgs, release } -> package set
+flake.nix               inputs: nixpkgs (bootstrap only); packages/checks/apps
+default.nix             entry: { bootPkgs, release, kernelHeadersRpm } -> package set
 lock/rocky-<rel>/       generated lockfiles (see "Lock format")
 tools/update-lock.py    generator (run via `nix run .#update-lock`)
-lib/                    generic machinery (fetch, chroot, rpmbuild, rpm->tree)
-bootstrap/              stage0: FHS buildroot synthesized from nixpkgs
-packages/               per-SRPM build options / overrides (e.g. glibc.nix)
-docs/                   design + research notes
+tools/resolve-buildrequires.py   mock-like BuildRequires closure
+tools/rpm-parity.py, tools/parity/*.json   parity/purity checker + allowlists
+lib/                    generic machinery (fetch, chroot, rpmbuild, rpm->tree, parity)
+bootstrap/              stage0: FHS buildroot (toolchain from Rocky tarballs, rpm, nixpkgs tools)
+packages/               per-SRPM build options / overrides (glibc.nix, kernel-headers.nix)
+docs/                   design + per-component docs + research notes
 ```
 
 ## Lock format (`lock/rocky-<rel>/srpms.json`)
@@ -117,26 +119,57 @@ nixbuild.net remote builders). This mirrors what mock does.
 - `rpmTree` derivation: one binary RPM extracted (rpm2cpio | cpio) to an FHS
   tree; uses `allowedReferences = [ ]` so any `/nix/store` reference fails the
   build — this is how "does not depend on nixpkgs" is *enforced*.
-- Package set attrs: `rocky.srpm.<srpm>` (the rpmbuild result) and
-  `rocky.rpms.<binary rpm name>` (the extracted tree), both static from the lock
-  (`rpmsLock.bySrpm`); per-SRPM extras under `rocky.packageSets.<srpm>`.
+- Package set attrs (`legacyPackages.x86_64-linux`): `srpm.<srpm>` (the
+  rpmbuild result) and `rpms.<binary rpm name>` (the extracted tree), both
+  static from the lock (`rpmsLock.bySrpm`); per-SRPM extras under
+  `packageSets.<srpm>`; the bootstrap under `stage0.*` (its own `srpm.*`,
+  `rpms.*`, `tests.*`). Today: `srpm.glibc`, `rpms.<221+3 glibc
+  subpackages>`, `stage0.kernelHeadersBuild` / `stage0.rpms.kernel-headers`.
+- Flake outputs: `packages.x86_64-linux.{glibc, glibc-rpms, kernel-headers,
+  kernel-headers-rpms}`; `checks.x86_64-linux.*` = stage0 acceptance tests +
+  parity checks (`glibc-parity`, `kernel-headers-parity`, …) + `glibc-purity`
+  and `glibc-sanity`.
 
 ### Stages
 
-- **stage0** (`bootstrap/`): FHS buildroot made from nixpkgs (nixos-26.05,
-  gcc14 to match RHEL 10's GCC 14). nixpkgs tools are exposed at FHS paths
-  (`/usr/bin/...`), `/nix/store` is visible read-only inside the chroot. rpm is
-  arranged so its config dir is `/usr/lib/rpm` and it reads
-  `/usr/lib/rpm/macros.d`, so Rocky's macro packages (redhat-rpm-config,
-  rocky-release's `macros.dist`, python-rpm-macros, ...) work unmodified.
-  Rocky macro packages are themselves built from their SRPMs in stage0 and
-  installed into the stage0 buildroot. stage0 builds use `--nodeps` (the
-  nixpkgs tools are not in the rpmdb).
+- **stage0** (`bootstrap/`, [stage0.md](stage0.md)): an FHS buildroot whose
+  *toolchain* is built from **Rocky's own source tarballs** (binutils 2.41,
+  multilib gcc 14.3.1 with Rocky's configure options and defaults, a stage0
+  glibc 2.39 as the system libc), compiled by nixpkgs' compiler, plus Rocky's
+  rpm 4.19.1.1 and debugedit 5.1 built with FHS paths. Everything else
+  (bash, coreutils, make, perl, python3, gawk, …) is nixpkgs at FHS paths
+  (`/usr/bin/...` symlinks); `/nix/store` is visible read-only inside the
+  chroot. rpm's config dir is `/usr/lib/rpm` and it reads
+  `/usr/lib/rpm/macros.d`, so Rocky's macro packages work unmodified; they
+  are themselves built from their SRPMs in stage0 (two passes) and installed
+  into the buildroot ("stage0-full"). stage0 builds use `--nodeps` (the
+  nixpkgs tools are not in the rpmdb). Annobin is off (no plugin for the
+  stage0 gcc yet).
 - **stage1+** (later): buildroots made only of Rocky RPMs we built, installed
   with `rpm --root`; `/nix/store` is NOT visible inside the chroot, so
   leakage is impossible by construction; BuildRequires checked for real.
 
+## Verification
+
+- **Purity**: `rpmTree` (`allowedReferences = [ ]`) for every shipped binary
+  package (`checks.glibc-purity`: all 224 glibc trees); `buildSrpm` itself
+  has `allowedReferences = [ ]`, so a store path in any RPM header fails the
+  build; the parity tool additionally scans every payload byte (debuginfo
+  included) for `/nix/store`, which cannot be allowlisted.
+- **Parity** ([parity.md](parity.md)): `mkParityCheck` compares our RPMs with
+  the official ones from `rpms.json` (headers, deps, scriptlets, file lists
+  and attributes, content digests, ELF properties) and fails on any
+  difference not declared, with a reason, in `tools/parity/*.json`
+  (`default.json` for any rebuild, `stage0.json` for stage0 hacks, one file
+  per SRPM).
+
+## Status
+
 Milestone 1 = Rocky `glibc` SRPM built in stage0, binary RPMs whose contents
 have no nixpkgs references, and whose file lists / provides / requires match
 the official Rocky binary RPMs as closely as possible (differences documented).
-Status: built — see [glibc.md](glibc.md).
+**Done**: see [glibc.md](glibc.md) (233 RPMs, all 221 shipped NEVRAs equal
+to the official ones, purity check passes, `glibc-parity` passes against all
+221 official RPMs with only the documented differences). Rocky
+kernel-headers are built from the kernel SRPM and used in the glibc
+buildroot ([kernel-headers.md](kernel-headers.md)).

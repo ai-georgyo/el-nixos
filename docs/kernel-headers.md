@@ -16,7 +16,14 @@ research, including why the full kernel is not built: [research/kernel-headers.m
     tools-header paths.
   * Every common file is byte-identical, with the same mode, owner, mtime and
     digest.
-* **What the glibc buildroot should consume:**
+* **Used by glibc** (integration): `default.nix` passes
+  `{ from = stage0.kernelHeadersBuild; names = [ "kernel-headers" ]; }` as
+  `kernelHeadersRpm` to `packages/glibc.nix`, whose root is built *without*
+  nixpkgs' headers (`mkRoot { kernelHeaders = null; }`) and which installs the
+  RPM with rpm (rpmdb-registered). The sysroot package now carries the 1065
+  headers (`glibc-sanity` checks it). `checks.kernel-headers-parity` runs the
+  generic parity tool on this build as well (see [parity.md](parity.md)).
+* **Options the kernel track offered to the glibc buildroot:**
   * the RPM spec `{ from = stage0.kernelHeadersBuild; names = [ "kernel-headers" ]; }`,
     for mkBuildroot's `rpms` list (`kernelHeadersPkg.rpmSpec` inside bootstrap/), or
   * better, the ready-made buildroot `stage0.buildrootFullKernelHeaders`. This is
