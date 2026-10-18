@@ -128,5 +128,20 @@ let
   } ''
     python3 -I ${./compare.py} $out ${lib.concatMapStringsSep " " toString trees}
   '';
+  # finding 4 (E2.md): a macros.d file loses against platform/x86_64-linux/macros;
+  # redhat/macros (read later) wins; with and without --target
+  macroPrecedence = pkgs.runCommand "e2-macro-precedence" { } ''
+    export PATH=${s0.rpm}/usr/bin:${pkgs.coreutils}/bin
+    cp -r ${rpmConfig} cfg; chmod -R u+w cfg
+    printf '%%_prefix /e2/macros.d\n%%_sysconfdir /e2/etc\n%%e2_marker set\n' > cfg/macros.d/macros.zz-e2
+    printf '%%_libdir /e2/redhat/lib64\n' >> cfg/redhat/macros
+    export RPM_CONFIG_DIR=$PWD/cfg
+    for t in "" "--target x86_64"; do
+      for r in rpm rpmbuild; do
+        echo "$r $t: $(${self.toolShim} -- $r $t --eval '_prefix=%{_prefix} _sysconfdir=%{_sysconfdir} _libdir=%{_libdir} e2_marker=%{e2_marker}')" >> $out
+      done
+    done
+    cat $out
+  '';
 in
-{ inherit small glibc probe rpmConfig ccw reloc; } // small
+{ inherit small glibc probe rpmConfig ccw reloc macroPrecedence; } // small

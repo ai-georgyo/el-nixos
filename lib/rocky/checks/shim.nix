@@ -22,6 +22,7 @@ let
     echo ${name} > $out/${layout}lib64/pkgconfig/${name}.pc
     echo ${name} > $out/${layout}share/${name}/data
     mkdir -p $out/bin; printf '#!/bin/sh\necho ${name}\n' > $out/bin/${name}-tool; chmod +x $out/bin/${name}-tool
+    mkdir -p $out/${layout}lib/rpm/macros.d; echo ${name} > $out/${layout}lib/rpm/macros.d/macros.${name}
   '';
   declared1 = fake "declared1" "";
   declared2 = fake "declared2" "";
@@ -99,9 +100,18 @@ in
     [ $(( 0x$sigign & 0x1000 )) = 0 ] || fail "SIGPIPE ignored inside (SigIgn=$sigign)"
     ok "fresh root, /tmp, SIGPIPE default"
 
-    # --- without RPM_CONFIG_DIR there is no /usr/lib/rpm mount
-    (unset RPM_CONFIG_DIR; $shim -- test ! -e /usr/lib/rpm) || fail "/usr/lib/rpm without RPM_CONFIG_DIR"
+    # --- RPM_CONFIG_DIR hides what inputs have in lib/rpm (reported); without
+    # it, the inputs' lib/rpm (macro packages) is what /usr/lib/rpm shows
+    $shim -- test ! -e /usr/lib/rpm/macros.d/macros.declared1 || fail "input lib/rpm not hidden by RPM_CONFIG_DIR"
+    grep -qP '^mountpoint\tlib/rpm\t' $NIX_BUILD_TOP/rocky-view-collisions.txt || fail "mountpoint collision not reported"
+    (unset RPM_CONFIG_DIR; $shim -- test ! -e /usr/lib/rpm/macros) || fail "/usr/lib/rpm/macros without RPM_CONFIG_DIR"
+    (unset RPM_CONFIG_DIR; $shim -- test -f /usr/lib/rpm/macros.d/macros.declared2) || fail "inputs' lib/rpm without RPM_CONFIG_DIR"
     ok "RPM_CONFIG_DIR optional"
+    # --- __structuredAttrs: rockyViewInputs from $NIX_ATTRS_JSON_FILE
+    echo '{"rockyViewInputs": ["${declared2}"]}' > $TMPDIR/attrs.json
+    (unset rockyViewInputs; export NIX_ATTRS_JSON_FILE=$TMPDIR/attrs.json
+     $shim -- test -f /usr/include/declared2.h -a ! -e /usr/include/declared1.h) || fail "rockyViewInputs from NIX_ATTRS_JSON_FILE"
+    ok "rockyViewInputs from \$NIX_ATTRS_JSON_FILE"
 
     # --- $out self-prefix alias
     test ! -e $out || fail "\$out exists before"

@@ -43,7 +43,7 @@ import zlib
 
 E = b"e" * 32
 PATHCH = rb"[A-Za-z0-9._+@%/-]"
-BUILDID_RE = re.compile(r"^(.*/\.build-id/)[0-9a-f]{2}/[0-9a-f]{30,}(\.debug|\.\d+)?$")
+BUILDID_RE = re.compile(r"^(.*/\.build-id/)[0-9a-f]{2}/[0-9a-f]{30,}((?:\.\d+)?(?:\.debug)?)$")
 MAX_LIST = 12
 
 
@@ -165,14 +165,22 @@ def zstd_d(data):
 class Elf:
     def __init__(self, data):
         self.d = data
-        if data[:4] != b"\x7fELF" or data[4] != 2 or data[5] != 1:
-            raise ValueError("not ELF64LE")
-        (self.shoff,) = struct.unpack_from("<Q", data, 0x28)
-        self.shentsize, self.shnum, self.shstrndx = struct.unpack_from("<HHH", data, 0x3A)
+        if data[:4] != b"\x7fELF" or data[4] not in (1, 2) or data[5] != 1:
+            raise ValueError("not ELF LE")
+        self.is64 = data[4] == 2
+        if self.is64:
+            (self.shoff,) = struct.unpack_from("<Q", data, 0x28)
+            self.shentsize, self.shnum, self.shstrndx = struct.unpack_from("<HHH", data, 0x3A)
+        else:
+            (self.shoff,) = struct.unpack_from("<I", data, 0x20)
+            self.shentsize, self.shnum, self.shstrndx = struct.unpack_from("<HHH", data, 0x2E)
         self.secs = []
         for i in range(self.shnum):
             o = self.shoff + i * self.shentsize
-            name, typ, flags, addr, off, size = struct.unpack_from("<IIQQQQ", data, o)
+            if self.is64:
+                name, typ, flags, addr, off, size = struct.unpack_from("<IIQQQQ", data, o)
+            else:
+                name, typ, flags, addr, off, size = struct.unpack_from("<IIIIII", data, o)
             self.secs.append([name, typ, flags, off, size])
         if self.shnum and self.shstrndx < self.shnum:
             _, _, _, so, ss = self.secs[self.shstrndx]
@@ -189,12 +197,13 @@ class Elf:
                 res.append((name, typ, b""))
                 continue
             b = self.d[off:off + size]
-            if flags & 0x800 and len(b) >= 24:  # SHF_COMPRESSED
+            hdr = 24 if self.is64 else 12  # Elf64_Chdr / Elf32_Chdr
+            if flags & 0x800 and len(b) >= hdr:  # SHF_COMPRESSED
                 (ch_type,) = struct.unpack_from("<I", b, 0)
                 if ch_type == 1:
-                    b = zlib.decompress(b[24:])
+                    b = zlib.decompress(b[hdr:])
                 elif ch_type == 2:
-                    b = zstd_d(b[24:]) or b
+                    b = zstd_d(b[hdr:]) or b
             res.append((name, typ, b))
         return res
 
@@ -212,8 +221,13 @@ class Elf:
         return None
 
 
+def is_dwarf(name):
+    return name.startswith((".debug_", ".zdebug_", ".rela.debug_", ".rel.debug_")) or name == ".gdb_index"
+
+
 def cmp_elf(a, b, ha, hb, depth=0):
-    """'modulo-build-id' or a reason string starting with 'DIFFERS'"""
+    """'modulo-build-id', 'DWARF-ONLY (...)' (every differing section is non-
+    loaded DWARF: code and data identical) or a reason starting with 'DIFFERS'"""
     try:
         ea, eb = Elf(a), Elf(b)
     except (ValueError, struct.error, IndexError):
@@ -221,13 +235,21 @@ def cmp_elf(a, b, ha, hb, depth=0):
     sa, sb = ea.sections(), eb.sections()
     if [(n, t) for n, t, _ in sa] != [(n, t) for n, t, _ in sb]:
         return "DIFFERS (section list)"
+    flags = [s[2] for s in ea.secs]
     ba, bb = ea.build_id(), eb.build_id()
-    bad = []
-    for (n, t, x), (_, _, y) in zip(sa, sb):
+    bad, dwarf = [], []
+    for i, ((n, t, x), (_, _, y)) in enumerate(zip(sa, sb)):
         if ba and bb:
             x, y = x.replace(ba, b"\0" * len(ba)), y.replace(bb, b"\0" * len(bb))
         if n == ".gnu_debuglink":
             x, y = x[:-4], y[:-4]
+        if n == ".gnu_debugaltlink":
+            # file name + build-id of the dwz file (a consequence of ITS content)
+            x, y = x.split(b"\0")[0], y.split(b"\0")[0]
+        if is_dwarf(n) and not flags[i] & 0x2:  # SHF_ALLOC
+            if eq_hash(x, y, ha, hb) is None:
+                dwarf.append(n + strdiff(x, y, ha, hb))
+            continue
         if n == ".gnu_debugdata" and depth < 2:
             try:
                 xa, ya = lzma.decompress(x), lzma.decompress(y)
@@ -241,7 +263,11 @@ def cmp_elf(a, b, ha, hb, depth=0):
             continue
         if eq_hash(x, y, ha, hb) is None:
             bad.append(n + strdiff(x, y, ha, hb))
-    return "modulo-build-id" if not bad else "DIFFERS (sections: " + ", ".join(bad[:8]) + ")"
+    if bad:
+        return "DIFFERS (sections: " + ", ".join((bad + dwarf)[:8]) + ")"
+    if dwarf:
+        return "DWARF-ONLY (" + ", ".join(dwarf[:8]) + ")"
+    return "modulo-build-id"
 
 
 def strdiff(x, y, ha, hb):
@@ -279,6 +305,7 @@ def cmp_content(a, b, ha, hb):
     if ma is not None and mb is not None:
         if len(ma) != len(mb):
             return "DIFFERS (ar member count)"
+        dw = None
         for (na, xa, da), (nb, xb, db) in zip(ma, mb):
             if na != nb or xa != xb:
                 return "DIFFERS (ar member header)"
@@ -286,7 +313,9 @@ def cmp_content(a, b, ha, hb):
                 r = cmp_elf(da, db, ha, hb) if da[:4] == b"\x7fELF" else "DIFFERS"
                 if r.startswith("DIFFERS"):
                     return f"DIFFERS (ar member {na.strip().decode('latin1')}: {r})"
-        return "modulo-ar-dates"
+                if r.startswith("DWARF-ONLY") and dw is None:
+                    dw = f"DWARF-ONLY (ar member {na.strip().decode('latin1')}: {r})"
+        return dw or "modulo-ar-dates"
     if a[:2] == b"\x1f\x8b" and b[:2] == b"\x1f\x8b":
         try:
             r = cmp_content(gzip.decompress(a), gzip.decompress(b), ha, hb)
@@ -395,7 +424,7 @@ def compare(a, b):
     wa, wb = walk(a), walk(b)
     only_a = sorted(set(wa) - set(wb))
     only_b = sorted(set(wb) - set(wa))
-    classes, differs, kind_diff, link_diff, mode_diff = {}, [], [], [], []
+    classes, differs, dwarf_only, kind_diff, link_diff, mode_diff = {}, [], [], [], [], []
     for k in sorted(set(wa) & set(wb)):
         x, y = wa[k], wb[k]
         if x[0] != y[0]:
@@ -419,9 +448,19 @@ def compare(a, b):
         classes[cls] = classes.get(cls, 0) + 1
         if cls == "DIFFERS":
             differs.append((k, c))
+        elif cls == "DWARF-ONLY":
+            dwarf_only.append((k, c))
+    # which sections differ, over all DIFFERS / DWARF-ONLY files
+    hist = {}
+    for cls, lst in (("DIFFERS", differs), ("DWARF-ONLY", dwarf_only)):
+        h = hist.setdefault(cls, {})
+        for _, why in lst:
+            inner = re.sub(r" \[-.*?\]", "", why.split("(", 1)[-1])  # drop strdiff samples
+            for s in re.findall(r"(\.[A-Za-z0-9_.]+)", inner):
+                h[s] = h.get(s, 0) + 1
     return {"a": a, "b": b, "files_a": len(wa), "files_b": len(wb), "only_a": only_a, "only_b": only_b,
-            "classes": classes, "differs": differs, "kind_diff": kind_diff, "link_diff": link_diff,
-            "mode_diff": mode_diff}
+            "classes": classes, "differs": differs, "dwarf_only": dwarf_only, "section_hist": hist,
+            "kind_diff": kind_diff, "link_diff": link_diff, "mode_diff": mode_diff}
 
 
 def view_inputs_of(tree):
@@ -465,8 +504,13 @@ def main():
         for k in c["only_b"][:40]:
             lines.append(f"   only B: {k}")
         lines.append(f"   file contents: {json.dumps(c['classes'], sort_keys=True)}")
+        for cls, h in sorted(c["section_hist"].items()):
+            if h:
+                lines.append(f"   {cls} sections: {json.dumps(dict(sorted(h.items(), key=lambda kv: -kv[1])))}")
         for k, why in c["differs"][:60]:
             lines.append(f"   DIFFERS {k}: {why}")
+        for k, why in c["dwarf_only"][:25]:
+            lines.append(f"   DWARF-ONLY {k}: {why}")
         for k in c["kind_diff"][:20]:
             lines.append(f"   kind differs: {k}")
         for k, x, y in c["link_diff"][:20]:
