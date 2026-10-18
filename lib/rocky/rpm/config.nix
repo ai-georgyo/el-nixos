@@ -94,9 +94,22 @@ let
         cp ${scripts}/nix-scripts/$s $out/nix/$s
         chmod 0755 $out/nix/$s
       done
-      # the macro/script layer must be FHS-clean (shebangs, tool paths): the
-      # copied ELF helpers (rpmdeps, elfdeps, ...) may reference their libraries
-      if grep -rlI /nix/store $out; then
+      # the macro/script layer must be FHS-clean (shebangs, tool paths).  The
+      # copied ELF helpers (rpmdeps, elfdeps, ...) may reference their
+      # libraries, and a relocated rpm or macro package may name its own store
+      # path (rpm's installplatform writes %_prefix <its $out> into
+      # platform/*/macros; macros.nix-reloc, read last, overrides it); any
+      # other store path in a text file is an error.
+      allowed=$(for p in ${rpm} $pkgs; do echo "''${p:11:32}"; done | sort -u)
+      bad=0
+      while IFS= read -r f; do
+        for h in $(grep -oI '/nix/store/[a-z0-9]\{32\}' "$f" | cut -c12- | sort -u); do
+          if ! grep -qx "$h" <<<"$allowed"; then
+            echo "rpm config: ''${f#$out/} names /nix/store/$h" >&2; bad=1
+          fi
+        done
+      done < <(grep -rlI /nix/store $out || true)
+      if [ $bad -ne 0 ]; then
         echo "store paths in the rpm config's text files" >&2; exit 1
       fi
     '';

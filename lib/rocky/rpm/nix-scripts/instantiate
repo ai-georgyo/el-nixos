@@ -10,7 +10,9 @@
 #      lib/rpm/macros.d) into DEST/macros.d -- a differing file of the same
 #      name is an error
 #   3. substitute @PREFIX@ @BUILDTOP@ @NCPUS@ @DIST@ into nix/macros.nix-reloc
-#      (empty --dist: Rocky's %distcore, .el10) and append the result to
+#      (empty --dist: Rocky's %distcore, .el10; --ncpus 0 counts as 1, as in
+#      M1's buildSrpm), keep each `# @@if PATH` ... `# @@endif` block only if
+#      DEST/PATH exists (after step 2), and append the result to
 #      DEST/redhat/macros, the last macro file of rpm's macro path inside the
 #      config dir (RPM_VENDOR=redhat), so it overrides every Rocky default
 #   4. mkdir -p BUILDTOP/tmp (%_tmppath)
@@ -35,6 +37,8 @@ done
 case $prefix in /?*) ;; *) die "--prefix must be an absolute path (got '$prefix')" ;; esac
 case $buildtop in /?*) ;; *) die "--buildtop must be an absolute path (got '$buildtop')" ;; esac
 case $ncpus in ''|*[!0-9]*) die "--ncpus must be a number (got '$ncpus')" ;; esac
+# make -j0 is an error; NIX_BUILD_CORES=0 means "all cores" to Nix
+[ "$ncpus" -ge 1 ] || ncpus=1
 case $dist in ''|.[A-Za-z0-9_]*) ;; *) die "--dist must look like .el10_2 (got '$dist')" ;; esac
 for v in "$prefix" "$buildtop"; do
   case $v in *[!A-Za-z0-9._+/-]*) die "unsupported character in '$v'" ;; esac
@@ -59,9 +63,21 @@ for d in $macrodirs $(printf '%s' "${NIX_RPM_MACRO_DIRS:-}" | tr ':' ' '); do
 done
 
 r=$dest/nix/macros.nix-reloc
+# conditional blocks: list the paths that exist, awk drops the other blocks
+for f in $(sed -n 's|^# @@if ||p' "$src/nix/macros.nix-reloc"); do
+  if [ -e "$dest/$f" ]; then echo "$f"; fi
+done > "$r.present"
+awk -v present="$r.present" '
+  BEGIN { while ((getline l < present) > 0) have[l] = 1 }
+  /^# @@if / { if (blk) exit 1; blk = 1; skip = !have[substr($0, 8)]; next }
+  /^# @@endif$/ { if (!blk) exit 1; blk = 0; skip = 0; next }
+  !skip
+  END { if (blk) exit 1 }' "$src/nix/macros.nix-reloc" > "$r.tmp" \
+  || die "unbalanced '# @@if'/'# @@endif' in macros.nix-reloc"
 sed -e "s|@PREFIX@|$prefix|g" -e "s|@BUILDTOP@|$buildtop|g" -e "s|@NCPUS@|$ncpus|g" \
   -e "/@DIST@/{" -e "s|@DIST@|$dist|" -e "/^%distcore *\$/d" -e "}" \
-  "$src/nix/macros.nix-reloc" > "$r"
+  "$r.tmp" > "$r"
+rm -f "$r.present" "$r.tmp"
 if grep -n '@[A-Z][A-Z]*@' "$r" >&2; then die "unsubstituted placeholder in $r"; fi
 mkdir -p "$dest/redhat"
 {
