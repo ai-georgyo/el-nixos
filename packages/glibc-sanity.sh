@@ -1,6 +1,7 @@
 # Post-build sanity checks of the stage0 glibc rpmbuild (packages/glibc.nix).
 # Runs inside the glibc buildroot as mockbuild.  Inputs (read-only binds):
-#   /inputs/build      buildSrpm result (RPMS/, SRPMS/, logs/)
+#   /inputs/build      buildSrpm result (RPMS/, SRPMS/)
+#   /inputs/logs       its logs output (build.log, srpm.log, files, purity.json)
 #   /inputs/expected   "name arch epoch version release shipped|unshipped" per line
 #   /inputs/official/  official Rocky RPMs of a few subpackages (comparison only)
 # Output: /builddir/out/report.txt (+ details).  Hard failures exit non-zero;
@@ -16,7 +17,7 @@ bad() { say "FAIL: $*"; fail=1; }
 ok() { say "ok:   $*"; }
 
 B=/inputs/build
-log=$B/logs/build.log
+log=/inputs/logs/build.log
 
 # ---------------------------------------------------------------- RPM set + NEVRs
 say "== RPM set"

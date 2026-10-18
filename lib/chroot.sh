@@ -7,8 +7,11 @@
 # whose upper dir lives in $TMPDIR, so "making the root writable" costs
 # nothing.  Store files appear owned by nobody (their owner is not mapped), so
 # the upper dir is pre-seeded with a writable copy of every *directory* of the
-# merged lower view, and with full copies of the small mutable-state trees
-# (etc, var, usr/lib/sysimage) that tools rewrite in place (rpmdb, ...).
+# merged lower view, with copies of the symlinks to directories (the usrmerge
+# links /lib64 -> usr/lib64, ...: rpm refuses to install through a directory
+# symlink owned by nobody, "cpio: Unsafe symlink"), and with full copies of
+# the small mutable-state trees (etc, var, usr/lib/sysimage) that tools
+# rewrite in place (rpmdb, ...).
 #
 # Every namespace maps exactly one uid (nested user namespaces are not
 # permitted on the builders), so work is split into phases that share the
@@ -26,7 +29,8 @@
 #                                    mounted rw at $BUILDROOT (STATE/mnt) -- e.g.
 #                                    the stage0 rpm doing `rpm --root $BUILDROOT -i`
 #   chroot_layer_out STATE OUT       write the delta (upper minus seeding) to OUT
-#                                    as a new layer; fails on deletions/whiteouts
+#                                    as a new layer; fails on deletions
+#                                    (whiteouts, opaque/redirected dirs)
 # opts:
 #   --root              uid/gid 0 with all capabilities in the namespace (default)
 #   --user UID GID      run as UID:GID (e.g. --user 1000 135)
@@ -110,6 +114,16 @@ chroot_setup() {
       mkdir -p "$up/$path"
       chmod "$(printf "%o" $(( 0$mode | 0200 )))" "$up/$path"
     done < "$up/../dirs.list"
+    # symlinks to directories, owned by the namespace user like the dirs
+    # (absolute targets resolved inside the merged view)
+    find "$m" -mindepth 1 -type l -printf "%P\0%l\0" > "$up/../links.list"
+    while IFS= read -r -d "" path && IFS= read -r -d "" t; do
+      case $path in */*) dir=${path%/*} ;; *) dir=. ;; esac
+      case $t in /*) r="$m$t" ;; *) r="$m/$dir/$t" ;; esac
+      if [ -d "$r" ] && [ ! -e "$up/$path" ] && [ ! -L "$up/$path" ]; then
+        ln -s "$t" "$up/$path"
+      fi
+    done < "$up/../links.list"
     for d in etc var usr/lib/sysimage; do
       if [ -d "$m/$d" ] && [ ! -L "$m/$d" ]; then
         cp -a --no-preserve=ownership "$m/$d/." "$up/$d/"
@@ -197,6 +211,12 @@ chroot_tools() {
 chroot_layer_out() {
   local st=$1 out=$2
   local up=$st/upper
+  # The unprivileged builder must be able to read everything it copies out:
+  # rpm creates e.g. setup's /etc/shadow with mode 0000 (as ns-root, i.e. the
+  # builder uid).  The store cannot represent such modes (or owners) anyway;
+  # the rpmdb in the layer still records them (rpm --setperms/--setugids).
+  find "$up" -type d ! -perm -u+rwx -exec chmod u+rwx {} \;
+  find "$up" -type f ! -perm -u+r -exec chmod u+r {} +
   # overlayfs whiteouts (char 0/0) / opaque dirs mean the layer deletes lower
   # content -- cannot be represented as a store-path layer
   local wh
@@ -205,11 +225,17 @@ chroot_layer_out() {
     echo "chroot_layer_out: layer deletes files from lower layers (whiteout at ${wh#"$up"}); unsupported" >&2
     return 1
   fi
-  if command -v getfattr >/dev/null; then
-    if getfattr -R --absolute-names -n user.overlay.opaque "$up" 2>/dev/null | grep -q opaque; then
-      echo "chroot_layer_out: opaque directory in upper layer; unsupported" >&2
-      return 1
-    fi
+  # an opaque dir (a lower dir removed and recreated) or a redirected dir
+  # would silently resurrect / misplace lower content once the xattrs are
+  # gone in the store.  (getfattr exits 1 whenever any file lacks the
+  # attribute, so its status is useless -- and fatal under pipefail -- and
+  # only its output is looked at.)
+  local xa
+  xa=$(getfattr -R --absolute-names -d -m '^user\.overlay\.(opaque|redirect|metacopy)$' "$up" 2>/dev/null || true)
+  if [ -n "$xa" ]; then
+    echo "chroot_layer_out: layer deletes or moves lower content (overlay xattrs below); unsupported" >&2
+    printf '%s\n' "$xa" | head -20 >&2
+    return 1
   fi
   # mount points bwrap may have created
   rmdir "$up/nix/store" "$up/nix" 2>/dev/null || true

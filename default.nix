@@ -47,7 +47,7 @@ in
   };
   parityTool = parity.tool; # store path of tools/rpm-parity.py (+ tools/parity/)
 
-  # rpmbuild results by SRPM name ($out/RPMS, $out/SRPMS, $out/logs)
+  # rpmbuild results by SRPM name ($out/RPMS, $out/SRPMS; .logs: build.log, ...)
   srpm = { glibc = glibc.build; };
   # binary RPM name -> its payload as an FHS tree (rpmTree, allowedReferences = [ ])
   rpms = glibc.rpms;

@@ -15,6 +15,13 @@ let
   # which does not exist in the sandbox -> point it at the store copy.
   rpmOutside = ''env RPM_CONFIGDIR=${installerRpm}/usr/lib/rpm ${installerRpm}/usr/bin/rpm'';
 
+  # the build-time purity scan (tools/rpm_purity.py): byte-level search for
+  # /nix/store in every header, payload file and symlink target of every
+  # binary RPM, including inside compressed members (gzip/xz/bzip2/zstd), ELF
+  # .gnu_debugdata and compressed ELF sections.  Only this file: editing the
+  # parity tool does not rebuild packages.
+  purityTool = "${lib.fileset.toSource { root = ../tools; fileset = ../tools/rpm_purity.py; }}/rpm_purity.py";
+
   nukeStore = ''sed -E 's|/nix/store/[a-z0-9]{32}-|/nix/store/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-|g' '';
 
   # --- rpm sets ---------------------------------------------------------------
@@ -136,8 +143,11 @@ let
     in
     pkgs.stdenvNoCC.mkDerivation ({
       name = "srpm-${pname}" + lib.optionalString (e != null) "-${e.version}-${e.release}";
-      nativeBuildInputs = runnerTools;
-      outputs = [ "out" ];
+      nativeBuildInputs = runnerTools ++ [ pkgs.python3 pkgs.zstd ];
+      # out: RPMS/, SRPMS/ (reproducible except for the member dates of static
+      # archives, see docs/DESIGN.md); logs: build.log, srpm.log, files,
+      # purity.json (parallel make output is never reproducible)
+      outputs = [ "out" "logs" ];
       buildCommand = ''
         set -euo pipefail
         source ${./chroot.sh}
@@ -159,13 +169,13 @@ let
             --bind $TMPDIR/builddir /builddir --hostname ${buildhost} --chdir /builddir \
             --setenv USER mockbuild --setenv LOGNAME mockbuild -- "$@"
         }
-        mkdir -p $out/logs
+        mkdir -p $logs
         echo "=== rpmbuild --rebuild ${srpmBase} (dist ${dist}, target ${target}, -j$ncpus)"
         set +e
         run /usr/bin/rpmbuild --rebuild "/builddir/${srpmBase}" "''${args[@]}" 2>&1 | tee $TMPDIR/build.log
         rc=''${PIPESTATUS[0]}
         set -e
-        ${nukeStore} < $TMPDIR/build.log > $out/logs/build.log
+        ${nukeStore} < $TMPDIR/build.log > $logs/build.log
         if [ $rc -ne 0 ]; then
           echo "=================== rpmbuild FAILED (exit $rc) -- last 80 lines: ===================" >&2
           tail -n 80 $TMPDIR/build.log >&2
@@ -174,11 +184,16 @@ let
         # source package as rebuilt in this buildroot (rpmbuild -rs)
         run /usr/bin/rpmbuild -rs "/builddir/${srpmBase}" "''${args[@]}" > $TMPDIR/srpm.log 2>&1 \
           || { cat $TMPDIR/srpm.log >&2; exit 1; }
-        ${nukeStore} < $TMPDIR/srpm.log > $out/logs/srpm.log
+        ${nukeStore} < $TMPDIR/srpm.log > $logs/srpm.log
+        mkdir -p $out
         cp -r $TMPDIR/builddir/build/RPMS $out/RPMS
         cp -r $TMPDIR/builddir/build/SRPMS $out/SRPMS
-        (cd $out && find RPMS SRPMS -name '*.rpm' | sort) > $out/logs/files
-        cat $out/logs/files
+        (cd $out && find RPMS SRPMS -name '*.rpm' | sort) > $logs/files
+        cat $logs/files
+      '' + lib.optionalString (!allowStoreReferences) ''
+        # purity: no /nix/store anywhere in a binary RPM (debuginfo included)
+        # (relative paths: the report must not reference $out)
+        (cd $out && python3 -I ${purityTool} --json $logs/purity.json RPMS)
       '';
       allowedReferences = if allowStoreReferences then null else [ ];
       passthru = {
@@ -217,9 +232,13 @@ let
     };
 
   # --- rpmTree ------------------------------------------------------------------
-  # One binary RPM's payload as an FHS tree.  allowedReferences = [ ] makes any
-  # /nix/store reference in the payload a build failure: this is how "the
-  # resulting packages do not depend on nixpkgs" is enforced.
+  # One binary RPM's payload as an FHS tree, with allowedReferences = [ ].
+  # NOTE: Nix's reference scanner only finds hashes of paths in the
+  # derivation's *input closure* (rpm, cpio, stdenv here) -- not the nixpkgs
+  # tools of the buildroot -- and nothing inside compressed files.  The real
+  # guard that shipped packages do not reference nixpkgs is buildSrpm's
+  # byte-level purity scan (tools/rpm_purity.py), which every rpmTree
+  # depends on through `build`.
   rpmTree =
     { build          # buildSrpm result
     , name           # %{NAME} of the binary rpm
@@ -252,7 +271,7 @@ let
     };
 in
 {
-  inherit fetch mkBuildroot buildSrpm rpmTree rpmOutside runInBuildroot;
+  inherit fetch mkBuildroot buildSrpm rpmTree rpmOutside runInBuildroot purityTool;
   inherit (fetch) fetchSrpm unpackSrpm distOf;
   chrootLib = ./chroot.sh;
 }

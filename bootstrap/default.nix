@@ -27,13 +27,16 @@ let
     for d in bin lib lib64 sbin; do ln -s usr/$d $out/$d; done
   '';
   gcc = import ./gcc.nix { inherit pkgs binutils sysroot; srpm = srpm "gcc"; pass = 2; };
-  rpm = import ./rpm.nix { inherit pkgs; srpm = srpm "rpm"; };
+  # libzstd/libmagic of the stage0 rpm: from Rocky's SRPM sources (they write
+  # payload bytes / FILECLASS strings into every RPM)
+  rpmLibs = import ./rpm-libs.nix { inherit pkgs; unpackSrpm = srpm; };
+  rpm = import ./rpm.nix { inherit pkgs rpmLibs; srpm = srpm "rpm"; };
   debugedit = import ./debugedit.nix { inherit pkgs; srpm = srpm "debugedit"; };
 
   # buildsys-build basics, from nixpkgs (symlinked into /usr/bin)
   tools = with pkgs; [
     bash coreutils gnused gnugrep gawk findutils diffutils gnupatch gnutar gzip bzip2 xz zstd
-    cpio unzip zip pkgs.which file util-linux procps gnumake perl python3 gnum4 bison flex texinfo
+    cpio unzip zip pkgs.which rpmLibs.file util-linux procps gnumake perl python3 gnum4 bison flex texinfo
     gettext elfutils dwz gdb git hostname-debian gnupg
   ];
 
@@ -182,7 +185,9 @@ let
         buildroot = buildrootFullKernelHeaders;
         script = builtins.readFile ./tests/toolchain.sh;
       };
-    } // lib.optionalAttrs (officialRpms != null) { kernelHeaders = kernelHeadersPkg.check; };
+    } // lib.optionalAttrs (officialRpms != null) { kernelHeaders = kernelHeadersPkg.check; }
+    # the chroot runner / layer machinery (lib/chroot.sh)
+    // import ./tests/chroot.nix { inherit pkgs lib' buildroot officialRpms; };
 
   # ---------------------------------------------------------------- package roots
   # A root layer like `buildroot` (same toolchain, rpm, nixpkgs tools, /etc)
@@ -208,7 +213,7 @@ let
   texinfo71 = import ./texinfo.nix { inherit pkgs; srpm = srpm "texinfo"; };
 in
 {
-  inherit binutils gccPass1 glibc sysroot gcc rpm debugedit;
+  inherit binutils gccPass1 glibc sysroot gcc rpm rpmLibs debugedit;
   kernelHeaders = kh;
   # Rocky kernel-headers (buildSrpm result of the kernel SRPM, headers only);
   # for mkBuildroot: rpms = [ { from = kernelHeadersBuild; names = [ "kernel-headers" ]; } ]

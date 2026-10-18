@@ -1,6 +1,9 @@
 # stage0 rpm: Rocky's rpm-4.19.1.1 + every patch of rpm.spec's %patchlist,
 # configured like rpm.spec (RPM_VENDOR=redhat, sqlite+ndb backends, dbpath
-# /usr/lib/sysimage/rpm), built against nixpkgs libraries.
+# /usr/lib/sysimage/rpm), built against nixpkgs libraries -- except libzstd
+# (payload compression) and libmagic (FILECLASS strings), which write bytes
+# into every RPM and are built from Rocky's zstd/file SRPM sources
+# (bootstrap/rpm-libs.nix), and elfutils re-linked against that zstd.
 #
 # Why not nixpkgs' rpm 4.20: 4.20 moved the build tree to
 # %{_builddir}/%{NAME}-%{VERSION}-build/, changed %prep/%setup semantics and
@@ -17,7 +20,7 @@
 # Every path compiled into the binaries and macros is the FHS one
 # (/usr/lib/rpm, /etc/rpm, /var, /usr/bin/<tool>), so it behaves inside the
 # chroot exactly like Rocky's rpm.
-{ pkgs, srpm }:
+{ pkgs, srpm, rpmLibs }:
 let
   e = srpm.lockEntry;
   patches = [
@@ -58,7 +61,7 @@ pkgs.stdenv.mkDerivation {
 
   nativeBuildInputs = with pkgs; [ cmake pkg-config patchelf gettext ];
   buildInputs = with pkgs; [
-    zlib bzip2 xz zstd popt file lua5_4 libarchive sqlite elfutils
+    zlib bzip2 xz rpmLibs.zstd popt rpmLibs.file lua5_4 libarchive sqlite rpmLibs.elfutils
     libcap acl readline ncurses rpm-sequoia
   ];
 
@@ -130,5 +133,15 @@ pkgs.stdenv.mkDerivation {
   dontStrip = false;
   dontPatchELF = true;
 
-  passthru.configDir = "usr/lib/rpm";
+  # the payload compressor and libmagic actually loaded must be Rocky's
+  # sources' (one libzstd.so.1 per process: whichever is found first wins)
+  doInstallCheck = true;
+  installCheckPhase = ''
+    ldd $out/usr/bin/rpmbuild > $TMPDIR/ldd.txt
+    grep -F '${rpmLibs.zstd}/lib/libzstd.so.1' $TMPDIR/ldd.txt
+    grep -F '${rpmLibs.file}/lib/libmagic.so.1' $TMPDIR/ldd.txt
+    ! grep -E 'libzstd|libmagic' $TMPDIR/ldd.txt | grep -vF -e '${rpmLibs.zstd}' -e '${rpmLibs.file}'
+  '';
+
+  passthru = { configDir = "usr/lib/rpm"; inherit rpmLibs; };
 }
