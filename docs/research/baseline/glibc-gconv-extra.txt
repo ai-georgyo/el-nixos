@@ -1,0 +1,1039 @@
+# Official Rocky Linux 10.2 baseline: glibc-gconv-extra-2.39-142.el10_2.x86_64.rpm
+# sha256: 589a8254ef7d22a3289abce9f71fddb9b63b7434f22cc259154c7669ea1132d6
+
+## Header summary
+NEVRA:        glibc-gconv-extra-2.39-142.el10_2.x86_64
+Source RPM:   glibc-2.39-142.el10_2.src.rpm
+Build host:   ord1-prod-x86build009.svc.aws.rockylinux.org
+Build time:   1791453144 (Thu Oct  8 05:52:24 2026)
+Vendor:       Rocky Enterprise Software Foundation
+Packager:     Rocky Linux Build System <releng@rockylinux.org>
+License:      LGPL-2.1-or-later AND SunPro AND LGPL-2.1-or-later WITH GCC-exception-2.0 AND BSD-3-Clause AND GPL-2.0-or-later AND LGPL-2.1-or-later WITH GNU-compiler-exception AND GPL-2.0-only AND ISC AND LicenseRef-Fedora-Public-Domain AND HPND AND CMU-Mach AND LGPL-2.1-only AND LGPL-2.0-or-later AND Unicode-DFS-2015 AND GFDL-1.1-or-later AND GPL-1.0-or-later AND FSFUL AND MIT AND Inner-Net-2.0 AND X11 AND GPL-2.0-or-later WITH GCC-exception-2.0 AND GFDL-1.3-only AND GFDL-1.1-only AND GPL-3.0-or-later AND GPL-3.0-or-later WITH Autoconf-exception-generic-3.0 AND GPL-3.0-or-later WITH Texinfo-exception
+Group:        Unspecified
+URL:          http://www.gnu.org/software/glibc/
+Summary:      All iconv converter modules for glibc.
+Payload:      cpio / zstd level 19
+File digest:  8 (8=sha256)
+Size (inst):  8159598 bytes
+Archive size: 8254572
+Opt flags:    -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Wno-complain-wrong-lang -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2  
+Platform:     x86_64-redhat-linux-gnu
+RPM version:  4.19.1.1
+Files:        619
+
+## Description
+This package contains all iconv converter modules built in glibc.
+
+## Files (path mode(octal) user group size flags linkto) [flags: c=config d=doc g=ghost l=license m=missingok n=noreplace]
+/usr/lib/.build-id 40755 root root 0 a 
+/usr/lib/.build-id/01 40755 root root 0 a 
+/usr/lib/.build-id/01/3b2e99c2cc297c1419bb79cae215e21cb573d6 120777 root root 40 a ../../../../usr/lib64/gconv/EBCDIC-US.so
+/usr/lib/.build-id/02 40755 root root 0 a 
+/usr/lib/.build-id/02/04b156fab9c05c43dea7e481487395622005fe 120777 root root 37 a ../../../../usr/lib64/gconv/CP1251.so
+/usr/lib/.build-id/04 40755 root root 0 a 
+/usr/lib/.build-id/04/11b5c8ef02d99ebd702230deac117656087dc3 120777 root root 37 a ../../../../usr/lib64/gconv/IBM939.so
+/usr/lib/.build-id/04/63dc732f88f04a6144a63ee636cc5526a73573 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1046.so
+/usr/lib/.build-id/05 40755 root root 0 a 
+/usr/lib/.build-id/05/2e721b18e3f50fdc547276c90a2af60750fc20 120777 root root 37 a ../../../../usr/lib64/gconv/libJIS.so
+/usr/lib/.build-id/05/338bebe20b4487c8d279a5fc644d327364c239 120777 root root 40 a ../../../../usr/lib64/gconv/EBCDIC-UK.so
+/usr/lib/.build-id/05/478fc64f9a3502fc3f02551a3381385a4f731d 120777 root root 39 a ../../../../usr/lib64/gconv/IBM12712.so
+/usr/lib/.build-id/06/18dc79c461011122e30bdcb966bfb117ec391e 120777 root root 48 a ../../../../usr/lib64/gconv/MAC-CENTRALEUROPE.so
+/usr/lib/.build-id/06/f3016ac6e412c1b3448d981ecded00c756d410 120777 root root 36 a ../../../../usr/lib64/gconv/CP771.so
+/usr/lib/.build-id/07 40755 root root 0 a 
+/usr/lib/.build-id/07/35ceaa08b2f887473869e0fe8d825a0b21d851 120777 root root 37 a ../../../../usr/lib64/gconv/KOI8-U.so
+/usr/lib/.build-id/08 40755 root root 0 a 
+/usr/lib/.build-id/08/24a1756bed1bcf948b98dda19d5a3da97538da 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1158.so
+/usr/lib/.build-id/08/97006420cea2f77eaaf8fea30983ee8314acb7 120777 root root 37 a ../../../../usr/lib64/gconv/CP1254.so
+/usr/lib/.build-id/0a 40755 root root 0 a 
+/usr/lib/.build-id/0a/73902ea5846e42747b335dc0e3c61200c42b9f 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1156.so
+/usr/lib/.build-id/0a/932634e384d63958a6d3ff1a19cfd122638e96 120777 root root 37 a ../../../../usr/lib64/gconv/IBM274.so
+/usr/lib/.build-id/0c 40755 root root 0 a 
+/usr/lib/.build-id/0c/f897c2e2661da2bb82e24b70a82ec8dc178057 120777 root root 36 a ../../../../usr/lib64/gconv/GBGBK.so
+/usr/lib/.build-id/0d 40755 root root 0 a 
+/usr/lib/.build-id/0d/8cf22b32da3bb9e55407cd68276cd2b814aea8 120777 root root 40 a ../../../../usr/lib64/gconv/NATS-SEFI.so
+/usr/lib/.build-id/0f 40755 root root 0 a 
+/usr/lib/.build-id/0f/0b3260cfa47d447dc083798d00b6f8a07056c6 120777 root root 38 a ../../../../usr/lib64/gconv/IBM4971.so
+/usr/lib/.build-id/0f/48045ba07bf1e7248ec957c1bd9dc238a0ec62 120777 root root 40 a ../../../../usr/lib64/gconv/EBCDIC-ES.so
+/usr/lib/.build-id/11 40755 root root 0 a 
+/usr/lib/.build-id/11/ee54b0f2f18d6c02a5005e3ffb1c34aadfd0fe 120777 root root 43 a ../../../../usr/lib64/gconv/ISO_5427-EXT.so
+/usr/lib/.build-id/13 40755 root root 0 a 
+/usr/lib/.build-id/13/1d013a5770d7f9104618fea1eed05c7e65d6ad 120777 root root 41 a ../../../../usr/lib64/gconv/ISO_6937-2.so
+/usr/lib/.build-id/14 40755 root root 0 a 
+/usr/lib/.build-id/14/258f26c36fa43b542774a6f01ba805134a3ced 120777 root root 44 a ../../../../usr/lib64/gconv/LATIN-GREEK-1.so
+/usr/lib/.build-id/14/3f7b48d7b3e9850aeede77b6ec1223c2989feb 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1132.so
+/usr/lib/.build-id/15 40755 root root 0 a 
+/usr/lib/.build-id/15/3405762423bd7a7eccd3d5967deebbfd13f2a1 120777 root root 38 a ../../../../usr/lib64/gconv/IBM9030.so
+/usr/lib/.build-id/15/762135dd6829e3677bc2abce3fbdcad0208ab5 120777 root root 37 a ../../../../usr/lib64/gconv/GBBIG5.so
+/usr/lib/.build-id/15/90b0ce0df3475a20ebe83fa87deb208ada4a3b 120777 root root 43 a ../../../../usr/lib64/gconv/EBCDIC-FI-SE.so
+/usr/lib/.build-id/16/7a4e3f852ea077d3774242b65263f188adbc78 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1122.so
+/usr/lib/.build-id/16/c07ba224a9c02d424d1ee0d2fd54bf5e762cd0 120777 root root 45 a ../../../../usr/lib64/gconv/SHIFT_JISX0213.so
+/usr/lib/.build-id/19 40755 root root 0 a 
+/usr/lib/.build-id/19/256dd271927fd775a808b4a2c9a4aacc3aba63 120777 root root 37 a ../../../../usr/lib64/gconv/KOI8-R.so
+/usr/lib/.build-id/19/ca7ae01e643c53dccb12d49825dee31e4aebf7 120777 root root 37 a ../../../../usr/lib64/gconv/IBM500.so
+/usr/lib/.build-id/1a 40755 root root 0 a 
+/usr/lib/.build-id/1a/d311bec6d9d86390f857d0d6b268ccf3f7ecbf 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1047.so
+/usr/lib/.build-id/1b 40755 root root 0 a 
+/usr/lib/.build-id/1b/3e471f3cd5acf5a4ab25bfbda8f493ec24e829 120777 root root 37 a ../../../../usr/lib64/gconv/IBM869.so
+/usr/lib/.build-id/1b/b0c23ebb096b6bb702ec3ff69babb3a6ec2663 120777 root root 38 a ../../../../usr/lib64/gconv/IBM5347.so
+/usr/lib/.build-id/1e/3920bc0f06274123cb9583367a7fb3779bb5c2 120777 root root 37 a ../../../../usr/lib64/gconv/IBM866.so
+/usr/lib/.build-id/1e/4ad74bf863214630e50586236538293368e484 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1129.so
+/usr/lib/.build-id/1e/8098d7a70f62e628c605fc1f26136b0d271a54 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1112.so
+/usr/lib/.build-id/21 40755 root root 0 a 
+/usr/lib/.build-id/21/d05a4c12c68510ac042ab771c60cca74066a8e 120777 root root 37 a ../../../../usr/lib64/gconv/IBM852.so
+/usr/lib/.build-id/21/ed06df17b0636e2a55f33d9c039428bb883f67 120777 root root 40 a ../../../../usr/lib64/gconv/ISO8859-3.so
+/usr/lib/.build-id/22 40755 root root 0 a 
+/usr/lib/.build-id/22/88aa79b79cd7c663b845160149498c21a31a40 120777 root root 41 a ../../../../usr/lib64/gconv/CSN_369103.so
+/usr/lib/.build-id/23/5c5d5d4dce542265a40d322a36b45a8d0c23a0 120777 root root 35 a ../../../../usr/lib64/gconv/SJIS.so
+/usr/lib/.build-id/23/645f221ea696659755a89ae7542f29de174d1c 120777 root root 44 a ../../../../usr/lib64/gconv/ISO-2022-JP-3.so
+/usr/lib/.build-id/27 40755 root root 0 a 
+/usr/lib/.build-id/27/2821e612220d17707e7ea299a05f9b8ed85261 120777 root root 39 a ../../../../usr/lib64/gconv/ISO_6937.so
+/usr/lib/.build-id/2a/30a55c0fc48589b84ee5e76e3404379ab92786 120777 root root 37 a ../../../../usr/lib64/gconv/IBM424.so
+/usr/lib/.build-id/2a/b891357f6374244535071184aa76720f419d39 120777 root root 42 a ../../../../usr/lib64/gconv/libISOIR165.so
+/usr/lib/.build-id/2b/0c4ff83a609b55abeb39a3b46eca8b0aee8345 120777 root root 40 a ../../../../usr/lib64/gconv/ISO8859-2.so
+/usr/lib/.build-id/2c 40755 root root 0 a 
+/usr/lib/.build-id/2c/7ccff32eb3ec021642944531607fe6d71396b4 120777 root root 37 a ../../../../usr/lib64/gconv/IBM860.so
+/usr/lib/.build-id/2d 40755 root root 0 a 
+/usr/lib/.build-id/2d/95d8be9e07a1a6c51e1369582a2a8634321683 120777 root root 42 a ../../../../usr/lib64/gconv/EBCDIC-ES-S.so
+/usr/lib/.build-id/2d/ad2ecf11519442f78ed83246d92897721d0afb 120777 root root 36 a ../../../../usr/lib64/gconv/JOHAB.so
+/usr/lib/.build-id/2e 40755 root root 0 a 
+/usr/lib/.build-id/2e/d408565326d74aa6acfc2dfea7f24244f250b7 120777 root root 40 a ../../../../usr/lib64/gconv/IBM866NAV.so
+/usr/lib/.build-id/2e/dba9bc7d157a510808ad48998c63676dbae6f3 120777 root root 37 a ../../../../usr/lib64/gconv/IBM880.so
+/usr/lib/.build-id/30 40755 root root 0 a 
+/usr/lib/.build-id/30/14f10740679fa1edd9d06f8ba4003b37cc7321 120777 root root 40 a ../../../../usr/lib64/gconv/EBCDIC-IT.so
+/usr/lib/.build-id/30/7c63b21125e549a0d1f08a677a935fc71ed0d5 120777 root root 37 a ../../../../usr/lib64/gconv/IBM420.so
+/usr/lib/.build-id/33 40755 root root 0 a 
+/usr/lib/.build-id/33/138b0c55c6d58eacd70b81221d7b7f88de9312 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1154.so
+/usr/lib/.build-id/33/2be928123bde5ae1eb2267ca7f5078f65ceaf6 120777 root root 38 a ../../../../usr/lib64/gconv/DEC-MCS.so
+/usr/lib/.build-id/33/b2f9062baee2f182e61f08059d78351ce2c595 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1133.so
+/usr/lib/.build-id/34 40755 root root 0 a 
+/usr/lib/.build-id/34/f57bc227d718ef1ddd271a89a6cf6202cb143f 120777 root root 37 a ../../../../usr/lib64/gconv/IBM275.so
+/usr/lib/.build-id/38 40755 root root 0 a 
+/usr/lib/.build-id/38/4665d3ab49053bf23af0e6ea9dbeef8884d378 120777 root root 37 a ../../../../usr/lib64/gconv/IBM278.so
+/usr/lib/.build-id/39 40755 root root 0 a 
+/usr/lib/.build-id/39/3e2de4a68b8700db742da6d2370495eb0fff11 120777 root root 38 a ../../../../usr/lib64/gconv/TIS-620.so
+/usr/lib/.build-id/3a 40755 root root 0 a 
+/usr/lib/.build-id/3a/6d61dee8142b251a83dd23e99593b3de1e3ce8 120777 root root 38 a ../../../../usr/lib64/gconv/IBM4899.so
+/usr/lib/.build-id/3a/a894b9f1e0e580b1f48e81644e23fb12366810 120777 root root 37 a ../../../../usr/lib64/gconv/CP1253.so
+/usr/lib/.build-id/40/33cd2fdd69c93e9754e80dcdc53ffc9680c4e8 120777 root root 44 a ../../../../usr/lib64/gconv/INIS-CYRILLIC.so
+/usr/lib/.build-id/40/429729de4b429b6194f455cbc2701216a49263 120777 root root 37 a ../../../../usr/lib64/gconv/IBM850.so
+/usr/lib/.build-id/40/e04560e3a905bfcee879b833df4399d5b8a64a 120777 root root 41 a ../../../../usr/lib64/gconv/GREEK7-OLD.so
+/usr/lib/.build-id/43 40755 root root 0 a 
+/usr/lib/.build-id/43/106830d0dce188ddc6578ff006221711be176a 120777 root root 43 a ../../../../usr/lib64/gconv/EUC-JISX0213.so
+/usr/lib/.build-id/43/ee6c02edc9ff45a6a746e665d1de2c4e7a3649 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1148.so
+/usr/lib/.build-id/44 40755 root root 0 a 
+/usr/lib/.build-id/44/14d76e52ac5c053ecd451ae25ee8eb7997f76d 120777 root root 37 a ../../../../usr/lib64/gconv/EUC-JP.so
+/usr/lib/.build-id/44/5741fec041ec14f295ba54877cc44ce69d62e6 120777 root root 37 a ../../../../usr/lib64/gconv/INIS-8.so
+/usr/lib/.build-id/44/7ac96c6603778fdb3277a5c733cebf1e8afb42 120777 root root 41 a ../../../../usr/lib64/gconv/ISO8859-11.so
+/usr/lib/.build-id/46/68652a22bd6fa9d44b1922fe17b003076b6129 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1388.so
+/usr/lib/.build-id/47 40755 root root 0 a 
+/usr/lib/.build-id/47/5e9edfd69df77a949e6847ae040cb6e80447d2 120777 root root 37 a ../../../../usr/lib64/gconv/KOI8-T.so
+/usr/lib/.build-id/48 40755 root root 0 a 
+/usr/lib/.build-id/48/50d4232694c2fca5824a3d385d6081019e4e4f 120777 root root 40 a ../../../../usr/lib64/gconv/ISO8859-5.so
+/usr/lib/.build-id/48/bf5748161422e8f17ecab8cb7fd548b43eb874 120777 root root 37 a ../../../../usr/lib64/gconv/IBM297.so
+/usr/lib/.build-id/49 40755 root root 0 a 
+/usr/lib/.build-id/49/250304745b6247d831113f5a51915208721cdb 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1141.so
+/usr/lib/.build-id/4a 40755 root root 0 a 
+/usr/lib/.build-id/4a/69ad519cb3e85dc5985431ff18be5c79dd13cb 120777 root root 41 a ../../../../usr/lib64/gconv/ISO8859-10.so
+/usr/lib/.build-id/4b 40755 root root 0 a 
+/usr/lib/.build-id/4b/86f27356fd5a228f542755b83f9c64a7842587 120777 root root 39 a ../../../../usr/lib64/gconv/MAC-SAMI.so
+/usr/lib/.build-id/4c 40755 root root 0 a 
+/usr/lib/.build-id/4c/37cce434d2bd0a3d45882455679e539a356014 120777 root root 37 a ../../../../usr/lib64/gconv/IBM905.so
+/usr/lib/.build-id/4c/8583f39184683b165004ad1d9ef9ab65664e50 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1123.so
+/usr/lib/.build-id/4e/2e67403ed1beeac32f7c566b440f9f0ba12ed4 120777 root root 37 a ../../../../usr/lib64/gconv/IBM875.so
+/usr/lib/.build-id/4e/af4770f419a8e218ae88e1053ccd3f7c2b395c 120777 root root 37 a ../../../../usr/lib64/gconv/IBM037.so
+/usr/lib/.build-id/4f 40755 root root 0 a 
+/usr/lib/.build-id/4f/74eed791cf6720d50c49608e99057be07280d1 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1167.so
+/usr/lib/.build-id/4f/c7920d721584baf2706830f0dfa1c9e1d96e23 120777 root root 37 a ../../../../usr/lib64/gconv/CP1125.so
+/usr/lib/.build-id/50 40755 root root 0 a 
+/usr/lib/.build-id/50/ca6a8bbf800427722356a8391b0d7f67a88218 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1008.so
+/usr/lib/.build-id/51 40755 root root 0 a 
+/usr/lib/.build-id/51/8cbe382ef59917e05dbf8772f3f75e318ed358 120777 root root 37 a ../../../../usr/lib64/gconv/IBM803.so
+/usr/lib/.build-id/56/d0b20ff4bd0ef07074e1a952acb6afb279ce5f 120777 root root 46 a ../../../../usr/lib64/gconv/EBCDIC-IS-FRISS.so
+/usr/lib/.build-id/58 40755 root root 0 a 
+/usr/lib/.build-id/58/493c89c70d1b8028a83dc25e4f9867b75c6b60 120777 root root 37 a ../../../../usr/lib64/gconv/CP1255.so
+/usr/lib/.build-id/58/6a256d52d748f7035410d78df689c1c13c2c22 120777 root root 38 a ../../../../usr/lib64/gconv/CP10007.so
+/usr/lib/.build-id/59 40755 root root 0 a 
+/usr/lib/.build-id/59/47431a99ddc4c72de90fe24123b6f69712341c 120777 root root 40 a ../../../../usr/lib64/gconv/HP-ROMAN9.so
+/usr/lib/.build-id/59/74c2ba0cfd3af023f0ffed53f9381f440c250c 120777 root root 41 a ../../../../usr/lib64/gconv/ISIRI-3342.so
+/usr/lib/.build-id/5a 40755 root root 0 a 
+/usr/lib/.build-id/5a/49724ad96b862f7255c2f4375802a138c67b68 120777 root root 37 a ../../../../usr/lib64/gconv/IBM857.so
+/usr/lib/.build-id/5a/b58567efa988948a0bf5136c8809e4b1fe2e0b 120777 root root 37 a ../../../../usr/lib64/gconv/IBM855.so
+/usr/lib/.build-id/5d 40755 root root 0 a 
+/usr/lib/.build-id/5d/85ee48743398b8b07a620973ac7fd98317be0c 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1163.so
+/usr/lib/.build-id/5d/c06752b893a2ab1393bf260202637c486c9c69 120777 root root 37 a ../../../../usr/lib64/gconv/EUC-TW.so
+/usr/lib/.build-id/5f/01d0eaa3c402a700047068c2fbc15a2c6e5d95 120777 root root 41 a ../../../../usr/lib64/gconv/TCVN5712-1.so
+/usr/lib/.build-id/5f/3445e294b61bd93ab63feb74aaba1702188566 120777 root root 37 a ../../../../usr/lib64/gconv/IBM874.so
+/usr/lib/.build-id/5f/53c3664ba9131c1a28d5b3cdc1dda3ea8e38f0 120777 root root 37 a ../../../../usr/lib64/gconv/IBM280.so
+/usr/lib/.build-id/5f/c0aebaad34b91332ed9e70992318567b4d1dd4 120777 root root 45 a ../../../../usr/lib64/gconv/EBCDIC-DK-NO-A.so
+/usr/lib/.build-id/60 40755 root root 0 a 
+/usr/lib/.build-id/60/2df94c03adc738107715141a381f86918cae9a 120777 root root 40 a ../../../../usr/lib64/gconv/EBCDIC-PT.so
+/usr/lib/.build-id/60/a2a9c77a4549a55cdba6977dc6a79c7622fd38 120777 root root 34 a ../../../../usr/lib64/gconv/CWI.so
+/usr/lib/.build-id/60/ef683242ea63f8e0969f800ebc4dd2ae7b8634 120777 root root 38 a ../../../../usr/lib64/gconv/IBM4517.so
+/usr/lib/.build-id/61 40755 root root 0 a 
+/usr/lib/.build-id/61/6c85b3a6a432365c5d78597cf515d08b694f18 120777 root root 37 a ../../../../usr/lib64/gconv/libCNS.so
+/usr/lib/.build-id/61/7ed5d50cfc98d7a4761bb65f92b58b59a2c070 120777 root root 36 a ../../../../usr/lib64/gconv/libGB.so
+/usr/lib/.build-id/61/862a874a3f6c0e48e77ef61f6e084733247ac5 120777 root root 43 a ../../../../usr/lib64/gconv/EBCDIC-CA-FR.so
+/usr/lib/.build-id/62 40755 root root 0 a 
+/usr/lib/.build-id/62/529169950524c0784aa4730d3babda71b75a1d 120777 root root 37 a ../../../../usr/lib64/gconv/IBM281.so
+/usr/lib/.build-id/62/f01d0f1c1c95e49a27324c555e6e15e2920330 120777 root root 37 a ../../../../usr/lib64/gconv/IBM904.so
+/usr/lib/.build-id/63 40755 root root 0 a 
+/usr/lib/.build-id/63/4cdf3f4f2a2b4937a1173abaee2ea82cf93b4e 120777 root root 41 a ../../../../usr/lib64/gconv/ISO8859-14.so
+/usr/lib/.build-id/63/ed250c16282f3312bcfb1e5fc4eb95d0e70d57 120777 root root 40 a ../../../../usr/lib64/gconv/ISO8859-6.so
+/usr/lib/.build-id/65 40755 root root 0 a 
+/usr/lib/.build-id/65/5f02b2a16fd8814de070bb0c6c1380408489a3 120777 root root 37 a ../../../../usr/lib64/gconv/IBM284.so
+/usr/lib/.build-id/67 40755 root root 0 a 
+/usr/lib/.build-id/67/34d3d3f882309056d180bdd0643025b9bb53f5 120777 root root 37 a ../../../../usr/lib64/gconv/IBM933.so
+/usr/lib/.build-id/67/b8526e14625fb733eb35dd68622761e097a2d7 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1140.so
+/usr/lib/.build-id/69 40755 root root 0 a 
+/usr/lib/.build-id/69/433fd835ce3f552a0a68beb4e5c40839db3b77 120777 root root 44 a ../../../../usr/lib64/gconv/ISO_10367-BOX.so
+/usr/lib/.build-id/69/b8baa8ab9edc5536b48b0724de27ccbcd35d3a 120777 root root 40 a ../../../../usr/lib64/gconv/EUC-JP-MS.so
+/usr/lib/.build-id/69/cc463c32d3f2dbcc0fa1d42536b6909f78e0d2 120777 root root 37 a ../../../../usr/lib64/gconv/IBM038.so
+/usr/lib/.build-id/6a/a7c9aee8f3a2784bef76201375f3037f3a91f8 120777 root root 37 a ../../../../usr/lib64/gconv/IBM858.so
+/usr/lib/.build-id/6d 40755 root root 0 a 
+/usr/lib/.build-id/6d/cbbf28f6fc3b6b9ac7102518ab02bcbec42aa7 120777 root root 39 a ../../../../usr/lib64/gconv/IBM16804.so
+/usr/lib/.build-id/6f 40755 root root 0 a 
+/usr/lib/.build-id/6f/bb49f3f4cc1f06b498b04cf204a77371c664c2 120777 root root 37 a ../../../../usr/lib64/gconv/IBM861.so
+/usr/lib/.build-id/71 40755 root root 0 a 
+/usr/lib/.build-id/71/c47d997d98e3b61f7d4eb72249d72ea55fe139 120777 root root 42 a ../../../../usr/lib64/gconv/EBCDIC-ES-A.so
+/usr/lib/.build-id/76 40755 root root 0 a 
+/usr/lib/.build-id/76/c9b3646b5a11723ca56bc57d840df490d59a4d 120777 root root 37 a ../../../../usr/lib64/gconv/IBM277.so
+/usr/lib/.build-id/77 40755 root root 0 a 
+/usr/lib/.build-id/77/64e71e5bee6a8a166378f4d773537702161c9b 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1142.so
+/usr/lib/.build-id/7b 40755 root root 0 a 
+/usr/lib/.build-id/7b/0b37c67fe75374d9280a50d26657eb08250183 120777 root root 37 a ../../../../usr/lib64/gconv/IBM901.so
+/usr/lib/.build-id/80 40755 root root 0 a 
+/usr/lib/.build-id/80/139bdcaa494d356d2bb09765ba03b73e68748b 120777 root root 37 a ../../../../usr/lib64/gconv/CP1257.so
+/usr/lib/.build-id/81 40755 root root 0 a 
+/usr/lib/.build-id/81/5639d95a71cc80852be3cf81d54ef543ddc2b1 120777 root root 40 a ../../../../usr/lib64/gconv/MACINTOSH.so
+/usr/lib/.build-id/82 40755 root root 0 a 
+/usr/lib/.build-id/82/1df73712319173d842fcbed0a096a061a8e639 120777 root root 37 a ../../../../usr/lib64/gconv/CP1256.so
+/usr/lib/.build-id/83 40755 root root 0 a 
+/usr/lib/.build-id/83/7effd21c9248d02170db30302c8e737d7266b2 120777 root root 34 a ../../../../usr/lib64/gconv/UHC.so
+/usr/lib/.build-id/83/b9ecc98fc53a8cc495e03cdeb400db18a8496f 120777 root root 38 a ../../../../usr/lib64/gconv/IBM9448.so
+/usr/lib/.build-id/83/f1399b0289b43ea430c4ab3dcdec6f000cde5a 120777 root root 39 a ../../../../usr/lib64/gconv/ISO_5427.so
+/usr/lib/.build-id/84 40755 root root 0 a 
+/usr/lib/.build-id/84/b23040b4b21d5e86387f45abdae92ee36f56f4 120777 root root 37 a ../../../../usr/lib64/gconv/RK1048.so
+/usr/lib/.build-id/85 40755 root root 0 a 
+/usr/lib/.build-id/85/0b430a1994096eaade46736ba985016035a950 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1130.so
+/usr/lib/.build-id/87 40755 root root 0 a 
+/usr/lib/.build-id/87/d290f2658074c4e0ebd2b4c8f206c1f2dc8a57 120777 root root 39 a ../../../../usr/lib64/gconv/SAMI-WS2.so
+/usr/lib/.build-id/87/e8589b613ae49a6a0b19ec2ce475e7e95f2d20 120777 root root 43 a ../../../../usr/lib64/gconv/EBCDIC-AT-DE.so
+/usr/lib/.build-id/88 40755 root root 0 a 
+/usr/lib/.build-id/88/1e7ba01f5493a8f050df2101d7b0eeeaa4b11d 120777 root root 37 a ../../../../usr/lib64/gconv/IBM423.so
+/usr/lib/.build-id/88/ea93cfb500170126311dc37d879d96ed9741c3 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1157.so
+/usr/lib/.build-id/8a 40755 root root 0 a 
+/usr/lib/.build-id/8a/b1b8c7c9aefd5af220521b896266f7dbacdb0b 120777 root root 37 a ../../../../usr/lib64/gconv/GREEK7.so
+/usr/lib/.build-id/8c 40755 root root 0 a 
+/usr/lib/.build-id/8c/50e603c62d1410358b6f774eb41cc412b746fb 120777 root root 37 a ../../../../usr/lib64/gconv/IBM862.so
+/usr/lib/.build-id/8c/f1af1752fe5d18ae8b53152a9744448207ab33 120777 root root 34 a ../../../../usr/lib64/gconv/MIK.so
+/usr/lib/.build-id/8f 40755 root root 0 a 
+/usr/lib/.build-id/8f/0ba0ae208b669b1eefc26e6e434296e275e07a 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1004.so
+/usr/lib/.build-id/8f/1a821f3c471c339b0a9c083d0b905b05a9d3d8 120777 root root 42 a ../../../../usr/lib64/gconv/ISO-2022-JP.so
+/usr/lib/.build-id/8f/8b24680a9d62d44ac12027ac45f04c4aeb4833 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1155.so
+/usr/lib/.build-id/90 40755 root root 0 a 
+/usr/lib/.build-id/90/7fae32d0106dea07c2ea5ca3f048af9dd2673a 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1364.so
+/usr/lib/.build-id/91 40755 root root 0 a 
+/usr/lib/.build-id/91/8773cae5ec5f94c0a616080b5a6d7ef9f53006 120777 root root 46 a ../../../../usr/lib64/gconv/ISO-2022-CN-EXT.so
+/usr/lib/.build-id/91/99ed229f1942f537e90e45d6960b75cb987fe3 120777 root root 37 a ../../../../usr/lib64/gconv/IBM851.so
+/usr/lib/.build-id/92/d796682b57ef88ad15ef9d578e50ea52ceec50 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1166.so
+/usr/lib/.build-id/93 40755 root root 0 a 
+/usr/lib/.build-id/93/b34e07cc25ad9aeedcb08add9a2d90b1a919b2 120777 root root 37 a ../../../../usr/lib64/gconv/CP1258.so
+/usr/lib/.build-id/93/d3c9eb59fe40e849b7498d9d5af11e07d6000d 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1153.so
+/usr/lib/.build-id/94 40755 root root 0 a 
+/usr/lib/.build-id/94/70019e7a3fe266d74dbf8fedde1f5004ec89bb 120777 root root 45 a ../../../../usr/lib64/gconv/EBCDIC-AT-DE-A.so
+/usr/lib/.build-id/95 40755 root root 0 a 
+/usr/lib/.build-id/95/833c5f81ae26da763e489a366bf0d2657c82fd 120777 root root 36 a ../../../../usr/lib64/gconv/CP775.so
+/usr/lib/.build-id/95/9a6c546218996375a1b0702408e4c75ced4983 120777 root root 40 a ../../../../usr/lib64/gconv/ISO8859-4.so
+/usr/lib/.build-id/95/cd78c8dcb5aae77fcfa0bd4f08ba732a327119 120777 root root 36 a ../../../../usr/lib64/gconv/TSCII.so
+/usr/lib/.build-id/97 40755 root root 0 a 
+/usr/lib/.build-id/97/43d9583ca39a85e07e7e0fe64fc6a5d56ba227 120777 root root 37 a ../../../../usr/lib64/gconv/IBM935.so
+/usr/lib/.build-id/98 40755 root root 0 a 
+/usr/lib/.build-id/98/49b7d196a8aefb1cce57175e993c1765c60842 120777 root root 42 a ../../../../usr/lib64/gconv/libJISX0213.so
+/usr/lib/.build-id/9b 40755 root root 0 a 
+/usr/lib/.build-id/9b/185ef87758f879e74f9fc8f298753101d0fd92 120777 root root 42 a ../../../../usr/lib64/gconv/ISO-2022-KR.so
+/usr/lib/.build-id/9b/3e1ad4fad9a28750efd85a3f2fc7d00fbfb9d2 120777 root root 43 a ../../../../usr/lib64/gconv/EBCDIC-DK-NO.so
+/usr/lib/.build-id/9e/321280b95b6792e96fd87ff17aaa0e39cc061b 120777 root root 40 a ../../../../usr/lib64/gconv/EBCDIC-FR.so
+/usr/lib/.build-id/9e/7c61df91ea2f6bb6051b84e294f2a842f48463 120777 root root 37 a ../../../../usr/lib64/gconv/IBM922.so
+/usr/lib/.build-id/a2 40755 root root 0 a 
+/usr/lib/.build-id/a2/ea33586b5c3b17990bb06406fa759194105eb8 120777 root root 36 a ../../../../usr/lib64/gconv/CP772.so
+/usr/lib/.build-id/a3 40755 root root 0 a 
+/usr/lib/.build-id/a3/fac942ad5f85d8514b22fabd8bf1c526adbb2b 120777 root root 45 a ../../../../usr/lib64/gconv/EBCDIC-FI-SE-A.so
+/usr/lib/.build-id/a4 40755 root root 0 a 
+/usr/lib/.build-id/a4/b9d8a57a26bc055b9f49f8a13f27d9fbccf181 120777 root root 36 a ../../../../usr/lib64/gconv/CP773.so
+/usr/lib/.build-id/a6/06c9521c36c70a57f14b682d94574e9cf7366d 120777 root root 37 a ../../../../usr/lib64/gconv/EUC-CN.so
+/usr/lib/.build-id/a6/10eb8310d6d7b0ff44e3574b83d83588ab262f 120777 root root 37 a ../../../../usr/lib64/gconv/CP1250.so
+/usr/lib/.build-id/a7 40755 root root 0 a 
+/usr/lib/.build-id/a7/a04b15b368575ed8f76924e21fde08358d9605 120777 root root 37 a ../../../../usr/lib64/gconv/IBM918.so
+/usr/lib/.build-id/a9 40755 root root 0 a 
+/usr/lib/.build-id/a9/4bec475c713b23dd201af2a9c7cc1f49817727 120777 root root 40 a ../../../../usr/lib64/gconv/HP-ROMAN8.so
+/usr/lib/.build-id/ab/003ecf1935ee307c9d6d165cb20fd54e432381 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1026.so
+/usr/lib/.build-id/ac 40755 root root 0 a 
+/usr/lib/.build-id/ac/5259434b79b6bd0e8308ae9df311575990c871 120777 root root 38 a ../../../../usr/lib64/gconv/IBM4909.so
+/usr/lib/.build-id/ac/c1b9d76405740a1687e87cb01f192a533cabd8 120777 root root 37 a ../../../../usr/lib64/gconv/IBM868.so
+/usr/lib/.build-id/ad 40755 root root 0 a 
+/usr/lib/.build-id/ad/55f3fc4d0110d27e25065ed1de15e1db4dd8f1 120777 root root 35 a ../../../../usr/lib64/gconv/INIS.so
+/usr/lib/.build-id/b3 40755 root root 0 a 
+/usr/lib/.build-id/b3/3abc2f1971983c92ce03671a0d45d866a5ba03 120777 root root 37 a ../../../../usr/lib64/gconv/IBM870.so
+/usr/lib/.build-id/b3/421531ddbd48efec95bafa4bab52a477bab740 120777 root root 37 a ../../../../usr/lib64/gconv/MAC-UK.so
+/usr/lib/.build-id/b3/8c91b3021c4423cfb21b9315c319f77687d8d6 120777 root root 37 a ../../../../usr/lib64/gconv/IBM921.so
+/usr/lib/.build-id/b4 40755 root root 0 a 
+/usr/lib/.build-id/b4/f584ce73f2537ec8a9b9d046d49a3d180aaedf 120777 root root 47 a ../../../../usr/lib64/gconv/GEORGIAN-ACADEMY.so
+/usr/lib/.build-id/b5/99156570bc46aa3c7d88b121bea7ebf82fad31 120777 root root 42 a ../../../../usr/lib64/gconv/ISO_11548-1.so
+/usr/lib/.build-id/b6 40755 root root 0 a 
+/usr/lib/.build-id/b6/7026ece0d1e0adaf29c6b8d03cfa5c74affaeb 120777 root root 42 a ../../../../usr/lib64/gconv/IBM1008_420.so
+/usr/lib/.build-id/b6/d8aa1f2f74d083f95e6e60db77bc2646936e9e 120777 root root 42 a ../../../../usr/lib64/gconv/ISO-2022-CN.so
+/usr/lib/.build-id/b8 40755 root root 0 a 
+/usr/lib/.build-id/b8/35d892ebb33c3cc6a3ab894276bb9b96c25b1c 120777 root root 39 a ../../../../usr/lib64/gconv/ASMO_449.so
+/usr/lib/.build-id/bb 40755 root root 0 a 
+/usr/lib/.build-id/bb/a495e3c9c23253364fd29f20ee510bf68d3518 120777 root root 40 a ../../../../usr/lib64/gconv/ARMSCII-8.so
+/usr/lib/.build-id/bc 40755 root root 0 a 
+/usr/lib/.build-id/bc/02e28bd3bb77bebfdef9b495ba8716c6d13102 120777 root root 37 a ../../../../usr/lib64/gconv/ISO646.so
+/usr/lib/.build-id/bc/10b12f3e3268bc721d72f0f9020578dc5687f0 120777 root root 40 a ../../../../usr/lib64/gconv/ISO8859-8.so
+/usr/lib/.build-id/bc/65f207cc0509cbb5bd202e1e310f7d8f5e1218 120777 root root 36 a ../../../../usr/lib64/gconv/CP932.so
+/usr/lib/.build-id/bf 40755 root root 0 a 
+/usr/lib/.build-id/bf/6a85b0197661b9ed9ef9c8301b6a273af4042d 120777 root root 37 a ../../../../usr/lib64/gconv/IBM930.so
+/usr/lib/.build-id/c1 40755 root root 0 a 
+/usr/lib/.build-id/c1/077a62ba570324dc8287fe29900584e14071e2 120777 root root 39 a ../../../../usr/lib64/gconv/ISO_2033.so
+/usr/lib/.build-id/c2/33898a5baddb07a8593f0672107b645c8ed42d 120777 root root 40 a ../../../../usr/lib64/gconv/NATS-DANO.so
+/usr/lib/.build-id/c2/b8e388069789580d5093aacba5876339fdd214 120777 root root 37 a ../../../../usr/lib64/gconv/IBM290.so
+/usr/lib/.build-id/c3 40755 root root 0 a 
+/usr/lib/.build-id/c3/6a6f09a4fa19e7ba851cfbfc5ca3ea9309b9b1 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1149.so
+/usr/lib/.build-id/c3/ed8108d77a8fd55791910caf239e5c20a01050 120777 root root 41 a ../../../../usr/lib64/gconv/ISO-IR-209.so
+/usr/lib/.build-id/c4 40755 root root 0 a 
+/usr/lib/.build-id/c4/e05fd49000d7c51a580ae35a2ab1d26ecd6a21 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1162.so
+/usr/lib/.build-id/c4/f9fc844dc5d6747fc30172b70cec03dcdd728e 120777 root root 37 a ../../../../usr/lib64/gconv/IBM902.so
+/usr/lib/.build-id/c7 40755 root root 0 a 
+/usr/lib/.build-id/c7/1a564ae546c98213291d09f075814711c30ec6 120777 root root 40 a ../../../../usr/lib64/gconv/HP-GREEK8.so
+/usr/lib/.build-id/c7/44db3620ab124ccb36e4231ac3c1a04243bbf9 120777 root root 35 a ../../../../usr/lib64/gconv/BIG5.so
+/usr/lib/.build-id/c8 40755 root root 0 a 
+/usr/lib/.build-id/c8/80711414e781939c1897f4e4594e64bbfbd2d2 120777 root root 36 a ../../../../usr/lib64/gconv/CP737.so
+/usr/lib/.build-id/c8/bff5ed5e5d87f5b7f602377018ea7b5fc9a5bf 120777 root root 42 a ../../../../usr/lib64/gconv/HP-TURKISH8.so
+/usr/lib/.build-id/c8/e7ee09ba83247f6f70ed98fb0cf699e1655097 120777 root root 34 a ../../../../usr/lib64/gconv/BRF.so
+/usr/lib/.build-id/c8/f9196baac665a032f2b992b38bcc68eaa69098 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1390.so
+/usr/lib/.build-id/c9/3bdde6330c493129ef5205a1267cc19dd68e5f 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1160.so
+/usr/lib/.build-id/cb 40755 root root 0 a 
+/usr/lib/.build-id/cb/00ba08af826cacf00c6110ba4d0f68a3e94c67 120777 root root 37 a ../../../../usr/lib64/gconv/IBM273.so
+/usr/lib/.build-id/cc/3e93c742c81569870b1a0c298213b49e9ad9f1 120777 root root 38 a ../../../../usr/lib64/gconv/KOI8-RU.so
+/usr/lib/.build-id/cc/55086e03b64033d1c54c992082e7ea75f25535 120777 root root 35 a ../../../../usr/lib64/gconv/T.61.so
+/usr/lib/.build-id/cd 40755 root root 0 a 
+/usr/lib/.build-id/cd/01fb3936f0f593c487c9c2f63a71f90fd3888e 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1025.so
+/usr/lib/.build-id/cd/cfd697cb6c4b15bc9e390c538025dc01044950 120777 root root 37 a ../../../../usr/lib64/gconv/libKSC.so
+/usr/lib/.build-id/ce 40755 root root 0 a 
+/usr/lib/.build-id/ce/406ac5a0f92cd2a0c3e73a7e3a3a55a879daee 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1144.so
+/usr/lib/.build-id/cf 40755 root root 0 a 
+/usr/lib/.build-id/cf/5333d0da0384ca8663008edd6cd9234613064e 120777 root root 44 a ../../../../usr/lib64/gconv/GOST_19768-74.so
+/usr/lib/.build-id/cf/c6e6bf02e96cdd95cfe8ee0cc5ab1c58a2e9dd 120777 root root 37 a ../../../../usr/lib64/gconv/IBM285.so
+/usr/lib/.build-id/d0 40755 root root 0 a 
+/usr/lib/.build-id/d0/2e8c2ed83d4e2ac3c30c381d3e89cb1dc708be 120777 root root 37 a ../../../../usr/lib64/gconv/EUC-KR.so
+/usr/lib/.build-id/d0/53bb8df2d306917cc8177514c3ca20c37d6d1f 120777 root root 40 a ../../../../usr/lib64/gconv/BIG5HKSCS.so
+/usr/lib/.build-id/d0/ffb0baee33b60188d03cca063b7b9606711853 120777 root root 40 a ../../../../usr/lib64/gconv/ISO8859-9.so
+/usr/lib/.build-id/d2 40755 root root 0 a 
+/usr/lib/.build-id/d2/65a1644f5dce4ac2b114b35581d531083fc28c 120777 root root 41 a ../../../../usr/lib64/gconv/ISO8859-16.so
+/usr/lib/.build-id/d3 40755 root root 0 a 
+/usr/lib/.build-id/d3/09f8af95672f44d753e4e0140643982e14c02e 120777 root root 37 a ../../../../usr/lib64/gconv/IBM864.so
+/usr/lib/.build-id/d3/1c53c83a8707bee6beabcd93abd98f33f89472 120777 root root 37 a ../../../../usr/lib64/gconv/IBM932.so
+/usr/lib/.build-id/d4 40755 root root 0 a 
+/usr/lib/.build-id/d4/d7153d2b3cd3788d58f5af8aecaa695a5255ca 120777 root root 37 a ../../../../usr/lib64/gconv/IBM865.so
+/usr/lib/.build-id/d5 40755 root root 0 a 
+/usr/lib/.build-id/d5/29666b8140d0e8e4097ff02bfa3f17bb335396 120777 root root 40 a ../../../../usr/lib64/gconv/ISO8859-7.so
+/usr/lib/.build-id/d5/682f76eb2811dde5044032d1e72f22faa7c857 120777 root root 37 a ../../../../usr/lib64/gconv/IBM891.so
+/usr/lib/.build-id/da 40755 root root 0 a 
+/usr/lib/.build-id/da/bbb8d1f8550b2784da76b2c4b6caa4114c0d2b 120777 root root 37 a ../../../../usr/lib64/gconv/IBM871.so
+/usr/lib/.build-id/db/da2c2fd4ab206eeba25edee911f1f17d697545 120777 root root 37 a ../../../../usr/lib64/gconv/IBM437.so
+/usr/lib/.build-id/de 40755 root root 0 a 
+/usr/lib/.build-id/de/d90ebec998d92c8174457103f27f88948695b9 120777 root root 37 a ../../../../usr/lib64/gconv/IBM937.so
+/usr/lib/.build-id/de/fc62dad71c7d1451b067bfc498a3599adcd1c6 120777 root root 41 a ../../../../usr/lib64/gconv/ISO-IR-197.so
+/usr/lib/.build-id/df 40755 root root 0 a 
+/usr/lib/.build-id/df/3467274453c2157da8a40d408442d48e655882 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1145.so
+/usr/lib/.build-id/df/ca0681f2d022a4c0163eaa2d1318f2e6a52771 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1137.so
+/usr/lib/.build-id/e0 40755 root root 0 a 
+/usr/lib/.build-id/e0/1fb61faf618f018448a2bc8bac71be22119c09 120777 root root 36 a ../../../../usr/lib64/gconv/CP774.so
+/usr/lib/.build-id/e0/43867896583c02f336b12f9b289ec3cfb993ef 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1399.so
+/usr/lib/.build-id/e0/e8ec14b0c124dc6984ff93c6d30aed3c72b767 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1124.so
+/usr/lib/.build-id/e2 40755 root root 0 a 
+/usr/lib/.build-id/e2/5444a0f17211c18d36f1cf6205f883f38e4091 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1161.so
+/usr/lib/.build-id/e2/5bc370e8d60378d792b4d5a3b7c920c498d28a 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1097.so
+/usr/lib/.build-id/e2/8a91a4e978fdd5e4a7f5a46b42b79b607bd215 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1371.so
+/usr/lib/.build-id/e4 40755 root root 0 a 
+/usr/lib/.build-id/e4/2c69a49403a025d6a078f8d6b1697448fa242e 120777 root root 37 a ../../../../usr/lib64/gconv/MAC-IS.so
+/usr/lib/.build-id/e4/fa4a9e1969babd85a5afd3ab31b0de93568c18 120777 root root 40 a ../../../../usr/lib64/gconv/IEC_P27-1.so
+/usr/lib/.build-id/e4/fb2f2d893e2a20b9b6e3f3bba4db3669b2c8e6 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1146.so
+/usr/lib/.build-id/e6 40755 root root 0 a 
+/usr/lib/.build-id/e6/413839901288d26848f36c795ff265ad9ab8a4 120777 root root 38 a ../../../../usr/lib64/gconv/IBM9066.so
+/usr/lib/.build-id/e6/ce08d1070d9e5c011a1ec171857e47a6b842a4 120777 root root 34 a ../../../../usr/lib64/gconv/GBK.so
+/usr/lib/.build-id/e7 40755 root root 0 a 
+/usr/lib/.build-id/e7/53a99b2188fe3967d543e35d15a0e1191d3fb0 120777 root root 37 a ../../../../usr/lib64/gconv/IBM903.so
+/usr/lib/.build-id/e7/b3760d057d74ae373d1c3c638103b429ed3342 120777 root root 42 a ../../../../usr/lib64/gconv/GREEK-CCITT.so
+/usr/lib/.build-id/e7/e5c6bb7f8fd4606ffe2c6fb9d544f62e0bf6a1 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1164.so
+/usr/lib/.build-id/e8 40755 root root 0 a 
+/usr/lib/.build-id/e8/20cd4ecd607ec13dc6d6278545a3a8740f7341 120777 root root 37 a ../../../../usr/lib64/gconv/IBM256.so
+/usr/lib/.build-id/e9 40755 root root 0 a 
+/usr/lib/.build-id/e9/2c29ae6db43707e004aab7fe589f896d8590bb 120777 root root 41 a ../../../../usr/lib64/gconv/ISO8859-13.so
+/usr/lib/.build-id/e9/741f997f83edbb801eaf907edd58e750409f52 120777 root root 36 a ../../../../usr/lib64/gconv/KOI-8.so
+/usr/lib/.build-id/eb 40755 root root 0 a 
+/usr/lib/.build-id/eb/32ffc57e09bb620baaf3eace9949ccb3e2a81e 120777 root root 39 a ../../../../usr/lib64/gconv/HP-THAI8.so
+/usr/lib/.build-id/ed 40755 root root 0 a 
+/usr/lib/.build-id/ed/796837f7e1452bfa717ea8a28ad35d627dbb98 120777 root root 37 a ../../../../usr/lib64/gconv/IBM863.so
+/usr/lib/.build-id/ee 40755 root root 0 a 
+/usr/lib/.build-id/ee/2a0345af5bc43d832d88c44e9805152aa9ca83 120777 root root 44 a ../../../../usr/lib64/gconv/ECMA-CYRILLIC.so
+/usr/lib/.build-id/f0 40755 root root 0 a 
+/usr/lib/.build-id/f0/babe876e1d524a6694534c37e11ea835baf598 120777 root root 42 a ../../../../usr/lib64/gconv/LATIN-GREEK.so
+/usr/lib/.build-id/f2 40755 root root 0 a 
+/usr/lib/.build-id/f2/04b51a99acb0c37f13398bf65aabe5be3488c2 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1143.so
+/usr/lib/.build-id/f3 40755 root root 0 a 
+/usr/lib/.build-id/f3/3dc57efe34c84ddbee9feed57546a444215521 120777 root root 41 a ../../../../usr/lib64/gconv/ISO8859-9E.so
+/usr/lib/.build-id/f4 40755 root root 0 a 
+/usr/lib/.build-id/f4/fe0d785c85277e9cb92d53bd4d8ae3ae7af1c3 120777 root root 42 a ../../../../usr/lib64/gconv/ANSI_X3.110.so
+/usr/lib/.build-id/f5 40755 root root 0 a 
+/usr/lib/.build-id/f5/3fe07127cb6dbd8ecc78f6e906a14f8015938c 120777 root root 37 a ../../../../usr/lib64/gconv/VISCII.so
+/usr/lib/.build-id/f5/6b6db8e31925a22a3fc4ce20d0454c630eadda 120777 root root 38 a ../../../../usr/lib64/gconv/GB18030.so
+/usr/lib/.build-id/f7 40755 root root 0 a 
+/usr/lib/.build-id/f7/584d345edd23542767fea2b7f24044c0862643 120777 root root 36 a ../../../../usr/lib64/gconv/PT154.so
+/usr/lib/.build-id/f8/019fa33a6c46bce8e2f4b35a2c8e90a58c59d7 120777 root root 38 a ../../../../usr/lib64/gconv/IBM1147.so
+/usr/lib/.build-id/f8/369ab7a56ea383478bccdba2664bbd5fc2d72c 120777 root root 37 a ../../../../usr/lib64/gconv/IBM856.so
+/usr/lib/.build-id/f8/8195b36d5c718e220da79968274ab039d7ba94 120777 root root 42 a ../../../../usr/lib64/gconv/GEORGIAN-PS.so
+/usr/lib/.build-id/f8/838e30586a218a9c02cbc93d01f4ad3b4f11fc 120777 root root 37 a ../../../../usr/lib64/gconv/IBM943.so
+/usr/lib/.build-id/fd 40755 root root 0 a 
+/usr/lib/.build-id/fd/e507e94ec5367c96048c361df6ad18cadb13ac 120777 root root 39 a ../../../../usr/lib64/gconv/ISO_5428.so
+/usr/lib/.build-id/ff 40755 root root 0 a 
+/usr/lib/.build-id/ff/6558e0b79b962e0148193f117fb12358e559a4 120777 root root 36 a ../../../../usr/lib64/gconv/CP770.so
+/usr/lib64/gconv/ANSI_X3.110.so 100755 root root 27784  
+/usr/lib64/gconv/ARMSCII-8.so 100755 root root 19576  
+/usr/lib64/gconv/ASMO_449.so 100755 root root 19576  
+/usr/lib64/gconv/BIG5.so 100755 root root 97416  
+/usr/lib64/gconv/BIG5HKSCS.so 100755 root root 240784  
+/usr/lib64/gconv/BRF.so 100755 root root 19568  
+/usr/lib64/gconv/CP10007.so 100755 root root 19568  
+/usr/lib64/gconv/CP1125.so 100755 root root 19576  
+/usr/lib64/gconv/CP1250.so 100755 root root 19576  
+/usr/lib64/gconv/CP1251.so 100755 root root 19576  
+/usr/lib64/gconv/CP1253.so 100755 root root 19576  
+/usr/lib64/gconv/CP1254.so 100755 root root 19576  
+/usr/lib64/gconv/CP1255.so 100755 root root 19576  
+/usr/lib64/gconv/CP1256.so 100755 root root 19568  
+/usr/lib64/gconv/CP1257.so 100755 root root 19576  
+/usr/lib64/gconv/CP1258.so 100755 root root 19584  
+/usr/lib64/gconv/CP737.so 100755 root root 19576  
+/usr/lib64/gconv/CP770.so 100755 root root 19568  
+/usr/lib64/gconv/CP771.so 100755 root root 19576  
+/usr/lib64/gconv/CP772.so 100755 root root 19568  
+/usr/lib64/gconv/CP773.so 100755 root root 19568  
+/usr/lib64/gconv/CP774.so 100755 root root 19576  
+/usr/lib64/gconv/CP775.so 100755 root root 19576  
+/usr/lib64/gconv/CP932.so 100755 root root 101504  
+/usr/lib64/gconv/CSN_369103.so 100755 root root 19576  
+/usr/lib64/gconv/CWI.so 100755 root root 19568  
+/usr/lib64/gconv/DEC-MCS.so 100755 root root 19576  
+/usr/lib64/gconv/EBCDIC-AT-DE-A.so 100755 root root 19584  
+/usr/lib64/gconv/EBCDIC-AT-DE.so 100755 root root 19584  
+/usr/lib64/gconv/EBCDIC-CA-FR.so 100755 root root 19584  
+/usr/lib64/gconv/EBCDIC-DK-NO-A.so 100755 root root 19584  
+/usr/lib64/gconv/EBCDIC-DK-NO.so 100755 root root 19584  
+/usr/lib64/gconv/EBCDIC-ES-A.so 100755 root root 19576  
+/usr/lib64/gconv/EBCDIC-ES-S.so 100755 root root 19576  
+/usr/lib64/gconv/EBCDIC-ES.so 100755 root root 19576  
+/usr/lib64/gconv/EBCDIC-FI-SE-A.so 100755 root root 19584  
+/usr/lib64/gconv/EBCDIC-FI-SE.so 100755 root root 19584  
+/usr/lib64/gconv/EBCDIC-FR.so 100755 root root 19576  
+/usr/lib64/gconv/EBCDIC-IS-FRISS.so 100755 root root 19584  
+/usr/lib64/gconv/EBCDIC-IT.so 100755 root root 19576  
+/usr/lib64/gconv/EBCDIC-PT.so 100755 root root 19576  
+/usr/lib64/gconv/EBCDIC-UK.so 100755 root root 19576  
+/usr/lib64/gconv/EBCDIC-US.so 100755 root root 19576  
+/usr/lib64/gconv/ECMA-CYRILLIC.so 100755 root root 19584  
+/usr/lib64/gconv/EUC-CN.so 100755 root root 23680  
+/usr/lib64/gconv/EUC-JISX0213.so 100755 root root 23688  
+/usr/lib64/gconv/EUC-JP-MS.so 100755 root root 93312  
+/usr/lib64/gconv/EUC-JP.so 100755 root root 19584  
+/usr/lib64/gconv/EUC-KR.so 100755 root root 19584  
+/usr/lib64/gconv/EUC-TW.so 100755 root root 23680  
+/usr/lib64/gconv/GB18030.so 100755 root root 183432  
+/usr/lib64/gconv/GBBIG5.so 100755 root root 64624  
+/usr/lib64/gconv/GBGBK.so 100755 root root 19576  
+/usr/lib64/gconv/GBK.so 100755 root root 121992  
+/usr/lib64/gconv/GEORGIAN-ACADEMY.so 100755 root root 19584  
+/usr/lib64/gconv/GEORGIAN-PS.so 100755 root root 19576  
+/usr/lib64/gconv/GOST_19768-74.so 100755 root root 19584  
+/usr/lib64/gconv/GREEK-CCITT.so 100755 root root 19584  
+/usr/lib64/gconv/GREEK7-OLD.so 100755 root root 19576  
+/usr/lib64/gconv/GREEK7.so 100755 root root 19576  
+/usr/lib64/gconv/HP-GREEK8.so 100755 root root 19576  
+/usr/lib64/gconv/HP-ROMAN8.so 100755 root root 19576  
+/usr/lib64/gconv/HP-ROMAN9.so 100755 root root 19576  
+/usr/lib64/gconv/HP-THAI8.so 100755 root root 19576  
+/usr/lib64/gconv/HP-TURKISH8.so 100755 root root 19576  
+/usr/lib64/gconv/IBM037.so 100755 root root 19568  
+/usr/lib64/gconv/IBM038.so 100755 root root 19576  
+/usr/lib64/gconv/IBM1004.so 100755 root root 19576  
+/usr/lib64/gconv/IBM1008.so 100755 root root 19576  
+/usr/lib64/gconv/IBM1008_420.so 100755 root root 15480  
+/usr/lib64/gconv/IBM1025.so 100755 root root 19568  
+/usr/lib64/gconv/IBM1026.so 100755 root root 19576  
+/usr/lib64/gconv/IBM1046.so 100755 root root 19576  
+/usr/lib64/gconv/IBM1047.so 100755 root root 19576  
+/usr/lib64/gconv/IBM1097.so 100755 root root 19576  
+/usr/lib64/gconv/IBM1112.so 100755 root root 19568  
+/usr/lib64/gconv/IBM1122.so 100755 root root 19568  
+/usr/lib64/gconv/IBM1123.so 100755 root root 19568  
+/usr/lib64/gconv/IBM1124.so 100755 root root 19568  
+/usr/lib64/gconv/IBM1129.so 100755 root root 19568  
+/usr/lib64/gconv/IBM1130.so 100755 root root 19568  
+/usr/lib64/gconv/IBM1132.so 100755 root root 19576  
+/usr/lib64/gconv/IBM1133.so 100755 root root 19576  
+/usr/lib64/gconv/IBM1137.so 100755 root root 19576  
+/usr/lib64/gconv/IBM1140.so 100755 root root 19568  
+/usr/lib64/gconv/IBM1141.so 100755 root root 19568  
+/usr/lib64/gconv/IBM1142.so 100755 root root 19568  
+/usr/lib64/gconv/IBM1143.so 100755 root root 19568  
+/usr/lib64/gconv/IBM1144.so 100755 root root 19568  
+/usr/lib64/gconv/IBM1145.so 100755 root root 19568  
+/usr/lib64/gconv/IBM1146.so 100755 root root 19568  
+/usr/lib64/gconv/IBM1147.so 100755 root root 19568  
+/usr/lib64/gconv/IBM1148.so 100755 root root 19568  
+/usr/lib64/gconv/IBM1149.so 100755 root root 19568  
+/usr/lib64/gconv/IBM1153.so 100755 root root 19576  
+/usr/lib64/gconv/IBM1154.so 100755 root root 19568  
+/usr/lib64/gconv/IBM1155.so 100755 root root 19568  
+/usr/lib64/gconv/IBM1156.so 100755 root root 19568  
+/usr/lib64/gconv/IBM1157.so 100755 root root 19568  
+/usr/lib64/gconv/IBM1158.so 100755 root root 19576  
+/usr/lib64/gconv/IBM1160.so 100755 root root 19568  
+/usr/lib64/gconv/IBM1161.so 100755 root root 19576  
+/usr/lib64/gconv/IBM1162.so 100755 root root 19576  
+/usr/lib64/gconv/IBM1163.so 100755 root root 19576  
+/usr/lib64/gconv/IBM1164.so 100755 root root 19576  
+/usr/lib64/gconv/IBM1166.so 100755 root root 19568  
+/usr/lib64/gconv/IBM1167.so 100755 root root 19576  
+/usr/lib64/gconv/IBM12712.so 100755 root root 19576  
+/usr/lib64/gconv/IBM1364.so 100755 root root 158840  
+/usr/lib64/gconv/IBM1371.so 100755 root root 134264  
+/usr/lib64/gconv/IBM1388.so 100755 root root 179320  
+/usr/lib64/gconv/IBM1390.so 100755 root root 236664  
+/usr/lib64/gconv/IBM1399.so 100755 root root 236664  
+/usr/lib64/gconv/IBM16804.so 100755 root root 19584  
+/usr/lib64/gconv/IBM256.so 100755 root root 19576  
+/usr/lib64/gconv/IBM273.so 100755 root root 19568  
+/usr/lib64/gconv/IBM274.so 100755 root root 19568  
+/usr/lib64/gconv/IBM275.so 100755 root root 19576  
+/usr/lib64/gconv/IBM277.so 100755 root root 19568  
+/usr/lib64/gconv/IBM278.so 100755 root root 19568  
+/usr/lib64/gconv/IBM280.so 100755 root root 19568  
+/usr/lib64/gconv/IBM281.so 100755 root root 19576  
+/usr/lib64/gconv/IBM284.so 100755 root root 19568  
+/usr/lib64/gconv/IBM285.so 100755 root root 19576  
+/usr/lib64/gconv/IBM290.so 100755 root root 19576  
+/usr/lib64/gconv/IBM297.so 100755 root root 19568  
+/usr/lib64/gconv/IBM420.so 100755 root root 19576  
+/usr/lib64/gconv/IBM423.so 100755 root root 19576  
+/usr/lib64/gconv/IBM424.so 100755 root root 19576  
+/usr/lib64/gconv/IBM437.so 100755 root root 19568  
+/usr/lib64/gconv/IBM4517.so 100755 root root 19568  
+/usr/lib64/gconv/IBM4899.so 100755 root root 19568  
+/usr/lib64/gconv/IBM4909.so 100755 root root 19576  
+/usr/lib64/gconv/IBM4971.so 100755 root root 19576  
+/usr/lib64/gconv/IBM500.so 100755 root root 19576  
+/usr/lib64/gconv/IBM5347.so 100755 root root 19568  
+/usr/lib64/gconv/IBM803.so 100755 root root 19576  
+/usr/lib64/gconv/IBM850.so 100755 root root 19576  
+/usr/lib64/gconv/IBM851.so 100755 root root 19568  
+/usr/lib64/gconv/IBM852.so 100755 root root 19576  
+/usr/lib64/gconv/IBM855.so 100755 root root 19576  
+/usr/lib64/gconv/IBM856.so 100755 root root 19576  
+/usr/lib64/gconv/IBM857.so 100755 root root 19576  
+/usr/lib64/gconv/IBM858.so 100755 root root 19576  
+/usr/lib64/gconv/IBM860.so 100755 root root 19576  
+/usr/lib64/gconv/IBM861.so 100755 root root 19568  
+/usr/lib64/gconv/IBM862.so 100755 root root 19568  
+/usr/lib64/gconv/IBM863.so 100755 root root 19568  
+/usr/lib64/gconv/IBM864.so 100755 root root 19576  
+/usr/lib64/gconv/IBM865.so 100755 root root 19568  
+/usr/lib64/gconv/IBM866.so 100755 root root 19576  
+/usr/lib64/gconv/IBM866NAV.so 100755 root root 19576  
+/usr/lib64/gconv/IBM868.so 100755 root root 19576  
+/usr/lib64/gconv/IBM869.so 100755 root root 19576  
+/usr/lib64/gconv/IBM870.so 100755 root root 19576  
+/usr/lib64/gconv/IBM871.so 100755 root root 19576  
+/usr/lib64/gconv/IBM874.so 100755 root root 19576  
+/usr/lib64/gconv/IBM875.so 100755 root root 19576  
+/usr/lib64/gconv/IBM880.so 100755 root root 19568  
+/usr/lib64/gconv/IBM891.so 100755 root root 19576  
+/usr/lib64/gconv/IBM901.so 100755 root root 19576  
+/usr/lib64/gconv/IBM902.so 100755 root root 19576  
+/usr/lib64/gconv/IBM903.so 100755 root root 19576  
+/usr/lib64/gconv/IBM9030.so 100755 root root 19568  
+/usr/lib64/gconv/IBM904.so 100755 root root 19576  
+/usr/lib64/gconv/IBM905.so 100755 root root 19576  
+/usr/lib64/gconv/IBM9066.so 100755 root root 19576  
+/usr/lib64/gconv/IBM918.so 100755 root root 19576  
+/usr/lib64/gconv/IBM921.so 100755 root root 19576  
+/usr/lib64/gconv/IBM922.so 100755 root root 19576  
+/usr/lib64/gconv/IBM930.so 100755 root root 101504  
+/usr/lib64/gconv/IBM932.so 100755 root root 76920  
+/usr/lib64/gconv/IBM933.so 100755 root root 121976  
+/usr/lib64/gconv/IBM935.so 100755 root root 89208  
+/usr/lib64/gconv/IBM937.so 100755 root root 117888  
+/usr/lib64/gconv/IBM939.so 100755 root root 101496  
+/usr/lib64/gconv/IBM943.so 100755 root root 76920  
+/usr/lib64/gconv/IBM9448.so 100755 root root 19568  
+/usr/lib64/gconv/IEC_P27-1.so 100755 root root 19576  
+/usr/lib64/gconv/INIS-8.so 100755 root root 19576  
+/usr/lib64/gconv/INIS-CYRILLIC.so 100755 root root 19584  
+/usr/lib64/gconv/INIS.so 100755 root root 19576  
+/usr/lib64/gconv/ISIRI-3342.so 100755 root root 19584  
+/usr/lib64/gconv/ISO-2022-CN-EXT.so 100755 root root 56472  
+/usr/lib64/gconv/ISO-2022-CN.so 100755 root root 40064  
+/usr/lib64/gconv/ISO-2022-JP-3.so 100755 root root 35960  
+/usr/lib64/gconv/ISO-2022-JP.so 100755 root root 56464  
+/usr/lib64/gconv/ISO-2022-KR.so 100755 root root 23680  
+/usr/lib64/gconv/ISO-IR-197.so 100755 root root 19576  
+/usr/lib64/gconv/ISO-IR-209.so 100755 root root 19584  
+/usr/lib64/gconv/ISO646.so 100755 root root 40064  
+/usr/lib64/gconv/ISO8859-10.so 100755 root root 19576  
+/usr/lib64/gconv/ISO8859-11.so 100755 root root 19576  
+/usr/lib64/gconv/ISO8859-13.so 100755 root root 19576  
+/usr/lib64/gconv/ISO8859-14.so 100755 root root 19576  
+/usr/lib64/gconv/ISO8859-16.so 100755 root root 19576  
+/usr/lib64/gconv/ISO8859-2.so 100755 root root 19576  
+/usr/lib64/gconv/ISO8859-3.so 100755 root root 19576  
+/usr/lib64/gconv/ISO8859-4.so 100755 root root 19576  
+/usr/lib64/gconv/ISO8859-5.so 100755 root root 19576  
+/usr/lib64/gconv/ISO8859-6.so 100755 root root 23672  
+/usr/lib64/gconv/ISO8859-7.so 100755 root root 19584  
+/usr/lib64/gconv/ISO8859-8.so 100755 root root 19576  
+/usr/lib64/gconv/ISO8859-9.so 100755 root root 19576  
+/usr/lib64/gconv/ISO8859-9E.so 100755 root root 19576  
+/usr/lib64/gconv/ISO_10367-BOX.so 100755 root root 19584  
+/usr/lib64/gconv/ISO_11548-1.so 100755 root root 19576  
+/usr/lib64/gconv/ISO_2033.so 100755 root root 19576  
+/usr/lib64/gconv/ISO_5427-EXT.so 100755 root root 19584  
+/usr/lib64/gconv/ISO_5427.so 100755 root root 19584  
+/usr/lib64/gconv/ISO_5428.so 100755 root root 19576  
+/usr/lib64/gconv/ISO_6937-2.so 100755 root root 27784  
+/usr/lib64/gconv/ISO_6937.so 100755 root root 27784  
+/usr/lib64/gconv/JOHAB.so 100755 root root 23680  
+/usr/lib64/gconv/KOI-8.so 100755 root root 19576  
+/usr/lib64/gconv/KOI8-R.so 100755 root root 19576  
+/usr/lib64/gconv/KOI8-RU.so 100755 root root 19576  
+/usr/lib64/gconv/KOI8-T.so 100755 root root 19576  
+/usr/lib64/gconv/KOI8-U.so 100755 root root 19568  
+/usr/lib64/gconv/LATIN-GREEK-1.so 100755 root root 19584  
+/usr/lib64/gconv/LATIN-GREEK.so 100755 root root 19576  
+/usr/lib64/gconv/MAC-CENTRALEUROPE.so 100755 root root 19584  
+/usr/lib64/gconv/MAC-IS.so 100755 root root 19568  
+/usr/lib64/gconv/MAC-SAMI.so 100755 root root 19576  
+/usr/lib64/gconv/MAC-UK.so 100755 root root 19576  
+/usr/lib64/gconv/MACINTOSH.so 100755 root root 19576  
+/usr/lib64/gconv/MIK.so 100755 root root 19576  
+/usr/lib64/gconv/NATS-DANO.so 100755 root root 19576  
+/usr/lib64/gconv/NATS-SEFI.so 100755 root root 19576  
+/usr/lib64/gconv/PT154.so 100755 root root 19568  
+/usr/lib64/gconv/RK1048.so 100755 root root 19576  
+/usr/lib64/gconv/SAMI-WS2.so 100755 root root 19576  
+/usr/lib64/gconv/SHIFT_JISX0213.so 100755 root root 23688  
+/usr/lib64/gconv/SJIS.so 100755 root root 101512  
+/usr/lib64/gconv/T.61.so 100755 root root 27776  
+/usr/lib64/gconv/TCVN5712-1.so 100755 root root 19584  
+/usr/lib64/gconv/TIS-620.so 100755 root root 19576  
+/usr/lib64/gconv/TSCII.so 100755 root root 23672  
+/usr/lib64/gconv/UHC.so 100755 root root 76928  
+/usr/lib64/gconv/VISCII.so 100755 root root 19576  
+/usr/lib64/gconv/gconv-modules.d/gconv-modules-extra.conf 100644 root root 53974 cn 
+/usr/lib64/gconv/libCNS.so 100755 root root 474136  
+/usr/lib64/gconv/libGB.so 100755 root root 72728  
+/usr/lib64/gconv/libISOIR165.so 100755 root root 64536  
+/usr/lib64/gconv/libJIS.so 100755 root root 109600  
+/usr/lib64/gconv/libJISX0213.so 100755 root root 130088  
+/usr/lib64/gconv/libKSC.so 100755 root root 52248  
+
+## Provides
+config(glibc-gconv-extra) = 2.39-142.el10_2
+glibc-gconv-extra = 2.39-142.el10_2
+glibc-gconv-extra(x86-64) = 2.39-142.el10_2
+libCNS.so()(64bit)
+libGB.so()(64bit)
+libISOIR165.so()(64bit)
+libJIS.so()(64bit)
+libJISX0213.so()(64bit)
+libKSC.so()(64bit)
+
+## Requires
+config(glibc-gconv-extra) = 2.39-142.el10_2
+glibc(x86-64) = 2.39-142.el10_2
+glibc-common = 2.39-142.el10_2
+libCNS.so()(64bit)
+libGB.so()(64bit)
+libISOIR165.so()(64bit)
+libJIS.so()(64bit)
+libJISX0213.so()(64bit)
+libKSC.so()(64bit)
+libc.so.6()(64bit)
+libc.so.6(GLIBC_2.2.5)(64bit)
+libc.so.6(GLIBC_2.4)(64bit)
+libc.so.6(GLIBC_ABI_DT_RELR)(64bit)
+libc.so.6(GLIBC_PRIVATE)(64bit)
+rpmlib(BuiltinLuaScripts) <= 4.2.2-1
+rpmlib(CompressedFileNames) <= 3.0.4-1
+rpmlib(FileDigests) <= 4.6.0-1
+rpmlib(PayloadFilesHavePrefix) <= 4.0-1
+rpmlib(PayloadIsZstd) <= 5.4.18-1
+
+## Recommends/Suggests/Supplements/Enhances
+
+## Conflicts / Obsoletes
+
+## Scripts
+postinstall scriptlet (using <lua>):
+
+-- We use lua because there may be no shell that we can run during
+-- glibc upgrade. We used to implement much of %post as a C program,
+-- but from an overall maintenance perspective the lua in the spec
+-- file was simpler and safer given the operations required.
+-- All lua code will be ignored by rpm-ostree; see:
+-- https://github.com/projectatomic/rpm-ostree/pull/1869
+-- If we add new lua actions to the %post code we should coordinate
+-- with rpm-ostree and ensure that their glibc install is functional.
+-- We must not use rpm.execute because this is a RPM 4.15 features and
+-- we must still support downstream bootstrap with RPM 4.14 and missing
+-- containerized boostrap.
+
+-- Open-code rpm.execute with error message handling.
+function post_exec (msg, program, ...)
+  local pid = posix.fork ()
+  if pid == 0 then
+    posix.exec (program, ...)
+    io.stdout:write (msg)
+    assert (nil)
+  elseif pid > 0 then
+    posix.wait (pid)
+  end
+end
+
+-- Note: We use _prefix because Fedora's UsrMove says so.
+function call_ldconfig ()
+  post_exec("Error: call to /usr/sbin/ldconfig failed.n",
+	    "/usr/sbin/ldconfig")
+end
+
+function update_gconv_modules_cache ()
+  local iconv_dir = "/usr/lib64/gconv"
+  local iconv_cache = iconv_dir .. "/gconv-modules.cache"
+  local iconv_modules = iconv_dir .. "/gconv-modules"
+  if posix.utime(iconv_modules) == 0 then
+    if posix.utime (iconv_cache) == 0 then
+      post_exec ("Error: call to /usr/sbin/iconvconfig failed.n",
+		 "/usr/sbin/iconvconfig",
+		 "-o", iconv_cache,
+		 "--nostdlib",
+		 iconv_dir)
+    else
+      io.stdout:write ("Error: Missing " .. iconv_cache .. " file.n")
+    end
+  end
+end
+update_gconv_modules_cache ()
+postuninstall scriptlet (using <lua>):
+
+-- We use lua because there may be no shell that we can run during
+-- glibc upgrade. We used to implement much of %post as a C program,
+-- but from an overall maintenance perspective the lua in the spec
+-- file was simpler and safer given the operations required.
+-- All lua code will be ignored by rpm-ostree; see:
+-- https://github.com/projectatomic/rpm-ostree/pull/1869
+-- If we add new lua actions to the %post code we should coordinate
+-- with rpm-ostree and ensure that their glibc install is functional.
+-- We must not use rpm.execute because this is a RPM 4.15 features and
+-- we must still support downstream bootstrap with RPM 4.14 and missing
+-- containerized boostrap.
+
+-- Open-code rpm.execute with error message handling.
+function post_exec (msg, program, ...)
+  local pid = posix.fork ()
+  if pid == 0 then
+    posix.exec (program, ...)
+    io.stdout:write (msg)
+    assert (nil)
+  elseif pid > 0 then
+    posix.wait (pid)
+  end
+end
+
+-- Note: We use _prefix because Fedora's UsrMove says so.
+function call_ldconfig ()
+  post_exec("Error: call to /usr/sbin/ldconfig failed.n",
+	    "/usr/sbin/ldconfig")
+end
+
+function update_gconv_modules_cache ()
+  local iconv_dir = "/usr/lib64/gconv"
+  local iconv_cache = iconv_dir .. "/gconv-modules.cache"
+  local iconv_modules = iconv_dir .. "/gconv-modules"
+  if posix.utime(iconv_modules) == 0 then
+    if posix.utime (iconv_cache) == 0 then
+      post_exec ("Error: call to /usr/sbin/iconvconfig failed.n",
+		 "/usr/sbin/iconvconfig",
+		 "-o", iconv_cache,
+		 "--nostdlib",
+		 iconv_dir)
+    else
+      io.stdout:write ("Error: Missing " .. iconv_cache .. " file.n")
+    end
+  end
+end
+update_gconv_modules_cache ()
+
+## Triggers
+
+## File triggers
+
+## ELF dynamic dependencies (readelf -d NEEDED / RPATH / RUNPATH / interp)
+/usr/lib64/gconv/ANSI_X3.110.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ARMSCII-8.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ASMO_449.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/BIG5.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/BIG5HKSCS.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/BRF.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/CP10007.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/CP1125.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/CP1250.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/CP1251.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/CP1253.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/CP1254.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/CP1255.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/CP1256.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/CP1257.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/CP1258.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/CP737.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/CP770.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/CP771.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/CP772.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/CP773.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/CP774.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/CP775.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/CP932.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/CSN_369103.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/CWI.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/DEC-MCS.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/EBCDIC-AT-DE-A.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/EBCDIC-AT-DE.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/EBCDIC-CA-FR.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/EBCDIC-DK-NO-A.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/EBCDIC-DK-NO.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/EBCDIC-ES-A.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/EBCDIC-ES-S.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/EBCDIC-ES.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/EBCDIC-FI-SE-A.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/EBCDIC-FI-SE.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/EBCDIC-FR.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/EBCDIC-IS-FRISS.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/EBCDIC-IT.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/EBCDIC-PT.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/EBCDIC-UK.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/EBCDIC-US.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ECMA-CYRILLIC.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/EUC-CN.so [DYN] NEEDED: libGB.so libc.so.6  RPATH: $ORIGIN 
+/usr/lib64/gconv/EUC-JISX0213.so [DYN] NEEDED: libJISX0213.so libc.so.6  RPATH: $ORIGIN 
+/usr/lib64/gconv/EUC-JP-MS.so [DYN] NEEDED: libJIS.so libc.so.6  RPATH: $ORIGIN 
+/usr/lib64/gconv/EUC-JP.so [DYN] NEEDED: libJIS.so libc.so.6  RPATH: $ORIGIN 
+/usr/lib64/gconv/EUC-KR.so [DYN] NEEDED: libKSC.so libc.so.6  RPATH: $ORIGIN 
+/usr/lib64/gconv/EUC-TW.so [DYN] NEEDED: libCNS.so libc.so.6  RPATH: $ORIGIN 
+/usr/lib64/gconv/GB18030.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/GBBIG5.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/GBGBK.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/GBK.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/GEORGIAN-ACADEMY.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/GEORGIAN-PS.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/GOST_19768-74.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/GREEK-CCITT.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/GREEK7-OLD.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/GREEK7.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/HP-GREEK8.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/HP-ROMAN8.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/HP-ROMAN9.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/HP-THAI8.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/HP-TURKISH8.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM037.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM038.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1004.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1008.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1008_420.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1025.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1026.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1046.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1047.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1097.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1112.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1122.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1123.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1124.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1129.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1130.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1132.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1133.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1137.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1140.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1141.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1142.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1143.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1144.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1145.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1146.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1147.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1148.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1149.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1153.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1154.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1155.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1156.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1157.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1158.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1160.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1161.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1162.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1163.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1164.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1166.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1167.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM12712.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1364.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1371.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1388.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1390.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM1399.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM16804.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM256.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM273.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM274.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM275.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM277.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM278.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM280.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM281.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM284.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM285.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM290.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM297.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM420.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM423.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM424.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM437.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM4517.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM4899.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM4909.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM4971.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM500.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM5347.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM803.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM850.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM851.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM852.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM855.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM856.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM857.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM858.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM860.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM861.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM862.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM863.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM864.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM865.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM866.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM866NAV.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM868.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM869.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM870.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM871.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM874.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM875.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM880.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM891.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM901.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM902.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM903.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM9030.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM904.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM905.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM9066.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM918.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM921.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM922.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM930.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM932.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM933.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM935.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM937.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM939.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM943.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IBM9448.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/IEC_P27-1.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/INIS-8.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/INIS-CYRILLIC.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/INIS.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISIRI-3342.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO-2022-CN-EXT.so [DYN] NEEDED: libGB.so libCNS.so libISOIR165.so libc.so.6  RPATH: $ORIGIN 
+/usr/lib64/gconv/ISO-2022-CN.so [DYN] NEEDED: libGB.so libCNS.so libc.so.6  RPATH: $ORIGIN 
+/usr/lib64/gconv/ISO-2022-JP-3.so [DYN] NEEDED: libJIS.so libJISX0213.so libc.so.6  RPATH: $ORIGIN 
+/usr/lib64/gconv/ISO-2022-JP.so [DYN] NEEDED: libJIS.so libGB.so libKSC.so libc.so.6  RPATH: $ORIGIN 
+/usr/lib64/gconv/ISO-2022-KR.so [DYN] NEEDED: libKSC.so libc.so.6  RPATH: $ORIGIN 
+/usr/lib64/gconv/ISO-IR-197.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO-IR-209.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO646.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO8859-10.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO8859-11.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO8859-13.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO8859-14.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO8859-16.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO8859-2.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO8859-3.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO8859-4.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO8859-5.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO8859-6.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO8859-7.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO8859-8.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO8859-9.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO8859-9E.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO_10367-BOX.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO_11548-1.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO_2033.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO_5427-EXT.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO_5427.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO_5428.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO_6937-2.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO_6937.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/JOHAB.so [DYN] NEEDED: libKSC.so libc.so.6  RPATH: $ORIGIN 
+/usr/lib64/gconv/KOI-8.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/KOI8-R.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/KOI8-RU.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/KOI8-T.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/KOI8-U.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/LATIN-GREEK-1.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/LATIN-GREEK.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/MAC-CENTRALEUROPE.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/MAC-IS.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/MAC-SAMI.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/MAC-UK.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/MACINTOSH.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/MIK.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/NATS-DANO.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/NATS-SEFI.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/PT154.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/RK1048.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/SAMI-WS2.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/SHIFT_JISX0213.so [DYN] NEEDED: libJISX0213.so libc.so.6  RPATH: $ORIGIN 
+/usr/lib64/gconv/SJIS.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/T.61.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/TCVN5712-1.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/TIS-620.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/TSCII.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/UHC.so [DYN] NEEDED: libKSC.so libc.so.6  RPATH: $ORIGIN 
+/usr/lib64/gconv/VISCII.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/libCNS.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/libGB.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/libISOIR165.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/libJIS.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/libJISX0213.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/libKSC.so [DYN] NEEDED: libc.so.6 
+
+## Leak checks
+paths under /usr/lib/debug in payload: 0
+files whose CONTENT mentions '/usr/lib/debug': <none> 
+files whose CONTENT mentions /builddir/build|/usr/src/debug|/nix/store: <none> 

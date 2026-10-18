@@ -1,0 +1,553 @@
+# Official Rocky Linux 10.2 baseline: glibc-langpack-en-2.39-142.el10_2.x86_64.rpm
+# sha256: e4ca50f80404d3750b99412a6c5a102c92902bead805c0b8fa26c584738cb19b
+
+## Header summary
+NEVRA:        glibc-langpack-en-2.39-142.el10_2.x86_64
+Source RPM:   glibc-2.39-142.el10_2.src.rpm
+Build host:   ord1-prod-x86build009.svc.aws.rockylinux.org
+Build time:   1791453144 (Thu Oct  8 05:52:24 2026)
+Vendor:       Rocky Enterprise Software Foundation
+Packager:     Rocky Linux Build System <releng@rockylinux.org>
+License:      LGPL-2.1-or-later AND SunPro AND LGPL-2.1-or-later WITH GCC-exception-2.0 AND BSD-3-Clause AND GPL-2.0-or-later AND LGPL-2.1-or-later WITH GNU-compiler-exception AND GPL-2.0-only AND ISC AND LicenseRef-Fedora-Public-Domain AND HPND AND CMU-Mach AND LGPL-2.1-only AND LGPL-2.0-or-later AND Unicode-DFS-2015 AND GFDL-1.1-or-later AND GPL-1.0-or-later AND FSFUL AND MIT AND Inner-Net-2.0 AND X11 AND GPL-2.0-or-later WITH GCC-exception-2.0 AND GFDL-1.3-only AND GFDL-1.1-only AND GPL-3.0-or-later AND GPL-3.0-or-later WITH Autoconf-exception-generic-3.0 AND GPL-3.0-or-later WITH Texinfo-exception
+Group:        Unspecified
+URL:          http://www.gnu.org/software/glibc/
+Summary:      Locale data for English
+Payload:      cpio / zstd level 19
+File digest:  8 (8=sha256)
+Size (inst):  5980174 bytes
+Archive size: 6054048
+Opt flags:    -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Wno-complain-wrong-lang -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2  
+Platform:     x86_64-redhat-linux-gnu
+RPM version:  4.19.1.1
+Files:        492
+
+## Description
+The glibc-langpack-en package includes the basic information required
+to support the English language in your applications.
+
+## Files (path mode(octal) user group size flags linkto) [flags: c=config d=doc g=ghost l=license m=missingok n=noreplace]
+/usr/lib/locale 40755 root root 0  
+/usr/lib/locale/en_AG 40755 root root 0  
+/usr/lib/locale/en_AG/LC_ADDRESS 100644 root root 162  
+/usr/lib/locale/en_AG/LC_COLLATE 100644 root root 2586930  
+/usr/lib/locale/en_AG/LC_CTYPE 120777 root root 18  ../C.utf8/LC_CTYPE
+/usr/lib/locale/en_AG/LC_IDENTIFICATION 100644 root root 385  
+/usr/lib/locale/en_AG/LC_MEASUREMENT 100644 root root 23  
+/usr/lib/locale/en_AG/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_AG/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 57  
+/usr/lib/locale/en_AG/LC_MONETARY 100644 root root 286  
+/usr/lib/locale/en_AG/LC_NAME 100644 root root 77  
+/usr/lib/locale/en_AG/LC_NUMERIC 100644 root root 54  
+/usr/lib/locale/en_AG/LC_PAPER 100644 root root 34  
+/usr/lib/locale/en_AG/LC_TELEPHONE 100644 root root 51  
+/usr/lib/locale/en_AG/LC_TIME 100644 root root 3332  
+/usr/lib/locale/en_AU 40755 root root 0  
+/usr/lib/locale/en_AU.utf8 40755 root root 0  
+/usr/lib/locale/en_AU.utf8/LC_ADDRESS 100644 root root 154  
+/usr/lib/locale/en_AU.utf8/LC_COLLATE 100644 root root 2586930  
+/usr/lib/locale/en_AU.utf8/LC_CTYPE 120777 root root 18  ../C.utf8/LC_CTYPE
+/usr/lib/locale/en_AU.utf8/LC_IDENTIFICATION 100644 root root 360  
+/usr/lib/locale/en_AU.utf8/LC_MEASUREMENT 100644 root root 23  
+/usr/lib/locale/en_AU.utf8/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_AU.utf8/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 57  
+/usr/lib/locale/en_AU.utf8/LC_MONETARY 100644 root root 286  
+/usr/lib/locale/en_AU.utf8/LC_NAME 100644 root root 62  
+/usr/lib/locale/en_AU.utf8/LC_NUMERIC 100644 root root 54  
+/usr/lib/locale/en_AU.utf8/LC_PAPER 100644 root root 34  
+/usr/lib/locale/en_AU.utf8/LC_TELEPHONE 100644 root root 53  
+/usr/lib/locale/en_AU.utf8/LC_TIME 100644 root root 3268  
+/usr/lib/locale/en_AU/LC_ADDRESS 100644 root root 159  
+/usr/lib/locale/en_AU/LC_COLLATE 100644 root root 21267  
+/usr/lib/locale/en_AU/LC_CTYPE 100644 root root 307204  
+/usr/lib/locale/en_AU/LC_IDENTIFICATION 100644 root root 363  
+/usr/lib/locale/en_AU/LC_MEASUREMENT 100644 root root 28  
+/usr/lib/locale/en_AU/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_AU/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 62  
+/usr/lib/locale/en_AU/LC_MONETARY 100644 root root 291  
+/usr/lib/locale/en_AU/LC_NAME 100644 root root 67  
+/usr/lib/locale/en_AU/LC_NUMERIC 100644 root root 59  
+/usr/lib/locale/en_AU/LC_PAPER 100644 root root 39  
+/usr/lib/locale/en_AU/LC_TELEPHONE 100644 root root 58  
+/usr/lib/locale/en_AU/LC_TIME 100644 root root 3276  
+/usr/lib/locale/en_BW 40755 root root 0  
+/usr/lib/locale/en_BW.utf8 40755 root root 0  
+/usr/lib/locale/en_BW.utf8/LC_ADDRESS 100644 root root 154  
+/usr/lib/locale/en_BW.utf8/LC_COLLATE 100644 root root 2586930  
+/usr/lib/locale/en_BW.utf8/LC_CTYPE 120777 root root 18  ../C.utf8/LC_CTYPE
+/usr/lib/locale/en_BW.utf8/LC_IDENTIFICATION 100644 root root 295  
+/usr/lib/locale/en_BW.utf8/LC_MEASUREMENT 100644 root root 23  
+/usr/lib/locale/en_BW.utf8/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_BW.utf8/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 57  
+/usr/lib/locale/en_BW.utf8/LC_MONETARY 100644 root root 286  
+/usr/lib/locale/en_BW.utf8/LC_NAME 100644 root root 62  
+/usr/lib/locale/en_BW.utf8/LC_NUMERIC 100644 root root 54  
+/usr/lib/locale/en_BW.utf8/LC_PAPER 100644 root root 34  
+/usr/lib/locale/en_BW.utf8/LC_TELEPHONE 100644 root root 52  
+/usr/lib/locale/en_BW.utf8/LC_TIME 100644 root root 3196  
+/usr/lib/locale/en_BW/LC_ADDRESS 100644 root root 159  
+/usr/lib/locale/en_BW/LC_COLLATE 100644 root root 21267  
+/usr/lib/locale/en_BW/LC_CTYPE 100644 root root 307204  
+/usr/lib/locale/en_BW/LC_IDENTIFICATION 100644 root root 300  
+/usr/lib/locale/en_BW/LC_MEASUREMENT 100644 root root 28  
+/usr/lib/locale/en_BW/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_BW/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 62  
+/usr/lib/locale/en_BW/LC_MONETARY 100644 root root 291  
+/usr/lib/locale/en_BW/LC_NAME 100644 root root 67  
+/usr/lib/locale/en_BW/LC_NUMERIC 100644 root root 59  
+/usr/lib/locale/en_BW/LC_PAPER 100644 root root 39  
+/usr/lib/locale/en_BW/LC_TELEPHONE 100644 root root 57  
+/usr/lib/locale/en_BW/LC_TIME 100644 root root 3204  
+/usr/lib/locale/en_CA 40755 root root 0  
+/usr/lib/locale/en_CA.utf8 40755 root root 0  
+/usr/lib/locale/en_CA.utf8/LC_ADDRESS 100644 root root 150  
+/usr/lib/locale/en_CA.utf8/LC_COLLATE 100644 root root 2586930  
+/usr/lib/locale/en_CA.utf8/LC_CTYPE 120777 root root 18  ../C.utf8/LC_CTYPE
+/usr/lib/locale/en_CA.utf8/LC_IDENTIFICATION 100644 root root 352  
+/usr/lib/locale/en_CA.utf8/LC_MEASUREMENT 100644 root root 23  
+/usr/lib/locale/en_CA.utf8/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_CA.utf8/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 59  
+/usr/lib/locale/en_CA.utf8/LC_MONETARY 100644 root root 286  
+/usr/lib/locale/en_CA.utf8/LC_NAME 100644 root root 62  
+/usr/lib/locale/en_CA.utf8/LC_NUMERIC 100644 root root 54  
+/usr/lib/locale/en_CA.utf8/LC_PAPER 100644 root root 34  
+/usr/lib/locale/en_CA.utf8/LC_TELEPHONE 100644 root root 51  
+/usr/lib/locale/en_CA.utf8/LC_TIME 100644 root root 3268  
+/usr/lib/locale/en_CA/LC_ADDRESS 100644 root root 155  
+/usr/lib/locale/en_CA/LC_COLLATE 100644 root root 21267  
+/usr/lib/locale/en_CA/LC_CTYPE 100644 root root 307204  
+/usr/lib/locale/en_CA/LC_IDENTIFICATION 100644 root root 355  
+/usr/lib/locale/en_CA/LC_MEASUREMENT 100644 root root 28  
+/usr/lib/locale/en_CA/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_CA/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 64  
+/usr/lib/locale/en_CA/LC_MONETARY 100644 root root 291  
+/usr/lib/locale/en_CA/LC_NAME 100644 root root 67  
+/usr/lib/locale/en_CA/LC_NUMERIC 100644 root root 59  
+/usr/lib/locale/en_CA/LC_PAPER 100644 root root 39  
+/usr/lib/locale/en_CA/LC_TELEPHONE 100644 root root 56  
+/usr/lib/locale/en_CA/LC_TIME 100644 root root 3276  
+/usr/lib/locale/en_DK 40755 root root 0  
+/usr/lib/locale/en_DK.utf8 40755 root root 0  
+/usr/lib/locale/en_DK.utf8/LC_ADDRESS 100644 root root 150  
+/usr/lib/locale/en_DK.utf8/LC_COLLATE 100644 root root 2586930  
+/usr/lib/locale/en_DK.utf8/LC_CTYPE 120777 root root 18  ../C.utf8/LC_CTYPE
+/usr/lib/locale/en_DK.utf8/LC_IDENTIFICATION 100644 root root 364  
+/usr/lib/locale/en_DK.utf8/LC_MEASUREMENT 100644 root root 23  
+/usr/lib/locale/en_DK.utf8/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_DK.utf8/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 63  
+/usr/lib/locale/en_DK.utf8/LC_MONETARY 100644 root root 290  
+/usr/lib/locale/en_DK.utf8/LC_NAME 100644 root root 62  
+/usr/lib/locale/en_DK.utf8/LC_NUMERIC 100644 root root 54  
+/usr/lib/locale/en_DK.utf8/LC_PAPER 100644 root root 34  
+/usr/lib/locale/en_DK.utf8/LC_TELEPHONE 100644 root root 51  
+/usr/lib/locale/en_DK.utf8/LC_TIME 100644 root root 3180  
+/usr/lib/locale/en_DK/LC_ADDRESS 100644 root root 155  
+/usr/lib/locale/en_DK/LC_COLLATE 100644 root root 21267  
+/usr/lib/locale/en_DK/LC_CTYPE 100644 root root 307204  
+/usr/lib/locale/en_DK/LC_IDENTIFICATION 100644 root root 369  
+/usr/lib/locale/en_DK/LC_MEASUREMENT 100644 root root 28  
+/usr/lib/locale/en_DK/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_DK/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 68  
+/usr/lib/locale/en_DK/LC_MONETARY 100644 root root 295  
+/usr/lib/locale/en_DK/LC_NAME 100644 root root 67  
+/usr/lib/locale/en_DK/LC_NUMERIC 100644 root root 59  
+/usr/lib/locale/en_DK/LC_PAPER 100644 root root 39  
+/usr/lib/locale/en_DK/LC_TELEPHONE 100644 root root 56  
+/usr/lib/locale/en_DK/LC_TIME 100644 root root 3188  
+/usr/lib/locale/en_GB 40755 root root 0  
+/usr/lib/locale/en_GB.iso885915 40755 root root 0  
+/usr/lib/locale/en_GB.iso885915/LC_ADDRESS 100644 root root 164  
+/usr/lib/locale/en_GB.iso885915/LC_COLLATE 100644 root root 22408  
+/usr/lib/locale/en_GB.iso885915/LC_CTYPE 100644 root root 307464  
+/usr/lib/locale/en_GB.iso885915/LC_IDENTIFICATION 100644 root root 377  
+/usr/lib/locale/en_GB.iso885915/LC_MEASUREMENT 100644 root root 29  
+/usr/lib/locale/en_GB.iso885915/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_GB.iso885915/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 63  
+/usr/lib/locale/en_GB.iso885915/LC_MONETARY 100644 root root 292  
+/usr/lib/locale/en_GB.iso885915/LC_NAME 100644 root root 83  
+/usr/lib/locale/en_GB.iso885915/LC_NUMERIC 100644 root root 60  
+/usr/lib/locale/en_GB.iso885915/LC_PAPER 100644 root root 40  
+/usr/lib/locale/en_GB.iso885915/LC_TELEPHONE 100644 root root 62  
+/usr/lib/locale/en_GB.iso885915/LC_TIME 100644 root root 3340  
+/usr/lib/locale/en_GB.utf8 40755 root root 0  
+/usr/lib/locale/en_GB.utf8/LC_ADDRESS 100644 root root 158  
+/usr/lib/locale/en_GB.utf8/LC_COLLATE 100644 root root 2586930  
+/usr/lib/locale/en_GB.utf8/LC_CTYPE 120777 root root 18  ../C.utf8/LC_CTYPE
+/usr/lib/locale/en_GB.utf8/LC_IDENTIFICATION 100644 root root 373  
+/usr/lib/locale/en_GB.utf8/LC_MEASUREMENT 100644 root root 23  
+/usr/lib/locale/en_GB.utf8/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_GB.utf8/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 57  
+/usr/lib/locale/en_GB.utf8/LC_MONETARY 100644 root root 290  
+/usr/lib/locale/en_GB.utf8/LC_NAME 100644 root root 77  
+/usr/lib/locale/en_GB.utf8/LC_NUMERIC 100644 root root 54  
+/usr/lib/locale/en_GB.utf8/LC_PAPER 100644 root root 34  
+/usr/lib/locale/en_GB.utf8/LC_TELEPHONE 100644 root root 56  
+/usr/lib/locale/en_GB.utf8/LC_TIME 100644 root root 3332  
+/usr/lib/locale/en_GB/LC_ADDRESS 100644 root root 163  
+/usr/lib/locale/en_GB/LC_COLLATE 100644 root root 21267  
+/usr/lib/locale/en_GB/LC_CTYPE 100644 root root 307204  
+/usr/lib/locale/en_GB/LC_IDENTIFICATION 100644 root root 376  
+/usr/lib/locale/en_GB/LC_MEASUREMENT 100644 root root 28  
+/usr/lib/locale/en_GB/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_GB/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 62  
+/usr/lib/locale/en_GB/LC_MONETARY 100644 root root 291  
+/usr/lib/locale/en_GB/LC_NAME 100644 root root 82  
+/usr/lib/locale/en_GB/LC_NUMERIC 100644 root root 59  
+/usr/lib/locale/en_GB/LC_PAPER 100644 root root 39  
+/usr/lib/locale/en_GB/LC_TELEPHONE 100644 root root 61  
+/usr/lib/locale/en_GB/LC_TIME 100644 root root 3340  
+/usr/lib/locale/en_HK 40755 root root 0  
+/usr/lib/locale/en_HK.utf8 40755 root root 0  
+/usr/lib/locale/en_HK.utf8/LC_ADDRESS 100644 root root 138  
+/usr/lib/locale/en_HK.utf8/LC_COLLATE 100644 root root 2586930  
+/usr/lib/locale/en_HK.utf8/LC_CTYPE 120777 root root 18  ../C.utf8/LC_CTYPE
+/usr/lib/locale/en_HK.utf8/LC_IDENTIFICATION 100644 root root 465  
+/usr/lib/locale/en_HK.utf8/LC_MEASUREMENT 100644 root root 23  
+/usr/lib/locale/en_HK.utf8/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_HK.utf8/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 57  
+/usr/lib/locale/en_HK.utf8/LC_MONETARY 100644 root root 290  
+/usr/lib/locale/en_HK.utf8/LC_NAME 100644 root root 72  
+/usr/lib/locale/en_HK.utf8/LC_NUMERIC 100644 root root 54  
+/usr/lib/locale/en_HK.utf8/LC_PAPER 100644 root root 34  
+/usr/lib/locale/en_HK.utf8/LC_TELEPHONE 100644 root root 55  
+/usr/lib/locale/en_HK.utf8/LC_TIME 100644 root root 3472  
+/usr/lib/locale/en_HK/LC_ADDRESS 100644 root root 143  
+/usr/lib/locale/en_HK/LC_COLLATE 100644 root root 21267  
+/usr/lib/locale/en_HK/LC_CTYPE 100644 root root 307204  
+/usr/lib/locale/en_HK/LC_IDENTIFICATION 100644 root root 470  
+/usr/lib/locale/en_HK/LC_MEASUREMENT 100644 root root 28  
+/usr/lib/locale/en_HK/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_HK/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 62  
+/usr/lib/locale/en_HK/LC_MONETARY 100644 root root 295  
+/usr/lib/locale/en_HK/LC_NAME 100644 root root 77  
+/usr/lib/locale/en_HK/LC_NUMERIC 100644 root root 59  
+/usr/lib/locale/en_HK/LC_PAPER 100644 root root 39  
+/usr/lib/locale/en_HK/LC_TELEPHONE 100644 root root 60  
+/usr/lib/locale/en_HK/LC_TIME 100644 root root 3480  
+/usr/lib/locale/en_IE 40755 root root 0  
+/usr/lib/locale/en_IE.utf8 40755 root root 0  
+/usr/lib/locale/en_IE.utf8/LC_ADDRESS 100644 root root 154  
+/usr/lib/locale/en_IE.utf8/LC_COLLATE 100644 root root 2586930  
+/usr/lib/locale/en_IE.utf8/LC_CTYPE 120777 root root 18  ../C.utf8/LC_CTYPE
+/usr/lib/locale/en_IE.utf8/LC_IDENTIFICATION 100644 root root 345  
+/usr/lib/locale/en_IE.utf8/LC_MEASUREMENT 100644 root root 23  
+/usr/lib/locale/en_IE.utf8/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_IE.utf8/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 57  
+/usr/lib/locale/en_IE.utf8/LC_MONETARY 100644 root root 290  
+/usr/lib/locale/en_IE.utf8/LC_NAME 100644 root root 62  
+/usr/lib/locale/en_IE.utf8/LC_NUMERIC 100644 root root 54  
+/usr/lib/locale/en_IE.utf8/LC_PAPER 100644 root root 34  
+/usr/lib/locale/en_IE.utf8/LC_TELEPHONE 100644 root root 52  
+/usr/lib/locale/en_IE.utf8/LC_TIME 100644 root root 3196  
+/usr/lib/locale/en_IE/LC_ADDRESS 100644 root root 159  
+/usr/lib/locale/en_IE/LC_COLLATE 100644 root root 21267  
+/usr/lib/locale/en_IE/LC_CTYPE 100644 root root 307204  
+/usr/lib/locale/en_IE/LC_IDENTIFICATION 100644 root root 348  
+/usr/lib/locale/en_IE/LC_MEASUREMENT 100644 root root 28  
+/usr/lib/locale/en_IE/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_IE/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 62  
+/usr/lib/locale/en_IE/LC_MONETARY 100644 root root 295  
+/usr/lib/locale/en_IE/LC_NAME 100644 root root 67  
+/usr/lib/locale/en_IE/LC_NUMERIC 100644 root root 59  
+/usr/lib/locale/en_IE/LC_PAPER 100644 root root 39  
+/usr/lib/locale/en_IE/LC_TELEPHONE 100644 root root 57  
+/usr/lib/locale/en_IE/LC_TIME 100644 root root 3204  
+/usr/lib/locale/en_IE@euro 40755 root root 0  
+/usr/lib/locale/en_IE@euro/LC_ADDRESS 100644 root root 160  
+/usr/lib/locale/en_IE@euro/LC_COLLATE 100644 root root 22408  
+/usr/lib/locale/en_IE@euro/LC_CTYPE 100644 root root 307464  
+/usr/lib/locale/en_IE@euro/LC_IDENTIFICATION 100644 root root 370  
+/usr/lib/locale/en_IE@euro/LC_MEASUREMENT 100644 root root 29  
+/usr/lib/locale/en_IE@euro/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_IE@euro/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 63  
+/usr/lib/locale/en_IE@euro/LC_MONETARY 100644 root root 292  
+/usr/lib/locale/en_IE@euro/LC_NAME 100644 root root 68  
+/usr/lib/locale/en_IE@euro/LC_NUMERIC 100644 root root 60  
+/usr/lib/locale/en_IE@euro/LC_PAPER 100644 root root 40  
+/usr/lib/locale/en_IE@euro/LC_TELEPHONE 100644 root root 58  
+/usr/lib/locale/en_IE@euro/LC_TIME 100644 root root 3204  
+/usr/lib/locale/en_IL 40755 root root 0  
+/usr/lib/locale/en_IL/LC_ADDRESS 100644 root root 154  
+/usr/lib/locale/en_IL/LC_COLLATE 100644 root root 2586930  
+/usr/lib/locale/en_IL/LC_CTYPE 120777 root root 18  ../C.utf8/LC_CTYPE
+/usr/lib/locale/en_IL/LC_IDENTIFICATION 100644 root root 352  
+/usr/lib/locale/en_IL/LC_MEASUREMENT 100644 root root 23  
+/usr/lib/locale/en_IL/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_IL/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 57  
+/usr/lib/locale/en_IL/LC_MONETARY 100644 root root 290  
+/usr/lib/locale/en_IL/LC_NAME 100644 root root 77  
+/usr/lib/locale/en_IL/LC_NUMERIC 100644 root root 54  
+/usr/lib/locale/en_IL/LC_PAPER 100644 root root 34  
+/usr/lib/locale/en_IL/LC_TELEPHONE 100644 root root 68  
+/usr/lib/locale/en_IL/LC_TIME 100644 root root 3196  
+/usr/lib/locale/en_IN 40755 root root 0  
+/usr/lib/locale/en_IN/LC_ADDRESS 100644 root root 126  
+/usr/lib/locale/en_IN/LC_COLLATE 100644 root root 2586930  
+/usr/lib/locale/en_IN/LC_CTYPE 120777 root root 18  ../C.utf8/LC_CTYPE
+/usr/lib/locale/en_IN/LC_IDENTIFICATION 100644 root root 456  
+/usr/lib/locale/en_IN/LC_MEASUREMENT 100644 root root 23  
+/usr/lib/locale/en_IN/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_IN/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 57  
+/usr/lib/locale/en_IN/LC_MONETARY 100644 root root 294  
+/usr/lib/locale/en_IN/LC_NAME 100644 root root 72  
+/usr/lib/locale/en_IN/LC_NUMERIC 100644 root root 54  
+/usr/lib/locale/en_IN/LC_PAPER 100644 root root 34  
+/usr/lib/locale/en_IN/LC_TELEPHONE 100644 root root 53  
+/usr/lib/locale/en_IN/LC_TIME 100644 root root 3432  
+/usr/lib/locale/en_NG 40755 root root 0  
+/usr/lib/locale/en_NG/LC_ADDRESS 100644 root root 157  
+/usr/lib/locale/en_NG/LC_COLLATE 100644 root root 2586930  
+/usr/lib/locale/en_NG/LC_CTYPE 120777 root root 18  ../C.utf8/LC_CTYPE
+/usr/lib/locale/en_NG/LC_IDENTIFICATION 100644 root root 265  
+/usr/lib/locale/en_NG/LC_MEASUREMENT 100644 root root 23  
+/usr/lib/locale/en_NG/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_NG/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 57  
+/usr/lib/locale/en_NG/LC_MONETARY 100644 root root 290  
+/usr/lib/locale/en_NG/LC_NAME 100644 root root 62  
+/usr/lib/locale/en_NG/LC_NUMERIC 100644 root root 54  
+/usr/lib/locale/en_NG/LC_PAPER 100644 root root 34  
+/usr/lib/locale/en_NG/LC_TELEPHONE 100644 root root 60  
+/usr/lib/locale/en_NG/LC_TIME 100644 root root 3196  
+/usr/lib/locale/en_NZ 40755 root root 0  
+/usr/lib/locale/en_NZ.utf8 40755 root root 0  
+/usr/lib/locale/en_NZ.utf8/LC_ADDRESS 100644 root root 154  
+/usr/lib/locale/en_NZ.utf8/LC_COLLATE 100644 root root 2586930  
+/usr/lib/locale/en_NZ.utf8/LC_CTYPE 120777 root root 18  ../C.utf8/LC_CTYPE
+/usr/lib/locale/en_NZ.utf8/LC_IDENTIFICATION 100644 root root 353  
+/usr/lib/locale/en_NZ.utf8/LC_MEASUREMENT 100644 root root 23  
+/usr/lib/locale/en_NZ.utf8/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_NZ.utf8/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 57  
+/usr/lib/locale/en_NZ.utf8/LC_MONETARY 100644 root root 286  
+/usr/lib/locale/en_NZ.utf8/LC_NAME 100644 root root 62  
+/usr/lib/locale/en_NZ.utf8/LC_NUMERIC 100644 root root 54  
+/usr/lib/locale/en_NZ.utf8/LC_PAPER 100644 root root 34  
+/usr/lib/locale/en_NZ.utf8/LC_TELEPHONE 100644 root root 51  
+/usr/lib/locale/en_NZ.utf8/LC_TIME 100644 root root 3268  
+/usr/lib/locale/en_NZ/LC_ADDRESS 100644 root root 159  
+/usr/lib/locale/en_NZ/LC_COLLATE 100644 root root 21267  
+/usr/lib/locale/en_NZ/LC_CTYPE 100644 root root 307204  
+/usr/lib/locale/en_NZ/LC_IDENTIFICATION 100644 root root 356  
+/usr/lib/locale/en_NZ/LC_MEASUREMENT 100644 root root 28  
+/usr/lib/locale/en_NZ/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_NZ/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 62  
+/usr/lib/locale/en_NZ/LC_MONETARY 100644 root root 291  
+/usr/lib/locale/en_NZ/LC_NAME 100644 root root 67  
+/usr/lib/locale/en_NZ/LC_NUMERIC 100644 root root 59  
+/usr/lib/locale/en_NZ/LC_PAPER 100644 root root 39  
+/usr/lib/locale/en_NZ/LC_TELEPHONE 100644 root root 56  
+/usr/lib/locale/en_NZ/LC_TIME 100644 root root 3276  
+/usr/lib/locale/en_PH 40755 root root 0  
+/usr/lib/locale/en_PH.utf8 40755 root root 0  
+/usr/lib/locale/en_PH.utf8/LC_ADDRESS 100644 root root 130  
+/usr/lib/locale/en_PH.utf8/LC_COLLATE 100644 root root 2586930  
+/usr/lib/locale/en_PH.utf8/LC_CTYPE 120777 root root 18  ../C.utf8/LC_CTYPE
+/usr/lib/locale/en_PH.utf8/LC_IDENTIFICATION 100644 root root 468  
+/usr/lib/locale/en_PH.utf8/LC_MEASUREMENT 100644 root root 23  
+/usr/lib/locale/en_PH.utf8/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_PH.utf8/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 57  
+/usr/lib/locale/en_PH.utf8/LC_MONETARY 100644 root root 290  
+/usr/lib/locale/en_PH.utf8/LC_NAME 100644 root root 73  
+/usr/lib/locale/en_PH.utf8/LC_NUMERIC 100644 root root 54  
+/usr/lib/locale/en_PH.utf8/LC_PAPER 100644 root root 34  
+/usr/lib/locale/en_PH.utf8/LC_TELEPHONE 100644 root root 53  
+/usr/lib/locale/en_PH.utf8/LC_TIME 100644 root root 3480  
+/usr/lib/locale/en_PH/LC_ADDRESS 100644 root root 135  
+/usr/lib/locale/en_PH/LC_COLLATE 100644 root root 21267  
+/usr/lib/locale/en_PH/LC_CTYPE 100644 root root 307204  
+/usr/lib/locale/en_PH/LC_IDENTIFICATION 100644 root root 473  
+/usr/lib/locale/en_PH/LC_MEASUREMENT 100644 root root 28  
+/usr/lib/locale/en_PH/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_PH/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 62  
+/usr/lib/locale/en_PH/LC_MONETARY 100644 root root 295  
+/usr/lib/locale/en_PH/LC_NAME 100644 root root 78  
+/usr/lib/locale/en_PH/LC_NUMERIC 100644 root root 59  
+/usr/lib/locale/en_PH/LC_PAPER 100644 root root 39  
+/usr/lib/locale/en_PH/LC_TELEPHONE 100644 root root 58  
+/usr/lib/locale/en_PH/LC_TIME 100644 root root 3488  
+/usr/lib/locale/en_SC.utf8 40755 root root 0  
+/usr/lib/locale/en_SC.utf8/LC_ADDRESS 100644 root root 135  
+/usr/lib/locale/en_SC.utf8/LC_COLLATE 100644 root root 2586930  
+/usr/lib/locale/en_SC.utf8/LC_CTYPE 120777 root root 18  ../C.utf8/LC_CTYPE
+/usr/lib/locale/en_SC.utf8/LC_IDENTIFICATION 100644 root root 326  
+/usr/lib/locale/en_SC.utf8/LC_MEASUREMENT 100644 root root 23  
+/usr/lib/locale/en_SC.utf8/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_SC.utf8/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 57  
+/usr/lib/locale/en_SC.utf8/LC_MONETARY 100644 root root 290  
+/usr/lib/locale/en_SC.utf8/LC_NAME 100644 root root 77  
+/usr/lib/locale/en_SC.utf8/LC_NUMERIC 100644 root root 54  
+/usr/lib/locale/en_SC.utf8/LC_PAPER 100644 root root 34  
+/usr/lib/locale/en_SC.utf8/LC_TELEPHONE 100644 root root 49  
+/usr/lib/locale/en_SC.utf8/LC_TIME 100644 root root 3332  
+/usr/lib/locale/en_SG 40755 root root 0  
+/usr/lib/locale/en_SG.utf8 40755 root root 0  
+/usr/lib/locale/en_SG.utf8/LC_ADDRESS 100644 root root 130  
+/usr/lib/locale/en_SG.utf8/LC_COLLATE 100644 root root 2586930  
+/usr/lib/locale/en_SG.utf8/LC_CTYPE 120777 root root 18  ../C.utf8/LC_CTYPE
+/usr/lib/locale/en_SG.utf8/LC_IDENTIFICATION 100644 root root 464  
+/usr/lib/locale/en_SG.utf8/LC_MEASUREMENT 100644 root root 23  
+/usr/lib/locale/en_SG.utf8/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_SG.utf8/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 57  
+/usr/lib/locale/en_SG.utf8/LC_MONETARY 100644 root root 286  
+/usr/lib/locale/en_SG.utf8/LC_NAME 100644 root root 73  
+/usr/lib/locale/en_SG.utf8/LC_NUMERIC 100644 root root 54  
+/usr/lib/locale/en_SG.utf8/LC_PAPER 100644 root root 34  
+/usr/lib/locale/en_SG.utf8/LC_TELEPHONE 100644 root root 54  
+/usr/lib/locale/en_SG.utf8/LC_TIME 100644 root root 3268  
+/usr/lib/locale/en_SG/LC_ADDRESS 100644 root root 135  
+/usr/lib/locale/en_SG/LC_COLLATE 100644 root root 21267  
+/usr/lib/locale/en_SG/LC_CTYPE 100644 root root 307204  
+/usr/lib/locale/en_SG/LC_IDENTIFICATION 100644 root root 469  
+/usr/lib/locale/en_SG/LC_MEASUREMENT 100644 root root 28  
+/usr/lib/locale/en_SG/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_SG/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 62  
+/usr/lib/locale/en_SG/LC_MONETARY 100644 root root 291  
+/usr/lib/locale/en_SG/LC_NAME 100644 root root 78  
+/usr/lib/locale/en_SG/LC_NUMERIC 100644 root root 59  
+/usr/lib/locale/en_SG/LC_PAPER 100644 root root 39  
+/usr/lib/locale/en_SG/LC_TELEPHONE 100644 root root 59  
+/usr/lib/locale/en_SG/LC_TIME 100644 root root 3276  
+/usr/lib/locale/en_US 40755 root root 0  
+/usr/lib/locale/en_US.iso885915 40755 root root 0  
+/usr/lib/locale/en_US.iso885915/LC_ADDRESS 100644 root root 173  
+/usr/lib/locale/en_US.iso885915/LC_COLLATE 100644 root root 22408  
+/usr/lib/locale/en_US.iso885915/LC_CTYPE 100644 root root 307464  
+/usr/lib/locale/en_US.iso885915/LC_IDENTIFICATION 100644 root root 375  
+/usr/lib/locale/en_US.iso885915/LC_MEASUREMENT 100644 root root 29  
+/usr/lib/locale/en_US.iso885915/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_US.iso885915/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 63  
+/usr/lib/locale/en_US.iso885915/LC_MONETARY 100644 root root 292  
+/usr/lib/locale/en_US.iso885915/LC_NAME 100644 root root 83  
+/usr/lib/locale/en_US.iso885915/LC_NUMERIC 100644 root root 60  
+/usr/lib/locale/en_US.iso885915/LC_PAPER 100644 root root 40  
+/usr/lib/locale/en_US.iso885915/LC_TELEPHONE 100644 root root 65  
+/usr/lib/locale/en_US.iso885915/LC_TIME 100644 root root 3292  
+/usr/lib/locale/en_US.utf8 40755 root root 0  
+/usr/lib/locale/en_US.utf8/LC_ADDRESS 100644 root root 167  
+/usr/lib/locale/en_US.utf8/LC_COLLATE 100644 root root 2586930  
+/usr/lib/locale/en_US.utf8/LC_CTYPE 120777 root root 18  ../C.utf8/LC_CTYPE
+/usr/lib/locale/en_US.utf8/LC_IDENTIFICATION 100644 root root 369  
+/usr/lib/locale/en_US.utf8/LC_MEASUREMENT 100644 root root 23  
+/usr/lib/locale/en_US.utf8/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_US.utf8/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 57  
+/usr/lib/locale/en_US.utf8/LC_MONETARY 100644 root root 286  
+/usr/lib/locale/en_US.utf8/LC_NAME 100644 root root 77  
+/usr/lib/locale/en_US.utf8/LC_NUMERIC 100644 root root 54  
+/usr/lib/locale/en_US.utf8/LC_PAPER 100644 root root 34  
+/usr/lib/locale/en_US.utf8/LC_TELEPHONE 100644 root root 59  
+/usr/lib/locale/en_US.utf8/LC_TIME 100644 root root 3284  
+/usr/lib/locale/en_US/LC_ADDRESS 100644 root root 172  
+/usr/lib/locale/en_US/LC_COLLATE 100644 root root 21267  
+/usr/lib/locale/en_US/LC_CTYPE 100644 root root 307204  
+/usr/lib/locale/en_US/LC_IDENTIFICATION 100644 root root 374  
+/usr/lib/locale/en_US/LC_MEASUREMENT 100644 root root 28  
+/usr/lib/locale/en_US/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_US/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 62  
+/usr/lib/locale/en_US/LC_MONETARY 100644 root root 291  
+/usr/lib/locale/en_US/LC_NAME 100644 root root 82  
+/usr/lib/locale/en_US/LC_NUMERIC 100644 root root 59  
+/usr/lib/locale/en_US/LC_PAPER 100644 root root 39  
+/usr/lib/locale/en_US/LC_TELEPHONE 100644 root root 64  
+/usr/lib/locale/en_US/LC_TIME 100644 root root 3292  
+/usr/lib/locale/en_ZA 40755 root root 0  
+/usr/lib/locale/en_ZA.utf8 40755 root root 0  
+/usr/lib/locale/en_ZA.utf8/LC_ADDRESS 100644 root root 159  
+/usr/lib/locale/en_ZA.utf8/LC_COLLATE 100644 root root 2586930  
+/usr/lib/locale/en_ZA.utf8/LC_CTYPE 120777 root root 18  ../C.utf8/LC_CTYPE
+/usr/lib/locale/en_ZA.utf8/LC_IDENTIFICATION 100644 root root 410  
+/usr/lib/locale/en_ZA.utf8/LC_MEASUREMENT 100644 root root 23  
+/usr/lib/locale/en_ZA.utf8/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_ZA.utf8/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 57  
+/usr/lib/locale/en_ZA.utf8/LC_MONETARY 100644 root root 286  
+/usr/lib/locale/en_ZA.utf8/LC_NAME 100644 root root 73  
+/usr/lib/locale/en_ZA.utf8/LC_NUMERIC 100644 root root 54  
+/usr/lib/locale/en_ZA.utf8/LC_PAPER 100644 root root 34  
+/usr/lib/locale/en_ZA.utf8/LC_TELEPHONE 100644 root root 58  
+/usr/lib/locale/en_ZA.utf8/LC_TIME 100644 root root 3196  
+/usr/lib/locale/en_ZA/LC_ADDRESS 100644 root root 164  
+/usr/lib/locale/en_ZA/LC_COLLATE 100644 root root 21267  
+/usr/lib/locale/en_ZA/LC_CTYPE 100644 root root 307204  
+/usr/lib/locale/en_ZA/LC_IDENTIFICATION 100644 root root 415  
+/usr/lib/locale/en_ZA/LC_MEASUREMENT 100644 root root 28  
+/usr/lib/locale/en_ZA/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_ZA/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 62  
+/usr/lib/locale/en_ZA/LC_MONETARY 100644 root root 291  
+/usr/lib/locale/en_ZA/LC_NAME 100644 root root 78  
+/usr/lib/locale/en_ZA/LC_NUMERIC 100644 root root 59  
+/usr/lib/locale/en_ZA/LC_PAPER 100644 root root 39  
+/usr/lib/locale/en_ZA/LC_TELEPHONE 100644 root root 63  
+/usr/lib/locale/en_ZA/LC_TIME 100644 root root 3204  
+/usr/lib/locale/en_ZM 40755 root root 0  
+/usr/lib/locale/en_ZM/LC_ADDRESS 100644 root root 146  
+/usr/lib/locale/en_ZM/LC_COLLATE 100644 root root 2586930  
+/usr/lib/locale/en_ZM/LC_CTYPE 120777 root root 18  ../C.utf8/LC_CTYPE
+/usr/lib/locale/en_ZM/LC_IDENTIFICATION 100644 root root 314  
+/usr/lib/locale/en_ZM/LC_MEASUREMENT 100644 root root 23  
+/usr/lib/locale/en_ZM/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_ZM/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 61  
+/usr/lib/locale/en_ZM/LC_MONETARY 100644 root root 286  
+/usr/lib/locale/en_ZM/LC_NAME 100644 root root 77  
+/usr/lib/locale/en_ZM/LC_NUMERIC 100644 root root 54  
+/usr/lib/locale/en_ZM/LC_PAPER 100644 root root 34  
+/usr/lib/locale/en_ZM/LC_TELEPHONE 100644 root root 57  
+/usr/lib/locale/en_ZM/LC_TIME 100644 root root 3332  
+/usr/lib/locale/en_ZW 40755 root root 0  
+/usr/lib/locale/en_ZW.utf8 40755 root root 0  
+/usr/lib/locale/en_ZW.utf8/LC_ADDRESS 100644 root root 154  
+/usr/lib/locale/en_ZW.utf8/LC_COLLATE 100644 root root 2586930  
+/usr/lib/locale/en_ZW.utf8/LC_CTYPE 120777 root root 18  ../C.utf8/LC_CTYPE
+/usr/lib/locale/en_ZW.utf8/LC_IDENTIFICATION 100644 root root 295  
+/usr/lib/locale/en_ZW.utf8/LC_MEASUREMENT 100644 root root 23  
+/usr/lib/locale/en_ZW.utf8/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_ZW.utf8/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 57  
+/usr/lib/locale/en_ZW.utf8/LC_MONETARY 100644 root root 286  
+/usr/lib/locale/en_ZW.utf8/LC_NAME 100644 root root 62  
+/usr/lib/locale/en_ZW.utf8/LC_NUMERIC 100644 root root 54  
+/usr/lib/locale/en_ZW.utf8/LC_PAPER 100644 root root 34  
+/usr/lib/locale/en_ZW.utf8/LC_TELEPHONE 100644 root root 52  
+/usr/lib/locale/en_ZW.utf8/LC_TIME 100644 root root 3196  
+/usr/lib/locale/en_ZW/LC_ADDRESS 100644 root root 159  
+/usr/lib/locale/en_ZW/LC_COLLATE 100644 root root 21267  
+/usr/lib/locale/en_ZW/LC_CTYPE 100644 root root 307204  
+/usr/lib/locale/en_ZW/LC_IDENTIFICATION 100644 root root 300  
+/usr/lib/locale/en_ZW/LC_MEASUREMENT 100644 root root 28  
+/usr/lib/locale/en_ZW/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/en_ZW/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 62  
+/usr/lib/locale/en_ZW/LC_MONETARY 100644 root root 291  
+/usr/lib/locale/en_ZW/LC_NAME 100644 root root 67  
+/usr/lib/locale/en_ZW/LC_NUMERIC 100644 root root 59  
+/usr/lib/locale/en_ZW/LC_PAPER 100644 root root 39  
+/usr/lib/locale/en_ZW/LC_TELEPHONE 100644 root root 57  
+/usr/lib/locale/en_ZW/LC_TIME 100644 root root 3204  
+/usr/share/locale/en_GB/LC_MESSAGES/libc.mo 100644 root root 1430  
+
+## Provides
+glibc-langpack = 2.39-142.el10_2
+glibc-langpack-en = 2.39-142.el10_2
+glibc-langpack-en(x86-64) = 2.39-142.el10_2
+
+## Requires
+glibc = 2.39-142.el10_2
+glibc-common = 2.39-142.el10_2
+rpmlib(CompressedFileNames) <= 3.0.4-1
+rpmlib(FileDigests) <= 4.6.0-1
+rpmlib(PartialHardlinkSets) <= 4.0.4-1
+rpmlib(PayloadFilesHavePrefix) <= 4.0-1
+rpmlib(PayloadIsZstd) <= 5.4.18-1
+rpmlib(RichDependencies) <= 4.12.0-1
+
+## Recommends/Suggests/Supplements/Enhances
+supplements: ((glibc and (langpacks-core-en or langpacks-core-en_AG or langpacks-core-en_AU or langpacks-core-en_BW or langpacks-core-en_CA or langpacks-core-en_DK or langpacks-core-en_GB or langpacks-core-en_HK or langpacks-core-en_IE or langpacks-core-en_IL or langpacks-core-en_IN or langpacks-core-en_NG or langpacks-core-en_NZ or langpacks-core-en_PH or langpacks-core-en_SC or langpacks-core-en_SG or langpacks-core-en_US or langpacks-core-en_ZA or langpacks-core-en_ZM or langpacks-core-en_ZW)) unless glibc-all-langpacks)
+
+## Conflicts / Obsoletes
+
+## Scripts
+
+## Triggers
+
+## File triggers
+
+## ELF dynamic dependencies (readelf -d NEEDED / RPATH / RUNPATH / interp)
+
+## Leak checks
+paths under /usr/lib/debug in payload: 0
+files whose CONTENT mentions '/usr/lib/debug': <none> 
+files whose CONTENT mentions /builddir/build|/usr/src/debug|/nix/store: <none> 

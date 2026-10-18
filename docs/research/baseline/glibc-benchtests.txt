@@ -1,0 +1,1418 @@
+# Official Rocky Linux 10.2 baseline: glibc-benchtests-2.39-142.el10_2.x86_64.rpm
+# sha256: 2462eb9cb635e90181d20f8f4af42101233231c5e09649b679babf0ea2574a84
+
+## Header summary
+NEVRA:        glibc-benchtests-2.39-142.el10_2.x86_64
+Source RPM:   glibc-2.39-142.el10_2.src.rpm
+Build host:   ord1-prod-x86build009.svc.aws.rockylinux.org
+Build time:   1791453144 (Thu Oct  8 05:52:24 2026)
+Vendor:       Rocky Enterprise Software Foundation
+Packager:     Rocky Linux Build System <releng@rockylinux.org>
+License:      LGPL-2.1-or-later AND SunPro AND LGPL-2.1-or-later WITH GCC-exception-2.0 AND BSD-3-Clause AND GPL-2.0-or-later AND LGPL-2.1-or-later WITH GNU-compiler-exception AND GPL-2.0-only AND ISC AND LicenseRef-Fedora-Public-Domain AND HPND AND CMU-Mach AND LGPL-2.1-only AND LGPL-2.0-or-later AND Unicode-DFS-2015 AND GFDL-1.1-or-later AND GPL-1.0-or-later AND FSFUL AND MIT AND Inner-Net-2.0 AND X11 AND GPL-2.0-or-later WITH GCC-exception-2.0 AND GFDL-1.3-only AND GFDL-1.1-only AND GPL-3.0-or-later AND GPL-3.0-or-later WITH Autoconf-exception-generic-3.0 AND GPL-3.0-or-later WITH Texinfo-exception
+Group:        Unspecified
+URL:          http://www.gnu.org/software/glibc/
+Summary:      Benchmarking binaries and scripts for glibc
+Payload:      cpio / zstd level 19
+File digest:  8 (8=sha256)
+Size (inst):  20540275 bytes
+Archive size: 20692004
+Opt flags:    -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Wno-complain-wrong-lang -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2  
+Platform:     x86_64-redhat-linux-gnu
+RPM version:  4.19.1.1
+Files:        914
+
+## Description
+This package provides built benchmark binaries and scripts to run
+microbenchmark tests on the system.
+
+## Files (path mode(octal) user group size flags linkto) [flags: c=config d=doc g=ghost l=license m=missingok n=noreplace]
+/usr/lib/.build-id 40755 root root 0 a 
+/usr/lib/.build-id/00/a246306e89054d508b2166efea3eda144d870c 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-cosf
+/usr/lib/.build-id/00/ff06dd7fd2fbeeb6dcc71f3a55e3403a209678 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-wmemcmp
+/usr/lib/.build-id/01/dc5bf6272111c4306bfa7b61a3bd3b8e64ae4c 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-atanf
+/usr/lib/.build-id/02/1cf70edccb3bcebcc90da674042ee9024d968a 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-sinh
+/usr/lib/.build-id/02/218a1878cb430d600de2077e4098ad8d442789 120777 root root 69 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-cosh
+/usr/lib/.build-id/02/a5ff6c5632b387ee7baafc335e340bacd44574 120777 root root 70 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-expm1f
+/usr/lib/.build-id/03 40755 root root 0 a 
+/usr/lib/.build-id/03/182882cc86bc4b4c3d6458580f792d4ab983af 120777 root root 69 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-coshf
+/usr/lib/.build-id/03/546a28085b8d4d754c9b32bca237d2faa4f3d8 120777 root root 70 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-exp10
+/usr/lib/.build-id/03/ba31f589a217b57ecc074d9895a53bb26a3cc8 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-expf
+/usr/lib/.build-id/04/2f14d25eb04aaeb289662f3b2b7d5d5f7df72e 120777 root root 69 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-sinhf
+/usr/lib/.build-id/04/702b1268472207f927ef4ffff84193636acb84 120777 root root 70 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-expm1
+/usr/lib/.build-id/04/72ca6c5b79c5f5cecfe7667a75c7cc193eb8f7 120777 root root 52 a ../../../../usr/libexec/glibc-benchtests/bench-fminf
+/usr/lib/.build-id/04/d7e8ba0d70185d9d75de7da0b1919ef62b8c37 120777 root root 57 a ../../../../usr/libexec/glibc-benchtests/bench-strcasestr
+/usr/lib/.build-id/05/032f6a4e30021e577a996bc7e209e510ec8e7a 120777 root root 52 a ../../../../usr/libexec/glibc-benchtests/bench-isinf
+/usr/lib/.build-id/05/57c96511ee40d8e0ca15b547adc2a82ae1f8b4 120777 root root 51 a ../../../../usr/libexec/glibc-benchtests/bench-cosf
+/usr/lib/.build-id/05/710bbaeeb89f5b82923b817a1744541863c638 120777 root root 50 a ../../../../usr/libexec/glibc-benchtests/bench-sin
+/usr/lib/.build-id/05/f1d7979a17946a84ddee296ea3e9c6c4c5028b 120777 root root 70 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-asinhf
+/usr/lib/.build-id/06/bb547868fa0a19134396e3d7b4e58ab43ab562 120777 root root 52 a ../../../../usr/libexec/glibc-benchtests/bench-cbrtl
+/usr/lib/.build-id/07/e274ff5c795a11e7013bf3b6dbf680177d3e5d 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-exp2
+/usr/lib/.build-id/08/b78e878f76393110b93b765e218f43c0960cf5 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-wcscpy
+/usr/lib/.build-id/08/e648b97f85f6e4669afae4358240f00c6dd8fb 120777 root root 68 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-erff
+/usr/lib/.build-id/09 40755 root root 0 a 
+/usr/lib/.build-id/09/0784c732aeac0f06fcfaddf9a47ca393f22383 120777 root root 69 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-erfc
+/usr/lib/.build-id/09/18d2b1a8c3ca31d78b8dc2db262df8eb904ac8 120777 root root 52 a ../../../../usr/libexec/glibc-benchtests/bench-expm1
+/usr/lib/.build-id/09/83a5851a1b700514eae5bd16409bcfdb230365 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-asin
+/usr/lib/.build-id/0a/f18f11666d024d8061410d25979526c9fca3d6 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-asinf
+/usr/lib/.build-id/0b 40755 root root 0 a 
+/usr/lib/.build-id/0b/591768e66bb8ba8210fdb3434f7dab6365a1ca 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-wcpcpy
+/usr/lib/.build-id/0b/dc7e79a041e0e01b32b112742f37e98222c4c7 120777 root root 60 a ../../../../usr/libexec/glibc-benchtests/bench-memmove-large
+/usr/lib/.build-id/0d/d08222406ae2991471a4fb02d731883eb01e73 120777 root root 59 a ../../../../usr/libexec/glibc-benchtests/bench-memcpy-large
+/usr/lib/.build-id/0e 40755 root root 0 a 
+/usr/lib/.build-id/0e/49b6e4be5b5b4555d87cb3cbc5ca7c26afaead 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-asinf
+/usr/lib/.build-id/0e/82c740cfe20524eeb0c4d388b3b5fec523fa06 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-cos
+/usr/lib/.build-id/0e/d5ab5228d534a02e81c16fa0c0d6fe66bf2ea6 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-exp10f
+/usr/lib/.build-id/0e/fb47f2dd6d18e21572e2772cecadd48f9f5a3f 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-coshf
+/usr/lib/.build-id/0f/46f16540820030eee5aa71e3073575671fdbcc 120777 root root 51 a ../../../../usr/libexec/glibc-benchtests/bench-sinf
+/usr/lib/.build-id/0f/6f1456cf9e4b2394a084cc412c52aa4d129a3a 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-atanhf
+/usr/lib/.build-id/0f/86576bd35608bb6e0a39ce3139e88763c865ba 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-atan2f
+/usr/lib/.build-id/0f/e74150f2e92e22ab211a04e21e32e57dcb345e 120777 root root 69 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-atan
+/usr/lib/.build-id/10 40755 root root 0 a 
+/usr/lib/.build-id/10/286b00c0c6fcdf2ccc9971b6769679a2d217dc 120777 root root 57 a ../../../../usr/libexec/glibc-benchtests/bench-stpcpy_chk
+/usr/lib/.build-id/10/d2362154025aa9085c092a8ee2c5285f4ac650 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-exp2f
+/usr/lib/.build-id/11/c5fb2384e2fbb0389940ae616951c243bf1e1f 120777 root root 51 a ../../../../usr/libexec/glibc-benchtests/bench-cosh
+/usr/lib/.build-id/11/f10c997fd1254a436aaebce2933b8ca4eb76d1 120777 root root 69 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-tanh
+/usr/lib/.build-id/12 40755 root root 0 a 
+/usr/lib/.build-id/12/2f75379da4240167733da5e3d03e1b061fe3c3 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-hypotf
+/usr/lib/.build-id/13/095e9eee3926740fc38cc157a0d3aebabe1810 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-erff
+/usr/lib/.build-id/13/1a7e01cf7c2f0098e600ae0227642d8c7e6cf3 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-sinh
+/usr/lib/.build-id/13/ead28ee86a34e200cfa5f56b780affaf9e4fe2 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-cos
+/usr/lib/.build-id/16/6e0317e000541efeb6c4d4670289a6e16b76bd 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-atan
+/usr/lib/.build-id/17 40755 root root 0 a 
+/usr/lib/.build-id/17/4a7ffc9821841c1bf201dea6029177084cbc32 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-logf
+/usr/lib/.build-id/18 40755 root root 0 a 
+/usr/lib/.build-id/18/092f9591f012c1e2992f5eb00930ff0accd5a8 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-acosh
+/usr/lib/.build-id/18/148d0f29a2fb0d2fc919437ba0cb22951304a7 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-tgamma
+/usr/lib/.build-id/18/5d2cedc38c423c019d9ffffc6599bd12c84890 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-mempcpy
+/usr/lib/.build-id/19/0f2a89ac4e95016189fd752cd8ba4d1db78a6d 120777 root root 58 a ../../../../usr/libexec/glibc-benchtests/bench-memset-zero
+/usr/lib/.build-id/19/f8d1bef099b4e029b8194266e935b0a318dc29 120777 root root 55 a ../../../../usr/libexec/glibc-benchtests/bench-memcmpeq
+/usr/lib/.build-id/1a/9deed28499fc2ff850d6ceac31f792547ccc9d 120777 root root 70 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-acosh
+/usr/lib/.build-id/1a/d583f0903aed72241a38b24e0a133194aa081e 120777 root root 68 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-sinf
+/usr/lib/.build-id/1b/15280192ff4b1a51fad21024cd766a11d13f33 120777 root root 68 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-erf
+/usr/lib/.build-id/1b/ffed8cb53dec12cc56d6766c9b55eed149538d 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-erff
+/usr/lib/.build-id/1c/bc8bddea562bd1df95fed670572ae05d8e8df0 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-expf
+/usr/lib/.build-id/1c/cc5b3361efe8629d391cf379bf9de332f0394c 120777 root root 70 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-acoshf
+/usr/lib/.build-id/1d 40755 root root 0 a 
+/usr/lib/.build-id/1d/5d124786b896fde416153c9d25ee45fe94b01f 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-strstr
+/usr/lib/.build-id/1e/8e3579fc1b1f9923fa9bae82a2d70e2cc29aef 120777 root root 52 a ../../../../usr/libexec/glibc-benchtests/bench-asinh
+/usr/lib/.build-id/20/8a721832daaf21399f17841630ecc5a6a454ac 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-erf
+/usr/lib/.build-id/20/d1a2c49bb9de77390801d945fb667c319a5e9a 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-erf
+/usr/lib/.build-id/21/d240c0dd371169084178f7bd1bf7dc7b4c4bd7 120777 root root 51 a ../../../../usr/libexec/glibc-benchtests/bench-erfc
+/usr/lib/.build-id/21/df9c479064ecbdab03d585b81a6ac3e184e4ab 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-acosf
+/usr/lib/.build-id/22/dcf90be2d792a505bbe9937e520da9bee34486 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-acoshf
+/usr/lib/.build-id/23/05d5f60a27dc4e62f50d61f93685143e88f50c 120777 root root 52 a ../../../../usr/libexec/glibc-benchtests/bench-isnan
+/usr/lib/.build-id/23/684d5e5f7bd342af797148a5722b47f4113866 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-cbrtf
+/usr/lib/.build-id/24 40755 root root 0 a 
+/usr/lib/.build-id/24/06c7771f28035aebaeb7ca14b62a0abe90559e 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-lgamma
+/usr/lib/.build-id/24/7bdb9c538508b3359249e827c1df572f552914 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-exp2f
+/usr/lib/.build-id/24/a0829400c179dc0e2f0108be4cec910c110fab 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-truncf
+/usr/lib/.build-id/25 40755 root root 0 a 
+/usr/lib/.build-id/25/ec93ce87a374ee78ae45ffc9cfabf43192a01e 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-wcpncpy
+/usr/lib/.build-id/26 40755 root root 0 a 
+/usr/lib/.build-id/26/2d3c9a48527b3d607d18636cf96146f67607cc 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-exp10
+/usr/lib/.build-id/26/575d470aab9db4ee3453076394a36d925584a2 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-expm1f
+/usr/lib/.build-id/26/afde3104b09467f26a810c725a36b7d3cbacbb 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-log1p
+/usr/lib/.build-id/26/d39b8c85f25314e020963174edf253985e77a2 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-asinhf
+/usr/lib/.build-id/28/bbc525f3b23c82ca22347182300afbb8abbc0d 120777 root root 50 a ../../../../usr/libexec/glibc-benchtests/bench-pow
+/usr/lib/.build-id/2b/fd1e3f9f5d894412a261dcdbda349b82c6bb10 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-hypot
+/usr/lib/.build-id/2d/9c6712da8dbd002d0594b5b01752394f922d35 120777 root root 52 a ../../../../usr/libexec/glibc-benchtests/bench-log2f
+/usr/lib/.build-id/2e/57186e1a6b65092405c70b32aef9632cb5feba 120777 root root 70 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-atanhf
+/usr/lib/.build-id/2f 40755 root root 0 a 
+/usr/lib/.build-id/2f/4731abea412c5ced75c2599d6dc8a9aa0d8bac 120777 root root 60 a ../../../../usr/libexec/glibc-benchtests/bench-pthread-locks
+/usr/lib/.build-id/2f/4ed0c60472550764d6ee722508c69866b50263 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-atanh
+/usr/lib/.build-id/2f/6f1c3b91b5f2cc03445a15b097a95683b62230 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-expm1f
+/usr/lib/.build-id/31 40755 root root 0 a 
+/usr/lib/.build-id/31/50ad248102f7e97987c26f8790b5afb5d887a5 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-hypotf
+/usr/lib/.build-id/31/f987e395d2d5867fc4044308728a231c555a91 120777 root root 56 a ../../../../usr/libexec/glibc-benchtests/bench-ilogbf128
+/usr/lib/.build-id/32 40755 root root 0 a 
+/usr/lib/.build-id/32/4c83abd003daa0558aacd1c60424f8767b0386 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-acoshf
+/usr/lib/.build-id/32/57a075d79497feced2c69beaaf4237f4e33a0a 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-wcscmp
+/usr/lib/.build-id/32/a43573657a755606dae0a7be5d4cfe073b20f6 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-tanh
+/usr/lib/.build-id/33/1d42cb26a76bebd2de76a1d069623b08ff4c86 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-log2f
+/usr/lib/.build-id/33/5f94d828a9d314eedfdb9baa777950f51093c7 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-atanf
+/usr/lib/.build-id/33/5fc40cc070851bd589d1cb2be38be5f7beca63 120777 root root 69 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-exp2
+/usr/lib/.build-id/34/35074b91730f16347c663db2878ea9e47b7e1e 120777 root root 51 a ../../../../usr/libexec/glibc-benchtests/bench-log2
+/usr/lib/.build-id/34/cd374938b759185c2d6e00598d948d407f291b 120777 root root 66 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-exp10f
+/usr/lib/.build-id/37 40755 root root 0 a 
+/usr/lib/.build-id/37/373a1cf11db8c2dac8d12b92ccbb86ff289864 120777 root root 70 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-hypot
+/usr/lib/.build-id/37/822a896f2515bf9d822f13ae3b42a7990f0fa8 120777 root root 56 a ../../../../usr/libexec/glibc-benchtests/bench-rawmemchr
+/usr/lib/.build-id/38/22781b1bf9eb3b97d475910096309ab3341f4c 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-pow
+/usr/lib/.build-id/38/4b04409d193194c5c4de6ff77579df71c53ec1 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-log10
+/usr/lib/.build-id/39/8d2117957645c5835fcc6677626e768c0bacf6 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-memrchr
+/usr/lib/.build-id/3a/15b2244498dc595dde5a378410627949d85191 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-memcpy
+/usr/lib/.build-id/3b/edbde9f35312ce64ac001225956801904eef65 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-hypot
+/usr/lib/.build-id/3d 40755 root root 0 a 
+/usr/lib/.build-id/3d/7097f1c09f514067e29cfaaed7d066a7075b81 120777 root root 58 a ../../../../usr/libexec/glibc-benchtests/bench-memcpy-walk
+/usr/lib/.build-id/3e 40755 root root 0 a 
+/usr/lib/.build-id/3e/11fc2f959f7685d87c040b4689b5a62c8be3da 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-tanf
+/usr/lib/.build-id/3e/73f0294f18160030d0fb07c214e398f4f2f4c2 120777 root root 57 a ../../../../usr/libexec/glibc-benchtests/bench-strcasecmp
+/usr/lib/.build-id/3e/9e07ec3e8224fc0e29f6ffdc1753af92625e2d 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-exp10f
+/usr/lib/.build-id/3f 40755 root root 0 a 
+/usr/lib/.build-id/3f/1698e52d58db9d9e51040b6c78d12e9cf70804 120777 root root 51 a ../../../../usr/libexec/glibc-benchtests/bench-sqrt
+/usr/lib/.build-id/40/03bc11a6a8dab87c4f7c6f60e9804eddea9947 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-exp10f
+/usr/lib/.build-id/40/4a04d5fd8e303c7c24e922987995fd38755711 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-tan
+/usr/lib/.build-id/41 40755 root root 0 a 
+/usr/lib/.build-id/41/0333fb1eb595d550f80f9858f867b9f2aad2b8 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-sincosf
+/usr/lib/.build-id/41/32d177c57c408fd53146ddcbafd26c8d612f3c 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-cosf
+/usr/lib/.build-id/41/6751f99bd3867c3845b204c18dff4a85290a28 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-tanf
+/usr/lib/.build-id/42 40755 root root 0 a 
+/usr/lib/.build-id/42/8abc5b8ca50e81acde95a7f257f8f75bec3906 120777 root root 68 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-logf
+/usr/lib/.build-id/42/b3c30b82579c28db224ce2c336b4914357d272 120777 root root 68 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-tan
+/usr/lib/.build-id/42/c506c93db40f1c9025c077585edc52fde0f694 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-memchr
+/usr/lib/.build-id/44/1561a563600f8439140d357fa9f249cbc63824 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-strlen
+/usr/lib/.build-id/44/c3ad0802129caf941a6aaf06af49f91e9826f2 120777 root root 66 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-log1pf
+/usr/lib/.build-id/45 40755 root root 0 a 
+/usr/lib/.build-id/45/490a3747ffc70abc87ac74741c57080704bab7 120777 root root 66 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-asinhf
+/usr/lib/.build-id/46/202ace4f946e9467c6505003642fa559a7d0d1 120777 root root 52 a ../../../../usr/libexec/glibc-benchtests/bench-ffsll
+/usr/lib/.build-id/47/4e229057eb9ce56fabc03247bfd9d287fc21c4 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-erfcf
+/usr/lib/.build-id/47/69371dd365149bc19ff8ec8ef7db3f4db87e2c 120777 root root 49 a ../../../../usr/libexec/glibc-benchtests/bench-j0
+/usr/lib/.build-id/48/369263d1d576673ea6069f03257008265b9ad3 120777 root root 69 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-log2
+/usr/lib/.build-id/48/669d0fe54a7c22f55507abc21a0a25002f900e 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-atan
+/usr/lib/.build-id/48/81f8ae69938c0c01d36b6edfc01db95036c9d9 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-memset
+/usr/lib/.build-id/49/4a475b6854049d9ec3aab7c6715464e8635a9c 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-log10f
+/usr/lib/.build-id/4a/1854c86974bff4f92fb1147f817ff3a3386c88 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-acosf
+/usr/lib/.build-id/4a/417a003d3d81015584df3533bdfb4a87e66fda 120777 root root 69 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-log2f
+/usr/lib/.build-id/4b/4f12ad64d1cfff6cb2790da2d79cbdcbb35f80 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-strncpy
+/usr/lib/.build-id/4b/52a103a659beea4cef3cec871cc073ae18d466 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-asinh
+/usr/lib/.build-id/4c/e82615c67fde97188a13b5bc4054c5248af43b 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-sinhf
+/usr/lib/.build-id/4e/8f6c22950c6f3795f12485288c0cd7f20b88af 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-cosh
+/usr/lib/.build-id/4f/154f145fcabc57d0358a87a5a0ce2e4d92c613 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-wmemset
+/usr/lib/.build-id/51/21fef3b6acb53992bc4281f6938c7a18afea9c 120777 root root 51 a ../../../../usr/libexec/glibc-benchtests/bench-expf
+/usr/lib/.build-id/51/7e1319523ed5e3bd17f0d93ffc77410902c18e 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-coshf
+/usr/lib/.build-id/51/cfbb8b5a11e92fe696c9dc366ad844a451af22 120777 root root 49 a ../../../../usr/libexec/glibc-benchtests/bench-j1
+/usr/lib/.build-id/52 40755 root root 0 a 
+/usr/lib/.build-id/52/13bad018d0a7372ae51aac1a7ff9e2ba5e4d96 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-erfc
+/usr/lib/.build-id/52/31c01eb8ad4f6f600fa43b8751d7214a52b06b 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-log10
+/usr/lib/.build-id/52/aeda29ca7fc99edb20c4f2cbaa2d3d727dcd30 120777 root root 58 a ../../../../usr/libexec/glibc-benchtests/bench-timing-type
+/usr/lib/.build-id/53 40755 root root 0 a 
+/usr/lib/.build-id/53/127f313a527652d2612f75d822c89d7b3164e7 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-sin
+/usr/lib/.build-id/53/b7f346c805ddf59918544659ce29710b9beb35 120777 root root 66 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-acoshf
+/usr/lib/.build-id/54 40755 root root 0 a 
+/usr/lib/.build-id/54/0c4b3979bcd13ab4d67e8d78a5e03f47cda4e6 120777 root root 49 a ../../../../usr/libexec/glibc-benchtests/bench-y1
+/usr/lib/.build-id/54/91256c5dad56639bc17dd79b52c6890ee50819 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-sincos
+/usr/lib/.build-id/54/aae8cdadcd685967e901209a12db79b88cde20 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-sin
+/usr/lib/.build-id/54/ae7109954077de08adbdd4cbd2d4a127ba4e25 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-erff
+/usr/lib/.build-id/55/3aa112d08d276ddb31b24ce01263a372872ef1 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-acosf
+/usr/lib/.build-id/55/9575888fb3228a2b82b10debbadfd1c45910fc 120777 root root 56 a ../../../../usr/libexec/glibc-benchtests/bench-strchrnul
+/usr/lib/.build-id/56/e484fa502cf2199a52d0e74f8670f660c6b64e 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-erfcf
+/usr/lib/.build-id/57 40755 root root 0 a 
+/usr/lib/.build-id/57/42db2611302ec3f0752f5149dbb3663b767a4a 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-atanh
+/usr/lib/.build-id/58/b5ea1ee9664caa32a37632189f0ca9db588615 120777 root root 67 a ../../../../usr/libexec/glibc-benchtests/bench-pthread-spin-trylock
+/usr/lib/.build-id/59/313a86c6aa8da60dba75895188fdc5b3292f39 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-pow
+/usr/lib/.build-id/59/6068fc08b1ea03571fe8bc8b6c16a3b214b913 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-sinf
+/usr/lib/.build-id/59/8c085919fc8f82027db70768429f10e70f08d8 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-wcspbrk
+/usr/lib/.build-id/59/eec02414f6f9de5fc8241804b5485f58085220 120777 root root 58 a ../../../../usr/libexec/glibc-benchtests/bench-bzero-large
+/usr/lib/.build-id/5a/76ff4afce21f133980ce4f78505610d5655058 120777 root root 51 a ../../../../usr/libexec/glibc-benchtests/bench-tanh
+/usr/lib/.build-id/5c 40755 root root 0 a 
+/usr/lib/.build-id/5c/02fa974c943517cf314a21f97f1ee62eaf15bc 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-log1p
+/usr/lib/.build-id/5c/f45e8c339c3365cd0faaae7e0d91cbc0d844b0 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-atan2
+/usr/lib/.build-id/5d/32d6dfc231bc88b8b14d8fafb734718850ab48 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-wcsncat
+/usr/lib/.build-id/5d/6bf20651943a259090b0897069865cea908ff8 120777 root root 70 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-asinh
+/usr/lib/.build-id/5d/94ecaff452e2831b0fbc833eba96ab7461359c 120777 root root 51 a ../../../../usr/libexec/glibc-benchtests/bench-rint
+/usr/lib/.build-id/5d/97fb5b381992f43bb3f030f822493c40ed22e7 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-exp
+/usr/lib/.build-id/5e 40755 root root 0 a 
+/usr/lib/.build-id/5e/04a265c076b3608411224a222825ef3f5a60f5 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-sinhf
+/usr/lib/.build-id/5e/8abaaf85fb26a0038877b28aaf3c17a68f8d4c 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-strrchr
+/usr/lib/.build-id/5e/cd63ffb7f65afb9d8da6f97f269de3457ec61d 120777 root root 69 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-atanf
+/usr/lib/.build-id/5f/56296255914c702614dad7e2d7a5f7ff3969bb 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-exp2
+/usr/lib/.build-id/60/4a045a0b25f0043ed01d9570196c632e5c79fc 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-acosf
+/usr/lib/.build-id/60/7c808df169c04e9ed096960f566ee490356759 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-tanhf
+/usr/lib/.build-id/60/9db2b9e259f7b217699e157624bc1f45219092 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-cos
+/usr/lib/.build-id/62/42593736cc4130d3c93e7d177fbf1fa157412a 120777 root root 51 a ../../../../usr/libexec/glibc-benchtests/bench-fmod
+/usr/lib/.build-id/62/eeaa479bd2ef4b43f2a4eca4471ccc8477ba7c 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-acosh
+/usr/lib/.build-id/63/52ca50ff6ab744b6fd2ca12dfb06996ee6a18c 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-pthread-mutex-lock
+/usr/lib/.build-id/63/72faf8e900254d6911f30f793409106528e462 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-wcsncpy
+/usr/lib/.build-id/64/89accaf1fa9003afe5b129b63bd4903b5236c0 120777 root root 68 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-tanf
+/usr/lib/.build-id/64/f5709f0acb61973479628adf3e3cc09547eb20 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-sinf
+/usr/lib/.build-id/65/1ddfac6dcebb135ebd88340e4c6d9a3fc7cd31 120777 root root 66 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-log10f
+/usr/lib/.build-id/66 40755 root root 0 a 
+/usr/lib/.build-id/66/7b9986a8e19f32c4d42668cfb1870420e497ef 120777 root root 68 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-powf
+/usr/lib/.build-id/67/792bb453077b5b5d6c58b7c535cc7624f99423 120777 root root 59 a ../../../../usr/libexec/glibc-benchtests/bench-math-inlines
+/usr/lib/.build-id/68 40755 root root 0 a 
+/usr/lib/.build-id/68/60e838625b83a5b26fea0c7fbbf3bfbf570c7b 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-acoshf
+/usr/lib/.build-id/68/df986e68cf933dbc7c2998c34f16f48bd3f055 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-erfcf
+/usr/lib/.build-id/69/3fcaccd23f8c063a8a1e88c7234ab4d892b9ed 120777 root root 70 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-log1p
+/usr/lib/.build-id/6a/76a0f1661b4b17c4a093767c1edc84e27de0fd 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-acosh
+/usr/lib/.build-id/6a/797cb2eb09ddf4c7093f1b50623aaa0847e61d 120777 root root 51 a ../../../../usr/libexec/glibc-benchtests/bench-atan
+/usr/lib/.build-id/6a/fdae537920c376faf93034cf27d30e2d6db9c3 120777 root root 50 a ../../../../usr/libexec/glibc-benchtests/bench-exp
+/usr/lib/.build-id/6b 40755 root root 0 a 
+/usr/lib/.build-id/6b/5b16cc9cc7bc62cb2e1be85519ef578cd4a8ed 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-exp
+/usr/lib/.build-id/6b/ec6cb9ee9fbd7beb95bc46e5b55f438c33b3ec 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-log1pf
+/usr/lib/.build-id/6e/3637f7b4259fd194c8271dcc914e4749d4e678 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-atan2
+/usr/lib/.build-id/6f/4f037d581376d7dd3047b6b181f74c521cab71 120777 root root 52 a ../../../../usr/libexec/glibc-benchtests/bench-atanh
+/usr/lib/.build-id/6f/b68fdfec2fddc0c3f3c899ac03a2ae9a75c762 120777 root root 70 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-log1pf
+/usr/lib/.build-id/71/0617ace098b22497445d3a0459c1b749624904 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-strcat
+/usr/lib/.build-id/71/7b5486db955254df239a61107ee623d9e375a8 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-erfc
+/usr/lib/.build-id/71/9d336e0d9f90981510bc6944bfc4d587215733 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-cbrt
+/usr/lib/.build-id/73 40755 root root 0 a 
+/usr/lib/.build-id/73/57ff9112e88563f5a9e7158c28415dd468e5f0 120777 root root 68 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-sin
+/usr/lib/.build-id/73/c53cf09f993c35b33c920b2be05a654bd9a642 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-expf
+/usr/lib/.build-id/74 40755 root root 0 a 
+/usr/lib/.build-id/74/e09c25300d857fe6104c3a4d928b403b746072 120777 root root 69 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-acosf
+/usr/lib/.build-id/75 40755 root root 0 a 
+/usr/lib/.build-id/75/9d6eda425bbefaa134392f6fc26d6d4d9b34b1 120777 root root 69 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-asin
+/usr/lib/.build-id/75/cc4028f442d35bbc2db95db4ddc221362d09f7 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-acos
+/usr/lib/.build-id/78/7a3b3a2fc8a5d5e23fd5d300798d3281c1747b 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-log10f
+/usr/lib/.build-id/78/abd9d763a8a8a3a9a297d8411011b1b55c0905 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-sinh
+/usr/lib/.build-id/79 40755 root root 0 a 
+/usr/lib/.build-id/79/2fe0ad283775d1a94c40c2cac57fc9e1778560 120777 root root 51 a ../../../../usr/libexec/glibc-benchtests/bench-fmin
+/usr/lib/.build-id/7a 40755 root root 0 a 
+/usr/lib/.build-id/7a/1e550beb10718aaa417cfe673888bfa96d3842 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-cbrtf
+/usr/lib/.build-id/7b/3a5d5ce3c562b28306719b8e67c3fbbad4705d 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-exp2f
+/usr/lib/.build-id/7b/ee2a1c4828f686dce054e0ee8a5833773e8485 120777 root root 68 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-cos
+/usr/lib/.build-id/7c 40755 root root 0 a 
+/usr/lib/.build-id/7c/32f4f35ee6a18f65efb2d3e7ffd0aa83b5693c 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-ilogbf
+/usr/lib/.build-id/7c/5d70c13a656686b1b9f6e0435d5f753322fc36 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-cbrt
+/usr/lib/.build-id/7c/73938edd0fa7df59429daf1514b66edbbab827 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-powf128
+/usr/lib/.build-id/7d 40755 root root 0 a 
+/usr/lib/.build-id/7d/49334d39f9bbd228ce5f504c7e9b2f556228fc 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-cosh
+/usr/lib/.build-id/7e/17b55375fe959d697d34d66dc68753410b33bc 120777 root root 51 a ../../../../usr/libexec/glibc-benchtests/bench-modf
+/usr/lib/.build-id/7e/b72fe1a8115f604937a5b92410b2d4cae719f4 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-sinf
+/usr/lib/.build-id/7f 40755 root root 0 a 
+/usr/lib/.build-id/7f/07b2ad7d50dbc1c795ac681256159740983bdd 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-erff
+/usr/lib/.build-id/7f/6514417a0dc9e7b61090f5744d0ac5efe90a89 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-cosh
+/usr/lib/.build-id/81/cf9e167116817332af939e22df4b6df550efd4 120777 root root 52 a ../../../../usr/libexec/glibc-benchtests/bench-fmaxf
+/usr/lib/.build-id/81/ecc3deea24323104d6c43ffcacce99523e5904 120777 root root 69 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-erfcf
+/usr/lib/.build-id/82/15d43419709bc393ce82d8f56de759bdada65f 120777 root root 69 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-acos
+/usr/lib/.build-id/82/59647a053f6b72d6177c40d04a59304d48c603 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-atan2
+/usr/lib/.build-id/82/6f2fd8f257fc2843edb1495280e7ea7a99c1b3 120777 root root 66 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-hypotf
+/usr/lib/.build-id/83/c5326d132bd56bcf6f6b8b5b846bcd26743e1c 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-asinhf
+/usr/lib/.build-id/84/724e7d3e110084d4d125ba4c42997dd9719ec8 120777 root root 59 a ../../../../usr/libexec/glibc-benchtests/bench-memmove-walk
+/usr/lib/.build-id/84/a744c25eb2e9e335c7adff4f92f5ffee159aca 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-sinf128
+/usr/lib/.build-id/85/90620c59a6bc41be85efc3da621861257ceaab 120777 root root 51 a ../../../../usr/libexec/glibc-benchtests/bench-asin
+/usr/lib/.build-id/86 40755 root root 0 a 
+/usr/lib/.build-id/86/4a8911ea437b1e54aeaa93d1bdf21ed4795516 120777 root root 66 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-atan2f
+/usr/lib/.build-id/87/3509c5be3890eccd58da7341acc3832b4c0a3b 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-expm1f
+/usr/lib/.build-id/87/7d74e34b89f82b080f69658dd5f267e3347829 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-pthread-spin-lock
+/usr/lib/.build-id/87/ac970303ba9f544810daa90a5389a216cce02b 120777 root root 57 a ../../../../usr/libexec/glibc-benchtests/bench-strcpy_chk
+/usr/lib/.build-id/88/6dad990b974b873e0bf816c0e41cce86f3cd55 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-wcsrchr
+/usr/lib/.build-id/89 40755 root root 0 a 
+/usr/lib/.build-id/89/02428c2837bce167247263b8b7f8c588c2a554 120777 root root 70 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-exp10f
+/usr/lib/.build-id/89/d35de7fc0f528ac871cca32fcddbd02df25dad 120777 root root 50 a ../../../../usr/libexec/glibc-benchtests/bench-cos
+/usr/lib/.build-id/8a/31aa827b1d058c9894a708ea010d85cebb0157 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-erfcf
+/usr/lib/.build-id/8a/8efa025dd5c25fcd6505f42c379a9663518c01 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-tanhf
+/usr/lib/.build-id/8a/98a6e29feae79d1a0518fd17a912338245bc88 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-exp10
+/usr/lib/.build-id/8b 40755 root root 0 a 
+/usr/lib/.build-id/8b/ce82a88e494981d81f8d0f48999f47bc5caa35 120777 root root 68 a ../../../../usr/libexec/glibc-benchtests/bench-pthread-mutex-trylock
+/usr/lib/.build-id/8c/0b1c7354b7b7c91495e4a718c1e2a4674237aa 120777 root root 56 a ../../../../usr/libexec/glibc-benchtests/bench-wcschrnul
+/usr/lib/.build-id/8d 40755 root root 0 a 
+/usr/lib/.build-id/8d/a1541b183d7aabbb93b6b0c1e51279a9e7393b 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-hypotf
+/usr/lib/.build-id/8e 40755 root root 0 a 
+/usr/lib/.build-id/8e/3c5105c9cc8dc9c1010e8366bae18a19e88231 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-atanhf
+/usr/lib/.build-id/8f/671327dbb604f26dbd5b557c584355260c5b86 120777 root root 58 a ../../../../usr/libexec/glibc-benchtests/bench-dl-new-hash
+/usr/lib/.build-id/8f/e6401e35b29b830cc5cf95c3e1bd30a6146899 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-tan
+/usr/lib/.build-id/90/c0e777db0df00442caedeb32b4e888bdf24454 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-wcsncmp
+/usr/lib/.build-id/91/121fbae140474b110d2589ecc37366456493bd 120777 root root 59 a ../../../../usr/libexec/glibc-benchtests/bench-memset-large
+/usr/lib/.build-id/91/161fbe4203c9e4b4944913b7973a3a3a95eb2e 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-tanhf
+/usr/lib/.build-id/92/0618d83ef029fc453ab878ce54998ff64eb25c 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-atan2f
+/usr/lib/.build-id/92/17b1589930e20e62a80ea0e003b84be48f5f80 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-wcscspn
+/usr/lib/.build-id/92/26d240f56b4ac9a630c865d80685ce019ddcee 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-acosh
+/usr/lib/.build-id/94/681dcff206690d7688710ca975188514b9a8cd 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-erf
+/usr/lib/.build-id/94/6bcbdea457b6c0013c9b47a496c6ee5ef3ef71 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-memset-zero-large
+/usr/lib/.build-id/96 40755 root root 0 a 
+/usr/lib/.build-id/96/f2b392bd541ec2ea41a349cd213656c508d7ad 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-tan
+/usr/lib/.build-id/97/095ff18c74c220615ee83487d36bb1994781d9 120777 root root 55 a ../../../../usr/libexec/glibc-benchtests/bench-isfinite
+/usr/lib/.build-id/97/93e22b3dd7ceabbcd23e3b1ef0ccc9c9e1c249 120777 root root 52 a ../../../../usr/libexec/glibc-benchtests/bench-acosh
+/usr/lib/.build-id/99 40755 root root 0 a 
+/usr/lib/.build-id/99/c8c24fb62c831801aaa163c771592c1b71fc2c 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-wmemchr
+/usr/lib/.build-id/9a 40755 root root 0 a 
+/usr/lib/.build-id/9a/0806bdfb98cb43481cb65c5e02e9222ad50b5d 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-log
+/usr/lib/.build-id/9a/3449ad3477bc4959632a42e78201c544675bd6 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-sinhf
+/usr/lib/.build-id/9a/44213d6f9fe3be0bd584e2bfa05c3af0efe749 120777 root root 50 a ../../../../usr/libexec/glibc-benchtests/bench-log
+/usr/lib/.build-id/9a/a95df04f7f7d8b55642d7b735773992deda866 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-hypotf
+/usr/lib/.build-id/9b/13ed9da582a3085915e608bd8faea0e87ba117 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-atanf
+/usr/lib/.build-id/9b/2465d3fdf96692dca63674ac6132cb63a374f2 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-sin
+/usr/lib/.build-id/9b/40ee9772f45cf6b9bd416c16966f39e545322b 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-strcoll
+/usr/lib/.build-id/9f 40755 root root 0 a 
+/usr/lib/.build-id/9f/1e83c03a07da436a90663e8d17b0b98a06627c 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-asin
+/usr/lib/.build-id/9f/ebcc4da947168ed5cc6eb4f5eda9f706c065db 120777 root root 51 a ../../../../usr/libexec/glibc-benchtests/bench-sinh
+/usr/lib/.build-id/a0 40755 root root 0 a 
+/usr/lib/.build-id/a0/d6c9509b8ebbaa01ef83908734cc3314e02e96 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-expm1
+/usr/lib/.build-id/a1 40755 root root 0 a 
+/usr/lib/.build-id/a1/1adbfd50c96e744181fc674198f0739aed723f 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-log2
+/usr/lib/.build-id/a1/8027418e77a2f0126dbb1040efcd2bd0e5d24d 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-exp2
+/usr/lib/.build-id/a1/ad5f0fc2986e1a7f8382b7129eb456323ef15f 120777 root root 60 a ../../../../usr/libexec/glibc-benchtests/bench-malloc-simple
+/usr/lib/.build-id/a1/b2c09668937d6109218752f9582355d08b6204 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-strchr
+/usr/lib/.build-id/a2/d04171b58f9255eb4542196dd1930a4f6f2f59 120777 root root 50 a ../../../../usr/libexec/glibc-benchtests/bench-tan
+/usr/lib/.build-id/a3/64a3fafe82d5bba888819893e0ec88c802735d 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-coshf
+/usr/lib/.build-id/a3/e1db535111bf8b1c1cce340df9682a514e778d 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-tanhf
+/usr/lib/.build-id/a3/ea6cd921851bfcd43a8859ca5a007b164a6145 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-logf
+/usr/lib/.build-id/a4/4be8d04867525ebba9a394bab5335cc8e04cd4 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-atanf
+/usr/lib/.build-id/a5 40755 root root 0 a 
+/usr/lib/.build-id/a5/582769d12442bb29fed3261172b1fca8e3d60b 120777 root root 59 a ../../../../usr/libexec/glibc-benchtests/bench-pthread_once
+/usr/lib/.build-id/a5/7a3ccca27a336eaa1894fb9effdd1f4582b07f 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-log10
+/usr/lib/.build-id/a6/2b742b1cab8847933f230f85543fd92e6da736 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-logf
+/usr/lib/.build-id/a6/8eec547c2d04051bdd17651554ff0a3496dcae 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-log2f
+/usr/lib/.build-id/a7/26eae5d0535cd83daa7433adc8cf4ea104047b 120777 root root 50 a ../../../../usr/libexec/glibc-benchtests/bench-ffs
+/usr/lib/.build-id/a7/688ce5688b996d6fe1afa813f23a9c9fbcbe45 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-memmem
+/usr/lib/.build-id/a7/78d5bf2d1fbd6495ed209b23c3dd6f89e6769b 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-asinf
+/usr/lib/.build-id/a7/a9e62f512ca80551aed6f4a69f993d7bdb98fa 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-cbrt
+/usr/lib/.build-id/a8 40755 root root 0 a 
+/usr/lib/.build-id/a8/29b6935394cda144149bfed93f8c1025b7cb09 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-cbrt
+/usr/lib/.build-id/a9/35948e574b3d18c0b25417d6eb8de68879e90a 120777 root root 50 a ../../../../usr/libexec/glibc-benchtests/bench-erf
+/usr/lib/.build-id/a9/5ad6475d8c596861f7e4d97de5913187fca7fa 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-strncmp
+/usr/lib/.build-id/ab/bbf5383c25a37244d98b73ab1129a1b8c0425d 120777 root root 57 a ../../../../usr/libexec/glibc-benchtests/bench-roundevenf
+/usr/lib/.build-id/ac/043450ba5b2c70f929306a5efb906253a5afbb 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-erfc
+/usr/lib/.build-id/ac/7d0e7de7a6fbbd63ec1e4326b7506b674f2624 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-expm1
+/usr/lib/.build-id/ac/7f1bbf8befbb4a11b7d48df2751d2fe9b7c4a0 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-asin
+/usr/lib/.build-id/ac/98d4f84d93fee269dc889875c9dcf8e3c5a546 120777 root root 70 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-log10f
+/usr/lib/.build-id/ac/c063578d83935519608925f2a32182a1eac2d9 120777 root root 51 a ../../../../usr/libexec/glibc-benchtests/bench-logb
+/usr/lib/.build-id/ac/c57aa1e8e8179d4ac5790af24e9752a68798ea 120777 root root 51 a ../../../../usr/libexec/glibc-benchtests/bench-exp2
+/usr/lib/.build-id/ac/f1d719be0cd51836b595265ccfca01fc1d95d3 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-cbrtf
+/usr/lib/.build-id/ad/49947be1a37a04beaa6ed759385e772545c547 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-atanh
+/usr/lib/.build-id/ad/4d35966589c49570266929902d23425159aa0e 120777 root root 52 a ../../../../usr/libexec/glibc-benchtests/bench-logbf
+/usr/lib/.build-id/ad/52a3d508495304632beda1173cefb1ce4f00ad 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-sin
+/usr/lib/.build-id/ae/683a7af549afbf912970ad7296a3bbab722814 120777 root root 52 a ../../../../usr/libexec/glibc-benchtests/bench-log10
+/usr/lib/.build-id/ae/d0bd15b2bd021a5cdae76193f5036c86b287ca 120777 root root 69 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-sinh
+/usr/lib/.build-id/af 40755 root root 0 a 
+/usr/lib/.build-id/af/fd4b7e655ca189f8bc7a5f38fd370d41c80fde 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-memccpy
+/usr/lib/.build-id/b0 40755 root root 0 a 
+/usr/lib/.build-id/b0/47b91ed13b1434f233337abe77caa8f626722f 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-tanh
+/usr/lib/.build-id/b0/b05f8ea37445d82083fd1a8d142b8370e1c2a2 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-powf
+/usr/lib/.build-id/b1 40755 root root 0 a 
+/usr/lib/.build-id/b1/dddeba4d44068cec6985e063a80069dec35254 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-strcspn
+/usr/lib/.build-id/b2 40755 root root 0 a 
+/usr/lib/.build-id/b2/9f39d8fb7efdc0a396df810cff26304f903de9 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-asinh
+/usr/lib/.build-id/b2/b32287d7d2797d039e674ac4e038486c909f6a 120777 root root 70 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-atan2f
+/usr/lib/.build-id/b4/fcd957cbf15da8f5cfb00a74b46261a07f2a7f 120777 root root 70 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-log10
+/usr/lib/.build-id/b5/0a871568bcc22bc9c06d9e70d3c24226e3ae70 120777 root root 69 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-cbrtf
+/usr/lib/.build-id/b5/7f6e65578a30255256ae8d95740353e447fe58 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-wcschr
+/usr/lib/.build-id/b6/69ebee86ed3a373e8064e306c314ff9557e692 120777 root root 57 a ../../../../usr/libexec/glibc-benchtests/bench-bzero-walk
+/usr/lib/.build-id/b6/f7b7e030076bf2f832f95bde510ab561106bec 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-log10f
+/usr/lib/.build-id/b7/6a738cc785987dc2b8f25f917855bee280eaa3 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-acos
+/usr/lib/.build-id/b8/3bba0323e1d564b8076639bb25ca83c103e8c1 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-strsep
+/usr/lib/.build-id/b8/41b4adb5f54bbb482e293892d5cef60b565f71 120777 root root 52 a ../../../../usr/libexec/glibc-benchtests/bench-fmodf
+/usr/lib/.build-id/b9 40755 root root 0 a 
+/usr/lib/.build-id/b9/cb90f937363df098cf1779a98f029280bd1153 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-tanf
+/usr/lib/.build-id/b9/cc1bb34995ab0f5bb6628b156e31b7dc3de6b9 120777 root root 51 a ../../../../usr/libexec/glibc-benchtests/bench-acos
+/usr/lib/.build-id/bb/e329cb06e7b52a61d3ac45c3258aac5f29b46a 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-exp10
+/usr/lib/.build-id/bc/195efdf9d861529f21b8de9f0183f222485ed0 120777 root root 52 a ../../../../usr/libexec/glibc-benchtests/bench-exp2f
+/usr/lib/.build-id/bc/9eeacea9769cecaec33ddd96819601499e1bf1 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-strpbrk
+/usr/lib/.build-id/bd/a010d8e54ea72c9d570f5f6efb7009af161973 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-log1p
+/usr/lib/.build-id/be 40755 root root 0 a 
+/usr/lib/.build-id/be/100946ffe987a12e4a455199759cdf86aed23b 120777 root root 52 a ../../../../usr/libexec/glibc-benchtests/bench-trunc
+/usr/lib/.build-id/be/3bd0f50fdf1df5b3cfc7acaeeeedd35cea8c2a 120777 root root 57 a ../../../../usr/libexec/glibc-benchtests/bench-arc4random
+/usr/lib/.build-id/bf/42ee3622fc3b9f7d96313df3dca365a7e3eec8 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-hypot
+/usr/lib/.build-id/bf/b57a7c0979c311ccfea9b27897e5025596b254 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-erf
+/usr/lib/.build-id/bf/c364c54d40d11c6fb9eb5bcdade7b13e3ef3e8 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-log
+/usr/lib/.build-id/bf/d1e6cd351ae3f5d022be7247b4ffbaf8fb5aa3 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-log1pf
+/usr/lib/.build-id/bf/f641913e9cf91645d4a8f54927192a110cc57f 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-pow
+/usr/lib/.build-id/c0 40755 root root 0 a 
+/usr/lib/.build-id/c0/19acd6caffc3d4de9e8e29caa0f97004b5bbf1 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-atan2
+/usr/lib/.build-id/c0/364b8c6f15c6a50cd200154565e180f500004b 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-exp10f
+/usr/lib/.build-id/c0/8c08fe61aef4b0072e96eea95e6ab4a6aa42ea 120777 root root 52 a ../../../../usr/libexec/glibc-benchtests/bench-hypot
+/usr/lib/.build-id/c1/7252d27f2641ac0bf91e2fec994592cf20d151 120777 root root 68 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-log
+/usr/lib/.build-id/c2/e993ba35aa142b0fecfcaa5c0494661e5264cf 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-tan
+/usr/lib/.build-id/c3/98aacb5c0a3adfb6f7dae4d42cb1d2bf8e6e59 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-wcslen
+/usr/lib/.build-id/c3/b857088b45f8ea53e95e76d490445b3fc96386 120777 root root 51 a ../../../../usr/libexec/glibc-benchtests/bench-cbrt
+/usr/lib/.build-id/c4/a8fe23577e0111251d97bdd594366eb0f21be4 120777 root root 58 a ../../../../usr/libexec/glibc-benchtests/bench-dl-elf-hash
+/usr/lib/.build-id/c5 40755 root root 0 a 
+/usr/lib/.build-id/c5/11202702e872e3de1dcd0ff6d93b03f41ac86c 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-acos
+/usr/lib/.build-id/c5/3dd457c96977b31064c34073a121be67ce120b 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-powf
+/usr/lib/.build-id/c5/a258c399318a083e5209d3f8c8fab73f6a2bf6 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-coshf
+/usr/lib/.build-id/c6 40755 root root 0 a 
+/usr/lib/.build-id/c6/4aae3c693a267c24fe0f22ea8f32e0a800008f 120777 root root 60 a ../../../../usr/libexec/glibc-benchtests/bench-memcpy-random
+/usr/lib/.build-id/c6/5a65ae01c519d0bfedd45f5d153cc201abc382 120777 root root 49 a ../../../../usr/libexec/glibc-benchtests/bench-y0
+/usr/lib/.build-id/c6/71e15d12a5f11a902513aa216a4b628abbba47 120777 root root 68 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-exp
+/usr/lib/.build-id/c6/fdf23c5606d5f681be590e5ab464be87c0f676 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-log1p
+/usr/lib/.build-id/c7/0af0e0679022a6d09e15c66a72247dfc265c7b 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-asinhf
+/usr/lib/.build-id/c7/9df6923306431e2a0e35cd6543826dc88f0aee 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-cosf
+/usr/lib/.build-id/c7/c6462fc8926712bc9e14361d6cf78cfe2c2962 120777 root root 56 a ../../../../usr/libexec/glibc-benchtests/bench-roundeven
+/usr/lib/.build-id/c8/0b5b2591a81406ed8fb2ddda75fc9fb6568408 120777 root root 66 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-expm1f
+/usr/lib/.build-id/ca 40755 root root 0 a 
+/usr/lib/.build-id/ca/ad0d936e98c456aeaa7819ab2d0fa0af254a38 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-log2f
+/usr/lib/.build-id/cb/64ec356fe076bd33882c36618dcd88dc6883ae 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-atanhf
+/usr/lib/.build-id/cb/85fba86dc10ce09494c7fb46d759a5ee94aee6 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-log
+/usr/lib/.build-id/cc/3a14eadd6c58a1d04907b8cb3bd4b11150ca59 120777 root root 66 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-atanhf
+/usr/lib/.build-id/cc/609424cb525ecec612d7cbcf8e4ae240911bf6 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-asin
+/usr/lib/.build-id/ce/754661256a83184c06db880b5fe7850fe9422d 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-logf
+/usr/lib/.build-id/ce/a85b86248d23311bc6bcb4ba3549da18e4fc81 120777 root root 51 a ../../../../usr/libexec/glibc-benchtests/bench-fmax
+/usr/lib/.build-id/ce/f542e66286f3e8dd4a5a4378e5d0546585a5cf 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-memset-zero-walk
+/usr/lib/.build-id/cf/4ad0efb79a0d572bfca35499c2821eb82518e2 120777 root root 68 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-pow
+/usr/lib/.build-id/cf/bb9697698170a15ce0c465f8c8b1b5d7e61d34 120777 root root 60 a ../../../../usr/libexec/glibc-benchtests/bench-thread_create
+/usr/lib/.build-id/d0/26d242019ebed3b798cc19d75341d512ad0f4c 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-stpcpy
+/usr/lib/.build-id/d0/5f87b8ab9c60bf7cc029dce9bdcaf969454c46 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-strncat
+/usr/lib/.build-id/d0/9c5833548c3305e4c406530adc3c313a5536af 120777 root root 68 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-expf
+/usr/lib/.build-id/d1 40755 root root 0 a 
+/usr/lib/.build-id/d1/0689bf3bb3aaeaafb81a1a87551f40c1750672 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-powf
+/usr/lib/.build-id/d1/641d79cc69f107c0961cc9b8529bf8856cba0e 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-expm1
+/usr/lib/.build-id/d2/2d77398f1c36ccd50bdf72e29669f380abfb5e 120777 root root 58 a ../../../../usr/libexec/glibc-benchtests/bench-memset-walk
+/usr/lib/.build-id/d2/b4a0d6836473634803af296caffe3b5e0093af 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-erfc
+/usr/lib/.build-id/d3/66fe594cf663ab4d5250fcb36580494ac6afaf 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-asinh
+/usr/lib/.build-id/d3/fe2cad14a8747d93e229976960fbdfb14724b9 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-strtod
+/usr/lib/.build-id/d4/6525a88f84c71e9543fc2430ea62e29eeec3b8 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-atan2f
+/usr/lib/.build-id/d6 40755 root root 0 a 
+/usr/lib/.build-id/d6/2c9727aa9a31fae86ef9e908d99946a1ebedfa 120777 root root 52 a ../../../../usr/libexec/glibc-benchtests/bench-ilogb
+/usr/lib/.build-id/d7 40755 root root 0 a 
+/usr/lib/.build-id/d7/d1c457f09a4c45726a14adf5b99b6efdcd463f 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-atan
+/usr/lib/.build-id/da/447c65ce0d3e054b2b73b00309379c87e01c00 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-pow
+/usr/lib/.build-id/da/649f6a276119c6d5ce71d9673546c38dd569e6 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-acos
+/usr/lib/.build-id/da/c3e0a1e7aedc9cd59d64245c4aee1aa076f444 120777 root root 69 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-tanhf
+/usr/lib/.build-id/da/c83366b2e0743550fd3f1ca628f72409981025 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-asinh
+/usr/lib/.build-id/db/2194f8b6581fb54607412028f57b175e058111 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-hypot
+/usr/lib/.build-id/db/63cfa36d47ccac1f6d1b85c8a98e457eb91114 120777 root root 55 a ../../../../usr/libexec/glibc-benchtests/bench-nss-hash
+/usr/lib/.build-id/db/7d6a476b2846da43666c10cdcb48e44b7b48fd 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-wcsspn
+/usr/lib/.build-id/dc 40755 root root 0 a 
+/usr/lib/.build-id/dc/c46d4272dc26da7dbac8659a6c14e514d71a6a 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-cosh
+/usr/lib/.build-id/dc/ca12d8b7208d22042de9222e83a5da32ead603 120777 root root 52 a ../../../../usr/libexec/glibc-benchtests/bench-log1p
+/usr/lib/.build-id/de/946f8f420bee1d061b695f396e8f427fa22740 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-log2f
+/usr/lib/.build-id/df/5da422b70fb966fabd4ef113340d3c19b190e7 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-strspn
+/usr/lib/.build-id/df/7215a337c9c62588bc5ba63dfb4d47c0fef16a 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-tanh
+/usr/lib/.build-id/df/c328db65856cfc2ff63689e02dbda3b2a16361 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-memmove
+/usr/lib/.build-id/df/e723bce0958f4fef46f36489d9556b1fe3426e 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-sinhf
+/usr/lib/.build-id/e0/658085775c8a4939c87ff40f2a67d08a4992f8 120777 root root 60 a ../../../../usr/libexec/glibc-benchtests/bench-malloc-thread
+/usr/lib/.build-id/e0/b4e748f1b0e7fc7c7368fb9668e74028d788f8 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-strtok
+/usr/lib/.build-id/e1 40755 root root 0 a 
+/usr/lib/.build-id/e1/7822fbc4e5c6197c54154d5c934c777f3a574d 120777 root root 70 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-atan2
+/usr/lib/.build-id/e1/7d43c9a7cfc962f20a31620038fe09b6e1932f 120777 root root 68 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-cosf
+/usr/lib/.build-id/e1/8090b4cf841b741ebb9aaa9f61aa1157c0186e 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-strcmp
+/usr/lib/.build-id/e2/7e8b42be8897304111a87e2b6dbfdf362db310 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-sinf
+/usr/lib/.build-id/e3 40755 root root 0 a 
+/usr/lib/.build-id/e3/22c45735af85d38245aa54827a01af9f8e7125 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-log2
+/usr/lib/.build-id/e3/c64055a83525119aaed9baf3ba047e1b6bab8f 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-atan
+/usr/lib/.build-id/e4/cfcb786f73c08a722ae1498f52fb4cff229177 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-exp10
+/usr/lib/.build-id/e5/7c71a793b56fb08fdc678833e4c914fc29d707 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-sprintf
+/usr/lib/.build-id/e6/6381bf599c434f07bedc2c7d88bd7b92635e6f 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-wcscat
+/usr/lib/.build-id/e6/671d169d45cf7bccb1c6dc0a19a3363d7d31f7 120777 root root 69 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-cbrt
+/usr/lib/.build-id/e6/7be26ca8207716cfd623f590ad6b0abcbcd710 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-powf
+/usr/lib/.build-id/e7/9e8912b9650cea344d23b986fdb57d16bdc17a 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-cosf
+/usr/lib/.build-id/e8/0259c529cc9170e69054a6baa48130a214a053 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-log1pf
+/usr/lib/.build-id/e8/725371c603e1aa98e349886fc7f476782619a7 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-memcmp
+/usr/lib/.build-id/e8/92cde3c2a6472bd954c8e7d6fcfcce5ea773c6 120777 root root 51 a ../../../../usr/libexec/glibc-benchtests/bench-logf
+/usr/lib/.build-id/e8/a4ea315e6e96d9ccffd0f4a48c765550799c59 120777 root root 52 a ../../../../usr/libexec/glibc-benchtests/bench-bzero
+/usr/lib/.build-id/e8/a76dbcd826f7f191562f41ef30ddc24e397f6f 120777 root root 70 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-hypotf
+/usr/lib/.build-id/e8/d36e4c97b47a064ba8d90de24d27f4e9c9072d 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-exp2f
+/usr/lib/.build-id/ea 40755 root root 0 a 
+/usr/lib/.build-id/ea/0d3ee93f165500b661e23e5f471b9c002a8299 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-cos
+/usr/lib/.build-id/ea/7c58045c90c1927c6670d266d7b04eb273d79f 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen16-tanf
+/usr/lib/.build-id/ea/82a943f651ba691edec57385cafd881b4d08e6 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-exp
+/usr/lib/.build-id/eb/db2c2e6953ccb5caf2964e69963310d85a9640 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen2-log2
+/usr/lib/.build-id/ec 40755 root root 0 a 
+/usr/lib/.build-id/ec/fa402d05987d6848be132b45ecaab9c06fa84b 120777 root root 69 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-asinf
+/usr/lib/.build-id/ee/a5d831538157deb91d83e6124cdc2c53c96ae7 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-expm1
+/usr/lib/.build-id/ee/dbf6d5ad7106dc499b29e0bcba1504e4e178cb 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-strnlen
+/usr/lib/.build-id/ef 40755 root root 0 a 
+/usr/lib/.build-id/ef/d70e53548f4a50ad9add2fc92f911753cd0316 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-log2
+/usr/lib/.build-id/f0/e053875d7e6501453f32765a5d2c868d6e8eb8 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-expf128
+/usr/lib/.build-id/f1 40755 root root 0 a 
+/usr/lib/.build-id/f1/153600138e9ce00c5680c1ad540c55e25322b8 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-sinh
+/usr/lib/.build-id/f1/50fec64a4f999787ee527270e70579be3242b0 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-tanh
+/usr/lib/.build-id/f2/61e1408181065973adc99c63e66f12ac1a8d07 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-stpncpy
+/usr/lib/.build-id/f3/8b229145ac472705867e85d972a970a1eeeb3b 120777 root root 52 a ../../../../usr/libexec/glibc-benchtests/bench-atan2
+/usr/lib/.build-id/f3/90cdc0f6e42f177b0745249f4749ec6fcba5d0 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-expf
+/usr/lib/.build-id/f3/b5c8bd7b52a515130d7162998252a46b0502b1 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-exp2
+/usr/lib/.build-id/f4/a92319c51f9e982cfe8f43591a20e78523bf3f 120777 root root 58 a ../../../../usr/libexec/glibc-benchtests/bench-strncasecmp
+/usr/lib/.build-id/f5/35f20f3c825efeb8c6360ce302529b60ab70c7 120777 root root 69 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-exp2f
+/usr/lib/.build-id/f5/f6d697356eecd14449f7f57c4ab232a1b2b42c 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-wcsnlen
+/usr/lib/.build-id/f6/dfafe6f72d77cfabff2e22dfd3ae0a1a39c88e 120777 root root 53 a ../../../../usr/libexec/glibc-benchtests/bench-strcpy
+/usr/lib/.build-id/f7/51d9785b8f9327d14708920fd4a26aba3a5566 120777 root root 52 a ../../../../usr/libexec/glibc-benchtests/bench-exp10
+/usr/lib/.build-id/f7/f33ec583f2c103a14119177bc1151ea602cd39 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-exp
+/usr/lib/.build-id/f8/681ec591d9e65cf6e6a0da6d6d1727f6e279b3 120777 root root 70 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-atanh
+/usr/lib/.build-id/f8/dfa207c5c078e90e9e3134b6e20246415ad533 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen1-cbrtf
+/usr/lib/.build-id/f9 40755 root root 0 a 
+/usr/lib/.build-id/f9/04b6aeb392ed5ea967f2b4a7debc43cb38be08 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-log10
+/usr/lib/.build-id/f9/cd5dc8f30f3990a62d4209414fa80356eeed30 120777 root root 65 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen1-atanh
+/usr/lib/.build-id/fb 40755 root root 0 a 
+/usr/lib/.build-id/fb/05a71289f65baf6389a3719ba560cec31c5c62 120777 root root 63 a ../../../../usr/libexec/glibc-benchtests/bench-double-vlen8-log
+/usr/lib/.build-id/fb/7c67dbe833a7e523675ad41b9ae183c67406bb 120777 root root 54 a ../../../../usr/libexec/glibc-benchtests/bench-wcrtomb
+/usr/lib/.build-id/fb/cfb74768bb9b82f941b375d41b7738e8e94975 120777 root root 64 a ../../../../usr/libexec/glibc-benchtests/bench-float-vlen4-asinf
+/usr/lib/.build-id/fd/b216905dd49db24eba435804e116750b80f2c6 120777 root root 51 a ../../../../usr/libexec/glibc-benchtests/bench-powf
+/usr/libexec/glibc-benchtests 40755 root root 0  
+/usr/libexec/glibc-benchtests/bench-acos 100755 root root 63272  
+/usr/libexec/glibc-benchtests/bench-acosh 100755 root root 24776  
+/usr/libexec/glibc-benchtests/bench-arc4random 100755 root root 32592  
+/usr/libexec/glibc-benchtests/bench-asin 100755 root root 60056  
+/usr/libexec/glibc-benchtests/bench-asinh 100755 root root 24776  
+/usr/libexec/glibc-benchtests/bench-atan 100755 root root 32824  
+/usr/libexec/glibc-benchtests/bench-atan2 100755 root root 43984  
+/usr/libexec/glibc-benchtests/bench-atanh 100755 root root 23176  
+/usr/libexec/glibc-benchtests/bench-bzero 100755 root root 32696  
+/usr/libexec/glibc-benchtests/bench-bzero-large 100755 root root 32704  
+/usr/libexec/glibc-benchtests/bench-bzero-walk 100755 root root 32704  
+/usr/libexec/glibc-benchtests/bench-cbrt 100755 root root 35976  
+/usr/libexec/glibc-benchtests/bench-cbrtl 100755 root root 51984  
+/usr/libexec/glibc-benchtests/bench-cos 100755 root root 58456  
+/usr/libexec/glibc-benchtests/bench-cosf 100755 root root 58448  
+/usr/libexec/glibc-benchtests/bench-cosh 100755 root root 26376  
+/usr/libexec/glibc-benchtests/bench-dl-elf-hash 100755 root root 32544  
+/usr/libexec/glibc-benchtests/bench-dl-new-hash 100755 root root 32552  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-acos 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-acosh 100755 root root 81440  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-asin 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-asinh 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-atan 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-atan2 100755 root root 114208  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-atanh 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-cbrt 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-cos 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-cosh 100755 root root 81440  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-erf 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-erfc 100755 root root 81440  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-exp 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-exp10 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-exp2 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-expm1 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-hypot 100755 root root 114208  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-log 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-log10 100755 root root 81440  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-log1p 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-log2 100755 root root 81440  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-pow 100755 root root 114200  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-sin 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-sinh 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-tan 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-double-vlen1-tanh 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-acos 100755 root root 65048  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-acosh 100755 root root 65048  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-asin 100755 root root 65048  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-asinh 100755 root root 65048  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-atan 100755 root root 65048  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-atan2 100755 root root 97824  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-atanh 100755 root root 65048  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-cbrt 100755 root root 65048  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-cos 100755 root root 65040  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-cosh 100755 root root 65048  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-erf 100755 root root 65040  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-erfc 100755 root root 65048  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-exp 100755 root root 65040  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-exp10 100755 root root 65048  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-exp2 100755 root root 65048  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-expm1 100755 root root 65048  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-hypot 100755 root root 97824  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-log 100755 root root 65040  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-log10 100755 root root 65048  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-log1p 100755 root root 65048  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-log2 100755 root root 65048  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-pow 100755 root root 97816  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-sin 100755 root root 65040  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-sinh 100755 root root 65048  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-tan 100755 root root 65040  
+/usr/libexec/glibc-benchtests/bench-double-vlen2-tanh 100755 root root 65048  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-acos 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-acosh 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-asin 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-asinh 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-atan 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-atan2 100755 root root 89624  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-atanh 100755 root root 56848  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-acos 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-acosh 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-asin 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-asinh 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-atan 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-atan2 100755 root root 89632  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-atanh 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-cbrt 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-cos 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-cosh 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-erf 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-erfc 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-exp 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-exp10 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-exp2 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-expm1 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-hypot 100755 root root 89632  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-log 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-log10 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-log1p 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-log2 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-pow 100755 root root 89632  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-sin 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-sinh 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-tan 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-tanh 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-cbrt 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-cos 100755 root root 56848  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-cosh 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-erf 100755 root root 56848  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-erfc 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-exp 100755 root root 56848  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-exp10 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-exp2 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-expm1 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-hypot 100755 root root 89624  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-log 100755 root root 56848  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-log10 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-log1p 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-log2 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-pow 100755 root root 89624  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-sin 100755 root root 56848  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-sinh 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-tan 100755 root root 56848  
+/usr/libexec/glibc-benchtests/bench-double-vlen4-tanh 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-acos 100755 root root 52752  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-acosh 100755 root root 52752  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-asin 100755 root root 52752  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-asinh 100755 root root 52752  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-atan 100755 root root 52752  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-atan2 100755 root root 85528  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-atanh 100755 root root 52752  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-cbrt 100755 root root 52752  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-cos 100755 root root 52752  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-cosh 100755 root root 52752  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-erf 100755 root root 52752  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-erfc 100755 root root 52752  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-exp 100755 root root 52752  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-exp10 100755 root root 52752  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-exp2 100755 root root 52752  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-expm1 100755 root root 52752  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-hypot 100755 root root 85528  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-log 100755 root root 52752  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-log10 100755 root root 52752  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-log1p 100755 root root 52752  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-log2 100755 root root 52752  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-pow 100755 root root 85520  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-sin 100755 root root 52752  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-sinh 100755 root root 52752  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-tan 100755 root root 52752  
+/usr/libexec/glibc-benchtests/bench-double-vlen8-tanh 100755 root root 52752  
+/usr/libexec/glibc-benchtests/bench-erf 100755 root root 32600  
+/usr/libexec/glibc-benchtests/bench-erfc 100755 root root 32616  
+/usr/libexec/glibc-benchtests/bench-exp 100755 root root 45360  
+/usr/libexec/glibc-benchtests/bench-exp10 100755 root root 32632  
+/usr/libexec/glibc-benchtests/bench-exp10f 100755 root root 58120  
+/usr/libexec/glibc-benchtests/bench-exp2 100755 root root 21616  
+/usr/libexec/glibc-benchtests/bench-exp2f 100755 root root 58120  
+/usr/libexec/glibc-benchtests/bench-expf 100755 root root 58120  
+/usr/libexec/glibc-benchtests/bench-expf128 100755 root root 60224  
+/usr/libexec/glibc-benchtests/bench-expm1 100755 root root 32648  
+/usr/libexec/glibc-benchtests/bench-ffs 100755 root root 21576  
+/usr/libexec/glibc-benchtests/bench-ffsll 100755 root root 21584  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-acosf 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-acoshf 100755 root root 81440  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-asinf 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-asinhf 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-atan2f 100755 root root 81440  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-atanf 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-atanhf 100755 root root 81440  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-cbrtf 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-cosf 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-coshf 100755 root root 81440  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-erfcf 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-erff 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-exp10f 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-exp2f 100755 root root 81440  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-expf 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-expm1f 100755 root root 81440  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-hypotf 100755 root root 81440  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-log10f 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-log1pf 100755 root root 81440  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-log2f 100755 root root 81440  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-logf 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-powf 100755 root root 81424  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-sinf 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-sinhf 100755 root root 81440  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-tanf 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-float-vlen1-tanhf 100755 root root 81432  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-acosf 100755 root root 34320  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-acoshf 100755 root root 34320  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-asinf 100755 root root 34320  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-asinhf 100755 root root 34320  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-atan2f 100755 root root 50704  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-atanf 100755 root root 34320  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-atanhf 100755 root root 34320  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-cbrtf 100755 root root 34320  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-cosf 100755 root root 34320  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-coshf 100755 root root 34320  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-erfcf 100755 root root 34320  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-erff 100755 root root 34320  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-exp10f 100755 root root 34320  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-exp2f 100755 root root 34320  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-expf 100755 root root 34320  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-expm1f 100755 root root 34320  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-hypotf 100755 root root 50704  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-log10f 100755 root root 34320  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-log1pf 100755 root root 34320  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-log2f 100755 root root 34320  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-logf 100755 root root 34320  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-powf 100755 root root 50704  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-sinf 100755 root root 34320  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-sinhf 100755 root root 34320  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-tanf 100755 root root 34320  
+/usr/libexec/glibc-benchtests/bench-float-vlen16-tanhf 100755 root root 34320  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-acosf 100755 root root 40472  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-acoshf 100755 root root 40464  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-asinf 100755 root root 40472  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-asinhf 100755 root root 40472  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-atan2f 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-atanf 100755 root root 40464  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-atanhf 100755 root root 40472  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-cbrtf 100755 root root 40464  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-cosf 100755 root root 40464  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-coshf 100755 root root 40472  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-erfcf 100755 root root 40472  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-erff 100755 root root 40464  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-exp10f 100755 root root 40472  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-exp2f 100755 root root 40472  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-expf 100755 root root 40464  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-expm1f 100755 root root 40464  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-hypotf 100755 root root 56856  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-log10f 100755 root root 40464  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-log1pf 100755 root root 40472  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-log2f 100755 root root 40472  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-logf 100755 root root 40464  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-powf 100755 root root 56848  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-sinf 100755 root root 40464  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-sinhf 100755 root root 40472  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-tanf 100755 root root 40464  
+/usr/libexec/glibc-benchtests/bench-float-vlen4-tanhf 100755 root root 40472  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-acosf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-acoshf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-asinf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-asinhf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-atan2f 100755 root root 52760  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-atanf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-atanhf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-acosf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-acoshf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-asinf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-asinhf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-atan2f 100755 root root 52760  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-atanf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-atanhf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-cbrtf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-cosf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-coshf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-erfcf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-erff 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-exp10f 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-exp2f 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-expf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-expm1f 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-hypotf 100755 root root 52760  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-log10f 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-log1pf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-log2f 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-logf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-powf 100755 root root 52760  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-sinf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-sinhf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-tanf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-tanhf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-cbrtf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-cosf 100755 root root 36368  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-coshf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-erfcf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-erff 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-exp10f 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-exp2f 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-expf 100755 root root 36368  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-expm1f 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-hypotf 100755 root root 52760  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-log10f 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-log1pf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-log2f 100755 root root 36368  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-logf 100755 root root 36368  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-powf 100755 root root 52752  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-sinf 100755 root root 36368  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-sinhf 100755 root root 36368  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-tanf 100755 root root 36368  
+/usr/libexec/glibc-benchtests/bench-float-vlen8-tanhf 100755 root root 36376  
+/usr/libexec/glibc-benchtests/bench-fmax 100755 root root 20472  
+/usr/libexec/glibc-benchtests/bench-fmaxf 100755 root root 20312  
+/usr/libexec/glibc-benchtests/bench-fmin 100755 root root 20472  
+/usr/libexec/glibc-benchtests/bench-fminf 100755 root root 20304  
+/usr/libexec/glibc-benchtests/bench-fmod 100755 root root 72248  
+/usr/libexec/glibc-benchtests/bench-fmodf 100755 root root 54840  
+/usr/libexec/glibc-benchtests/bench-hypot 100755 root root 43976  
+/usr/libexec/glibc-benchtests/bench-hypotf 100755 root root 35976  
+/usr/libexec/glibc-benchtests/bench-ilogb 100755 root root 20072  
+/usr/libexec/glibc-benchtests/bench-ilogbf 100755 root root 20064  
+/usr/libexec/glibc-benchtests/bench-ilogbf128 100755 root root 24272  
+/usr/libexec/glibc-benchtests/bench-isfinite 100755 root root 20280  
+/usr/libexec/glibc-benchtests/bench-isinf 100755 root root 20280  
+/usr/libexec/glibc-benchtests/bench-isnan 100755 root root 20280  
+/usr/libexec/glibc-benchtests/bench-j0 100755 root root 35976  
+/usr/libexec/glibc-benchtests/bench-j1 100755 root root 35976  
+/usr/libexec/glibc-benchtests/bench-lgamma 100755 root root 35976  
+/usr/libexec/glibc-benchtests/bench-log 100755 root root 24656  
+/usr/libexec/glibc-benchtests/bench-log10 100755 root root 35984  
+/usr/libexec/glibc-benchtests/bench-log1p 100755 root root 35976  
+/usr/libexec/glibc-benchtests/bench-log2 100755 root root 23184  
+/usr/libexec/glibc-benchtests/bench-log2f 100755 root root 66128  
+/usr/libexec/glibc-benchtests/bench-logb 100755 root root 20064  
+/usr/libexec/glibc-benchtests/bench-logbf 100755 root root 20072  
+/usr/libexec/glibc-benchtests/bench-logf 100755 root root 66128  
+/usr/libexec/glibc-benchtests/bench-malloc-simple 100755 root root 15880  
+/usr/libexec/glibc-benchtests/bench-malloc-thread 100755 root root 20008  
+/usr/libexec/glibc-benchtests/bench-math-inlines 100755 root root 41000  
+/usr/libexec/glibc-benchtests/bench-memccpy 100755 root root 32704  
+/usr/libexec/glibc-benchtests/bench-memchr 100755 root root 36808  
+/usr/libexec/glibc-benchtests/bench-memcmp 100755 root root 36752  
+/usr/libexec/glibc-benchtests/bench-memcmpeq 100755 root root 36752  
+/usr/libexec/glibc-benchtests/bench-memcpy 100755 root root 36848  
+/usr/libexec/glibc-benchtests/bench-memcpy-large 100755 root root 32664  
+/usr/libexec/glibc-benchtests/bench-memcpy-random 100755 root root 32664  
+/usr/libexec/glibc-benchtests/bench-memcpy-walk 100755 root root 32672  
+/usr/libexec/glibc-benchtests/bench-memmem 100755 root root 36872  
+/usr/libexec/glibc-benchtests/bench-memmove 100755 root root 36856  
+/usr/libexec/glibc-benchtests/bench-memmove-large 100755 root root 32656  
+/usr/libexec/glibc-benchtests/bench-memmove-walk 100755 root root 32656  
+/usr/libexec/glibc-benchtests/bench-mempcpy 100755 root root 36872  
+/usr/libexec/glibc-benchtests/bench-memrchr 100755 root root 36800  
+/usr/libexec/glibc-benchtests/bench-memset 100755 root root 32696  
+/usr/libexec/glibc-benchtests/bench-memset-large 100755 root root 32712  
+/usr/libexec/glibc-benchtests/bench-memset-walk 100755 root root 32704  
+/usr/libexec/glibc-benchtests/bench-memset-zero 100755 root root 32704  
+/usr/libexec/glibc-benchtests/bench-memset-zero-large 100755 root root 32720  
+/usr/libexec/glibc-benchtests/bench-memset-zero-walk 100755 root root 32704  
+/usr/libexec/glibc-benchtests/bench-modf 100755 root root 20000  
+/usr/libexec/glibc-benchtests/bench-nss-hash 100755 root root 32552  
+/usr/libexec/glibc-benchtests/bench-pow 100755 root root 56064  
+/usr/libexec/glibc-benchtests/bench-powf 100755 root root 60040  
+/usr/libexec/glibc-benchtests/bench-powf128 100755 root root 76224  
+/usr/libexec/glibc-benchtests/bench-pthread-locks 100755 root root 36784  
+/usr/libexec/glibc-benchtests/bench-pthread-mutex-lock 100755 root root 32568  
+/usr/libexec/glibc-benchtests/bench-pthread-mutex-trylock 100755 root root 36680  
+/usr/libexec/glibc-benchtests/bench-pthread-spin-lock 100755 root root 32560  
+/usr/libexec/glibc-benchtests/bench-pthread-spin-trylock 100755 root root 32568  
+/usr/libexec/glibc-benchtests/bench-pthread_once 100755 root root 20008  
+/usr/libexec/glibc-benchtests/bench-rawmemchr 100755 root root 32712  
+/usr/libexec/glibc-benchtests/bench-rint 100755 root root 20032  
+/usr/libexec/glibc-benchtests/bench-roundeven 100755 root root 20288  
+/usr/libexec/glibc-benchtests/bench-roundevenf 100755 root root 20272  
+/usr/libexec/glibc-benchtests/bench-sin 100755 root root 98560  
+/usr/libexec/glibc-benchtests/bench-sincos 100755 root root 101984  
+/usr/libexec/glibc-benchtests/bench-sincosf 100755 root root 104840  
+/usr/libexec/glibc-benchtests/bench-sinf 100755 root root 98560  
+/usr/libexec/glibc-benchtests/bench-sinf128 100755 root root 92248  
+/usr/libexec/glibc-benchtests/bench-sinh 100755 root root 24776  
+/usr/libexec/glibc-benchtests/bench-sprintf 100755 root root 20144  
+/usr/libexec/glibc-benchtests/bench-sqrt 100755 root root 20088  
+/usr/libexec/glibc-benchtests/bench-stpcpy 100755 root root 32712  
+/usr/libexec/glibc-benchtests/bench-stpcpy_chk 100755 root root 36832  
+/usr/libexec/glibc-benchtests/bench-stpncpy 100755 root root 36808  
+/usr/libexec/glibc-benchtests/bench-strcasecmp 100755 root root 32672  
+/usr/libexec/glibc-benchtests/bench-strcasestr 100755 root root 36856  
+/usr/libexec/glibc-benchtests/bench-strcat 100755 root root 36816  
+/usr/libexec/glibc-benchtests/bench-strchr 100755 root root 36848  
+/usr/libexec/glibc-benchtests/bench-strchrnul 100755 root root 36816  
+/usr/libexec/glibc-benchtests/bench-strcmp 100755 root root 36808  
+/usr/libexec/glibc-benchtests/bench-strcoll 100755 root root 19944  
+/usr/libexec/glibc-benchtests/bench-strcpy 100755 root root 32712  
+/usr/libexec/glibc-benchtests/bench-strcpy_chk 100755 root root 36832  
+/usr/libexec/glibc-benchtests/bench-strcspn 100755 root root 32656  
+/usr/libexec/glibc-benchtests/bench-strlen 100755 root root 32736  
+/usr/libexec/glibc-benchtests/bench-strncasecmp 100755 root root 36776  
+/usr/libexec/glibc-benchtests/bench-strncat 100755 root root 20176  
+/usr/libexec/glibc-benchtests/bench-strncmp 100755 root root 40920  
+/usr/libexec/glibc-benchtests/bench-strncpy 100755 root root 36808  
+/usr/libexec/glibc-benchtests/bench-strnlen 100755 root root 36808  
+/usr/libexec/glibc-benchtests/bench-strpbrk 100755 root root 32656  
+/usr/libexec/glibc-benchtests/bench-strrchr 100755 root root 36800  
+/usr/libexec/glibc-benchtests/bench-strsep 100755 root root 36752  
+/usr/libexec/glibc-benchtests/bench-strspn 100755 root root 32664  
+/usr/libexec/glibc-benchtests/bench-strstr 100755 root root 45096  
+/usr/libexec/glibc-benchtests/bench-strtod 100755 root root 32496  
+/usr/libexec/glibc-benchtests/bench-strtok 100755 root root 36752  
+/usr/libexec/glibc-benchtests/bench-tan 100755 root root 75112  
+/usr/libexec/glibc-benchtests/bench-tanh 100755 root root 23176  
+/usr/libexec/glibc-benchtests/bench-tgamma 100755 root root 35976  
+/usr/libexec/glibc-benchtests/bench-thread_create 100755 root root 20448  
+/usr/libexec/glibc-benchtests/bench-timing-type 100755 root root 15808  
+/usr/libexec/glibc-benchtests/bench-trunc 100755 root root 20280  
+/usr/libexec/glibc-benchtests/bench-truncf 100755 root root 20272  
+/usr/libexec/glibc-benchtests/bench-wcpcpy 100755 root root 36800  
+/usr/libexec/glibc-benchtests/bench-wcpncpy 100755 root root 36800  
+/usr/libexec/glibc-benchtests/bench-wcrtomb 100755 root root 20152  
+/usr/libexec/glibc-benchtests/bench-wcscat 100755 root root 36808  
+/usr/libexec/glibc-benchtests/bench-wcschr 100755 root root 36800  
+/usr/libexec/glibc-benchtests/bench-wcschrnul 100755 root root 36752  
+/usr/libexec/glibc-benchtests/bench-wcscmp 100755 root root 36760  
+/usr/libexec/glibc-benchtests/bench-wcscpy 100755 root root 36800  
+/usr/libexec/glibc-benchtests/bench-wcscspn 100755 root root 32656  
+/usr/libexec/glibc-benchtests/bench-wcslen 100755 root root 32736  
+/usr/libexec/glibc-benchtests/bench-wcsncat 100755 root root 20168  
+/usr/libexec/glibc-benchtests/bench-wcsncmp 100755 root root 40872  
+/usr/libexec/glibc-benchtests/bench-wcsncpy 100755 root root 36792  
+/usr/libexec/glibc-benchtests/bench-wcsnlen 100755 root root 36800  
+/usr/libexec/glibc-benchtests/bench-wcspbrk 100755 root root 32656  
+/usr/libexec/glibc-benchtests/bench-wcsrchr 100755 root root 36760  
+/usr/libexec/glibc-benchtests/bench-wcsspn 100755 root root 32656  
+/usr/libexec/glibc-benchtests/bench-wmemchr 100755 root root 36760  
+/usr/libexec/glibc-benchtests/bench-wmemcmp 100755 root root 36752  
+/usr/libexec/glibc-benchtests/bench-wmemset 100755 root root 32696  
+/usr/libexec/glibc-benchtests/bench-y0 100755 root root 35976  
+/usr/libexec/glibc-benchtests/bench-y1 100755 root root 35976  
+/usr/libexec/glibc-benchtests/bench.mk 100644 root root 2448  
+/usr/libexec/glibc-benchtests/benchout.schema.json 100644 root root 1647  
+/usr/libexec/glibc-benchtests/compare_bench.py 100755 root root 7612  
+/usr/libexec/glibc-benchtests/glibc-bench-compare 100755 root root 3211  
+/usr/libexec/glibc-benchtests/import_bench.py 100755 root root 4210  
+/usr/libexec/glibc-benchtests/validate_benchout.py 100755 root root 2719  
+
+## Provides
+glibc-benchtests = 2.39-142.el10_2
+glibc-benchtests(x86-64) = 2.39-142.el10_2
+
+## Requires
+/usr/bin/bash
+/usr/bin/python3
+libc.so.6()(64bit)
+libc.so.6(GLIBC_2.11)(64bit)
+libc.so.6(GLIBC_2.14)(64bit)
+libc.so.6(GLIBC_2.17)(64bit)
+libc.so.6(GLIBC_2.2.5)(64bit)
+libc.so.6(GLIBC_2.3)(64bit)
+libc.so.6(GLIBC_2.3.2)(64bit)
+libc.so.6(GLIBC_2.3.4)(64bit)
+libc.so.6(GLIBC_2.33)(64bit)
+libc.so.6(GLIBC_2.34)(64bit)
+libc.so.6(GLIBC_2.36)(64bit)
+libc.so.6(GLIBC_2.38)(64bit)
+libc.so.6(GLIBC_2.4)(64bit)
+libc.so.6(GLIBC_2.8)(64bit)
+libc.so.6(GLIBC_ABI_DT_RELR)(64bit)
+libc.so.6(GLIBC_PRIVATE)(64bit)
+libm.so.6()(64bit)
+libm.so.6(GLIBC_2.2.5)(64bit)
+libm.so.6(GLIBC_2.23)(64bit)
+libm.so.6(GLIBC_2.25)(64bit)
+libm.so.6(GLIBC_2.26)(64bit)
+libm.so.6(GLIBC_2.27)(64bit)
+libm.so.6(GLIBC_2.29)(64bit)
+libm.so.6(GLIBC_2.32)(64bit)
+libm.so.6(GLIBC_2.35)(64bit)
+libm.so.6(GLIBC_2.38)(64bit)
+libm.so.6(GLIBC_2.39)(64bit)
+libmvec.so.1()(64bit)
+libmvec.so.1(GLIBC_2.22)(64bit)
+libmvec.so.1(GLIBC_2.35)(64bit)
+rpmlib(CompressedFileNames) <= 3.0.4-1
+rpmlib(FileDigests) <= 4.6.0-1
+rpmlib(PayloadFilesHavePrefix) <= 4.0-1
+rpmlib(PayloadIsZstd) <= 5.4.18-1
+rtld(GNU_HASH)
+
+## Recommends/Suggests/Supplements/Enhances
+
+## Conflicts / Obsoletes
+
+## Scripts
+
+## Triggers
+
+## File triggers
+
+## ELF dynamic dependencies (readelf -d NEEDED / RPATH / RUNPATH / interp)
+/usr/libexec/glibc-benchtests/bench-acos [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-acosh [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-arc4random [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-asin [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-asinh [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-atan [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-atan2 [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-atanh [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-bzero [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-bzero-large [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-bzero-walk [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-cbrt [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-cbrtl [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-cos [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-cosf [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-cosh [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-dl-elf-hash [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-dl-new-hash [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-acos [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-acosh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-asin [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-asinh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-atan [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-atan2 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-atanh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-cbrt [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-cos [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-cosh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-erf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-erfc [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-exp [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-exp10 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-exp2 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-expm1 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-hypot [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-log [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-log10 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-log1p [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-log2 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-pow [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-sin [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-sinh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-tan [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen1-tanh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-acos [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-acosh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-asin [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-asinh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-atan [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-atan2 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-atanh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-cbrt [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-cos [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-cosh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-erf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-erfc [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-exp [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-exp10 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-exp2 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-expm1 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-hypot [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-log [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-log10 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-log1p [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-log2 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-pow [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-sin [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-sinh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-tan [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen2-tanh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-acos [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-acosh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-asin [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-asinh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-atan [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-atan2 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-atanh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-acos [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-acosh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-asin [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-asinh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-atan [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-atan2 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-atanh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-cbrt [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-cos [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-cosh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-erf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-erfc [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-exp [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-exp10 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-exp2 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-expm1 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-hypot [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-log [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-log10 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-log1p [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-log2 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-pow [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-sin [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-sinh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-tan [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-avx2-tanh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-cbrt [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-cos [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-cosh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-erf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-erfc [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-exp [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-exp10 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-exp2 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-expm1 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-hypot [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-log [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-log10 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-log1p [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-log2 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-pow [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-sin [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-sinh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-tan [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen4-tanh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-acos [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-acosh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-asin [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-asinh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-atan [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-atan2 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-atanh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-cbrt [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-cos [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-cosh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-erf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-erfc [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-exp [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-exp10 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-exp2 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-expm1 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-hypot [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-log [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-log10 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-log1p [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-log2 [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-pow [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-sin [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-sinh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-tan [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-double-vlen8-tanh [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-erf [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-erfc [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-exp [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-exp10 [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-exp10f [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-exp2 [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-exp2f [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-expf [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-expf128 [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-expm1 [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-ffs [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-ffsll [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-acosf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-acoshf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-asinf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-asinhf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-atan2f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-atanf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-atanhf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-cbrtf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-cosf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-coshf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-erfcf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-erff [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-exp10f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-exp2f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-expf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-expm1f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-hypotf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-log10f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-log1pf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-log2f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-logf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-powf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-sinf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-sinhf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-tanf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen1-tanhf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-acosf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-acoshf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-asinf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-asinhf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-atan2f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-atanf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-atanhf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-cbrtf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-cosf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-coshf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-erfcf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-erff [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-exp10f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-exp2f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-expf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-expm1f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-hypotf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-log10f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-log1pf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-log2f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-logf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-powf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-sinf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-sinhf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-tanf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen16-tanhf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-acosf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-acoshf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-asinf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-asinhf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-atan2f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-atanf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-atanhf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-cbrtf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-cosf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-coshf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-erfcf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-erff [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-exp10f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-exp2f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-expf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-expm1f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-hypotf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-log10f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-log1pf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-log2f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-logf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-powf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-sinf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-sinhf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-tanf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen4-tanhf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-acosf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-acoshf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-asinf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-asinhf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-atan2f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-atanf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-atanhf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-acosf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-acoshf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-asinf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-asinhf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-atan2f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-atanf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-atanhf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-cbrtf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-cosf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-coshf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-erfcf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-erff [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-exp10f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-exp2f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-expf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-expm1f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-hypotf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-log10f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-log1pf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-log2f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-logf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-powf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-sinf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-sinhf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-tanf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-avx2-tanhf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-cbrtf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-cosf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-coshf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-erfcf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-erff [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-exp10f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-exp2f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-expf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-expm1f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-hypotf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-log10f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-log1pf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-log2f [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-logf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-powf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-sinf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-sinhf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-tanf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-float-vlen8-tanhf [DYN] NEEDED: libmvec.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-fmax [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-fmaxf [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-fmin [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-fminf [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-fmod [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-fmodf [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-hypot [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-hypotf [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-ilogb [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-ilogbf [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-ilogbf128 [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-isfinite [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-isinf [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-isnan [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-j0 [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-j1 [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-lgamma [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-log [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-log10 [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-log1p [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-log2 [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-log2f [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-logb [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-logbf [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-logf [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-malloc-simple [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-malloc-thread [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-math-inlines [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-memccpy [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-memchr [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-memcmp [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-memcmpeq [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-memcpy [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-memcpy-large [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-memcpy-random [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-memcpy-walk [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-memmem [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-memmove [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-memmove-large [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-memmove-walk [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-mempcpy [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-memrchr [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-memset [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-memset-large [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-memset-walk [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-memset-zero [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-memset-zero-large [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-memset-zero-walk [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-modf [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-nss-hash [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-pow [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-powf [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-powf128 [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-pthread-locks [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-pthread-mutex-lock [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-pthread-mutex-trylock [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-pthread-spin-lock [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-pthread-spin-trylock [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-pthread_once [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-rawmemchr [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-rint [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-roundeven [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-roundevenf [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-sin [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-sincos [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-sincosf [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-sinf [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-sinf128 [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-sinh [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-sprintf [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-sqrt [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-stpcpy [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-stpcpy_chk [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-stpncpy [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-strcasecmp [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-strcasestr [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-strcat [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-strchr [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-strchrnul [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-strcmp [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-strcoll [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-strcpy [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-strcpy_chk [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-strcspn [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-strlen [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-strncasecmp [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-strncat [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-strncmp [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-strncpy [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-strnlen [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-strpbrk [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-strrchr [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-strsep [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-strspn [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-strstr [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-strtod [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-strtok [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-tan [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-tanh [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-tgamma [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-thread_create [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-timing-type [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-trunc [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-truncf [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-wcpcpy [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-wcpncpy [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-wcrtomb [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-wcscat [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-wcschr [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-wcschrnul [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-wcscmp [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-wcscpy [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-wcscspn [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-wcslen [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-wcsncat [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-wcsncmp [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-wcsncpy [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-wcsnlen [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-wcspbrk [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-wcsrchr [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-wcsspn [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-wmemchr [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-wmemcmp [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-wmemset [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-y0 [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/glibc-benchtests/bench-y1 [DYN] NEEDED: libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+
+## Leak checks
+paths under /usr/lib/debug in payload: 0
+files whose CONTENT mentions '/usr/lib/debug': <none> 
+files whose CONTENT mentions /builddir/build|/usr/src/debug|/nix/store: /usr/libexec/glibc-benchtests/bench-wmemset /usr/libexec/glibc-benchtests/bench-wmemcmp /usr/libexec/glibc-benchtests/bench-wmemchr /usr/libexec/glibc-benchtests/bench-wcsspn /usr/libexec/glibc-benchtests/bench-wcsrchr /usr/libexec/glibc-benchtests/bench-wcspbrk /usr/libexec/glibc-benchtests/bench-wcsnlen /usr/libexec/glibc-benchtests/bench-wcsncpy /usr/libexec/glibc-benchtests/bench-wcsncmp /usr/libexec/glibc-benchtests/bench-wcslen /usr/libexec/glibc-benchtests/bench-wcscspn /usr/libexec/glibc-benchtests/bench-wcscpy /usr/libexec/glibc-benchtests/bench-wcscmp /usr/libexec/glibc-benchtests/bench-wcschrnul /usr/libexec/glibc-benchtests/bench-wcschr /usr/libexec/glibc-benchtests/bench-wcscat /usr/libexec/glibc-benchtests/bench-wcpncpy /usr/libexec/glibc-benchtests/bench-wcpcpy /usr/libexec/glibc-benchtests/bench-strtok /usr/libexec/glibc-benchtests/bench-strtod 

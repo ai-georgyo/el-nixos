@@ -1,0 +1,59 @@
+# Official Rocky Linux 10.2 baseline: glibc-minimal-langpack-2.39-142.el10_2.x86_64.rpm
+# sha256: 7a6cb3db1544d209ded835cabcb48d6d5f5a87710e14b42facb3985cb8cf00ef
+
+## Header summary
+NEVRA:        glibc-minimal-langpack-2.39-142.el10_2.x86_64
+Source RPM:   glibc-2.39-142.el10_2.src.rpm
+Build host:   ord1-prod-x86build009.svc.aws.rockylinux.org
+Build time:   1791453144 (Thu Oct  8 05:52:24 2026)
+Vendor:       Rocky Enterprise Software Foundation
+Packager:     Rocky Linux Build System <releng@rockylinux.org>
+License:      LGPL-2.1-or-later AND SunPro AND LGPL-2.1-or-later WITH GCC-exception-2.0 AND BSD-3-Clause AND GPL-2.0-or-later AND LGPL-2.1-or-later WITH GNU-compiler-exception AND GPL-2.0-only AND ISC AND LicenseRef-Fedora-Public-Domain AND HPND AND CMU-Mach AND LGPL-2.1-only AND LGPL-2.0-or-later AND Unicode-DFS-2015 AND GFDL-1.1-or-later AND GPL-1.0-or-later AND FSFUL AND MIT AND Inner-Net-2.0 AND X11 AND GPL-2.0-or-later WITH GCC-exception-2.0 AND GFDL-1.3-only AND GFDL-1.1-only AND GPL-3.0-or-later AND GPL-3.0-or-later WITH Autoconf-exception-generic-3.0 AND GPL-3.0-or-later WITH Texinfo-exception
+Group:        Unspecified
+URL:          http://www.gnu.org/software/glibc/
+Summary:      Minimal language packs for glibc.
+Payload:      cpio / zstd level 19
+File digest:  8 (8=sha256)
+Size (inst):  0 bytes
+Archive size: 124
+Opt flags:    -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Wno-complain-wrong-lang -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2  
+Platform:     x86_64-redhat-linux-gnu
+RPM version:  4.19.1.1
+Files:        (none)
+
+## Description
+This is a Meta package that is used to install minimal language packs.
+This package ensures you can use C, POSIX, or C.UTF-8 locales, but
+nothing else. It is designed for assembling a minimal system.
+
+## Files (path mode(octal) user group size flags linkto) [flags: c=config d=doc g=ghost l=license m=missingok n=noreplace]
+
+## Provides
+glibc-langpack = 2.39-142.el10_2
+glibc-minimal-langpack = 2.39-142.el10_2
+glibc-minimal-langpack(x86-64) = 2.39-142.el10_2
+
+## Requires
+glibc = 2.39-142.el10_2
+glibc-common = 2.39-142.el10_2
+rpmlib(CompressedFileNames) <= 3.0.4-1
+rpmlib(FileDigests) <= 4.6.0-1
+rpmlib(PayloadFilesHavePrefix) <= 4.0-1
+rpmlib(PayloadIsZstd) <= 5.4.18-1
+
+## Recommends/Suggests/Supplements/Enhances
+
+## Conflicts / Obsoletes
+
+## Scripts
+
+## Triggers
+
+## File triggers
+
+## ELF dynamic dependencies (readelf -d NEEDED / RPATH / RUNPATH / interp)
+
+## Leak checks
+paths under /usr/lib/debug in payload: 0
+files whose CONTENT mentions '/usr/lib/debug': <none> 
+files whose CONTENT mentions /builddir/build|/usr/src/debug|/nix/store: <none> 

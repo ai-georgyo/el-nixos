@@ -1,0 +1,103 @@
+# Official Rocky Linux 10.2 baseline: glibc-utils-2.39-142.el10_2.x86_64.rpm
+# sha256: 5b66f47793e1c69a72f1c3585fd1fa687e8614627901c9cf6070e3eab3d69a56
+
+## Header summary
+NEVRA:        glibc-utils-2.39-142.el10_2.x86_64
+Source RPM:   glibc-2.39-142.el10_2.src.rpm
+Build host:   ord1-prod-x86build009.svc.aws.rockylinux.org
+Build time:   1791453144 (Thu Oct  8 05:52:24 2026)
+Vendor:       Rocky Enterprise Software Foundation
+Packager:     Rocky Linux Build System <releng@rockylinux.org>
+License:      LGPL-2.1-or-later AND SunPro AND LGPL-2.1-or-later WITH GCC-exception-2.0 AND BSD-3-Clause AND GPL-2.0-or-later AND LGPL-2.1-or-later WITH GNU-compiler-exception AND GPL-2.0-only AND ISC AND LicenseRef-Fedora-Public-Domain AND HPND AND CMU-Mach AND LGPL-2.1-only AND LGPL-2.0-or-later AND Unicode-DFS-2015 AND GFDL-1.1-or-later AND GPL-1.0-or-later AND FSFUL AND MIT AND Inner-Net-2.0 AND X11 AND GPL-2.0-or-later WITH GCC-exception-2.0 AND GFDL-1.3-only AND GFDL-1.1-only AND GPL-3.0-or-later AND GPL-3.0-or-later WITH Autoconf-exception-generic-3.0 AND GPL-3.0-or-later WITH Texinfo-exception
+Group:        Unspecified
+URL:          http://www.gnu.org/software/glibc/
+Summary:      Development utilities from GNU C library
+Payload:      cpio / zstd level 19
+File digest:  8 (8=sha256)
+Size (inst):  137790 bytes
+Archive size: 139960
+Opt flags:    -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Wno-complain-wrong-lang -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2  
+Platform:     x86_64-redhat-linux-gnu
+RPM version:  4.19.1.1
+Files:        14
+
+## Description
+The glibc-utils package contains memusage, a memory usage profiler,
+mtrace, a memory leak tracer and xtrace, a function call tracer
+which can be helpful during program debugging.
+
+If unsure if you need this, don't install this package.
+
+## Files (path mode(octal) user group size flags linkto) [flags: c=config d=doc g=ghost l=license m=missingok n=noreplace]
+/usr/bin/memusage 100755 root root 7458  
+/usr/bin/memusagestat 100755 root root 23976  
+/usr/bin/mtrace 100755 root root 6664  
+/usr/bin/pcprofiledump 100755 root root 15808  
+/usr/bin/xtrace 100755 root root 5243  
+/usr/lib/.build-id 40755 root root 0 a 
+/usr/lib/.build-id/00 40755 root root 0 a 
+/usr/lib/.build-id/00/90bec2a1d8fe9eb4a0faa6e61a78659f1285c0 120777 root root 36 a ../../../../usr/lib64/libmemusage.so
+/usr/lib/.build-id/50/42096eeda8b2ceadc2adbc175886340f969540 120777 root root 33 a ../../../../usr/bin/pcprofiledump
+/usr/lib/.build-id/62/1e546930b731cd4d1df1b5783be187a71a893c 120777 root root 44 a ../../../../usr/lib64/libc_malloc_debug.so.0
+/usr/lib/.build-id/f6 40755 root root 0 a 
+/usr/lib/.build-id/f6/af6edffe3cc2787c9eefa87b01bd5c3741d8a7 120777 root root 32 a ../../../../usr/bin/memusagestat
+/usr/lib64/libc_malloc_debug.so.0 100755 root root 58608  
+/usr/lib64/libmemusage.so 100755 root root 19888  
+
+## Provides
+glibc-utils = 2.39-142.el10_2
+glibc-utils(x86-64) = 2.39-142.el10_2
+libmemusage.so()(64bit)
+
+## Requires
+/usr/bin/bash
+/usr/bin/perl
+/usr/bin/sh
+glibc = 2.39-142.el10_2
+ld-linux-x86-64.so.2()(64bit)
+ld-linux-x86-64.so.2(GLIBC_2.3)(64bit)
+ld-linux-x86-64.so.2(GLIBC_PRIVATE)(64bit)
+libc.so.6()(64bit)
+libc.so.6(GLIBC_2.14)(64bit)
+libc.so.6(GLIBC_2.17)(64bit)
+libc.so.6(GLIBC_2.2.5)(64bit)
+libc.so.6(GLIBC_2.3.4)(64bit)
+libc.so.6(GLIBC_2.30)(64bit)
+libc.so.6(GLIBC_2.32)(64bit)
+libc.so.6(GLIBC_2.33)(64bit)
+libc.so.6(GLIBC_2.34)(64bit)
+libc.so.6(GLIBC_2.38)(64bit)
+libc.so.6(GLIBC_2.4)(64bit)
+libc.so.6(GLIBC_2.8)(64bit)
+libc.so.6(GLIBC_ABI_DT_RELR)(64bit)
+libc.so.6(GLIBC_PRIVATE)(64bit)
+libgd.so.3()(64bit)
+libm.so.6()(64bit)
+libpng16.so.16()(64bit)
+libz.so.1()(64bit)
+rpmlib(CompressedFileNames) <= 3.0.4-1
+rpmlib(FileDigests) <= 4.6.0-1
+rpmlib(PayloadFilesHavePrefix) <= 4.0-1
+rpmlib(PayloadIsZstd) <= 5.4.18-1
+rtld(GNU_HASH)
+
+## Recommends/Suggests/Supplements/Enhances
+
+## Conflicts / Obsoletes
+
+## Scripts
+
+## Triggers
+
+## File triggers
+
+## ELF dynamic dependencies (readelf -d NEEDED / RPATH / RUNPATH / interp)
+/usr/bin/memusagestat [DYN] NEEDED: libgd.so.3 libpng16.so.16 libz.so.1 libm.so.6 libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/bin/pcprofiledump [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/lib64/libc_malloc_debug.so.0 [DYN] NEEDED: libc.so.6 ld-linux-x86-64.so.2 
+/usr/lib64/libmemusage.so [DYN] NEEDED: libc.so.6 ld-linux-x86-64.so.2 
+
+## Leak checks
+paths under /usr/lib/debug in payload: 0
+files whose CONTENT mentions '/usr/lib/debug': <none> 
+files whose CONTENT mentions /builddir/build|/usr/src/debug|/nix/store: <none> 

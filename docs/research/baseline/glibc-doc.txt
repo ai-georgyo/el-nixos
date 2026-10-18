@@ -1,0 +1,80 @@
+# Official Rocky Linux 10.2 baseline: glibc-doc-2.39-142.el10_2.noarch.rpm
+# sha256: 2c2f7ff09ab87a3d19c7a75678ad286e474e21267998e9acfbe9377ec51abd80
+
+## Header summary
+NEVRA:        glibc-doc-2.39-142.el10_2.noarch
+Source RPM:   glibc-2.39-142.el10_2.src.rpm
+Build host:   ord1-prod-x86build009.svc.aws.rockylinux.org
+Build time:   1791453144 (Thu Oct  8 05:52:24 2026)
+Vendor:       Rocky Enterprise Software Foundation
+Packager:     Rocky Linux Build System <releng@rockylinux.org>
+License:      LGPL-2.1-or-later AND SunPro AND LGPL-2.1-or-later WITH GCC-exception-2.0 AND BSD-3-Clause AND GPL-2.0-or-later AND LGPL-2.1-or-later WITH GNU-compiler-exception AND GPL-2.0-only AND ISC AND LicenseRef-Fedora-Public-Domain AND HPND AND CMU-Mach AND LGPL-2.1-only AND LGPL-2.0-or-later AND Unicode-DFS-2015 AND GFDL-1.1-or-later AND GPL-1.0-or-later AND FSFUL AND MIT AND Inner-Net-2.0 AND X11 AND GPL-2.0-or-later WITH GCC-exception-2.0 AND GFDL-1.3-only AND GFDL-1.1-only AND GPL-3.0-or-later AND GPL-3.0-or-later WITH Autoconf-exception-generic-3.0 AND GPL-3.0-or-later WITH Texinfo-exception
+Group:        Unspecified
+URL:          http://www.gnu.org/software/glibc/
+Summary:      Documentation for GNU libc
+Payload:      cpio / zstd level 19
+File digest:  8 (8=sha256)
+Size (inst):  1237885 bytes
+Archive size: 1241624
+Opt flags:    -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Wno-complain-wrong-lang -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2  
+Platform:     x86_64-redhat-linux-gnu
+RPM version:  4.19.1.1
+Files:        25
+
+## Description
+The glibc-doc package contains The GNU C Library Reference Manual in info
+format.  Additional package documentation is also provided.
+
+## Files (path mode(octal) user group size flags linkto) [flags: c=config d=doc g=ghost l=license m=missingok n=noreplace]
+/usr/share/doc 40755 root root 0  
+/usr/share/doc/glibc 40755 root root 0  
+/usr/share/doc/glibc/gai.conf 100644 root root 2584 d 
+/usr/share/doc/glibc/rtld-debugger-interface.txt 100644 root root 5783 d 
+/usr/share/info/libc.info-1.gz 100644 root root 76351 d 
+/usr/share/info/libc.info-10.gz 100644 root root 47746 d 
+/usr/share/info/libc.info-11.gz 100644 root root 67141 d 
+/usr/share/info/libc.info-12.gz 100644 root root 75091 d 
+/usr/share/info/libc.info-13.gz 100644 root root 72012 d 
+/usr/share/info/libc.info-14.gz 100644 root root 62939 d 
+/usr/share/info/libc.info-15.gz 100644 root root 94773 d 
+/usr/share/info/libc.info-16.gz 100644 root root 14877 d 
+/usr/share/info/libc.info-17.gz 100644 root root 85223 d 
+/usr/share/info/libc.info-18.gz 100644 root root 38380 d 
+/usr/share/info/libc.info-19.gz 100644 root root 30915 d 
+/usr/share/info/libc.info-2.gz 100644 root root 66468 d 
+/usr/share/info/libc.info-20.gz 100644 root root 18153 d 
+/usr/share/info/libc.info-3.gz 100644 root root 71244 d 
+/usr/share/info/libc.info-4.gz 100644 root root 71813 d 
+/usr/share/info/libc.info-5.gz 100644 root root 67656 d 
+/usr/share/info/libc.info-6.gz 100644 root root 66060 d 
+/usr/share/info/libc.info-7.gz 100644 root root 68171 d 
+/usr/share/info/libc.info-8.gz 100644 root root 68710 d 
+/usr/share/info/libc.info-9.gz 100644 root root 42465 d 
+/usr/share/info/libc.info.gz 100644 root root 23330 d 
+
+## Provides
+glibc-doc = 2.39-142.el10_2
+
+## Requires
+glibc = 2.39-142.el10_2
+rpmlib(CompressedFileNames) <= 3.0.4-1
+rpmlib(FileDigests) <= 4.6.0-1
+rpmlib(PayloadFilesHavePrefix) <= 4.0-1
+rpmlib(PayloadIsZstd) <= 5.4.18-1
+
+## Recommends/Suggests/Supplements/Enhances
+
+## Conflicts / Obsoletes
+
+## Scripts
+
+## Triggers
+
+## File triggers
+
+## ELF dynamic dependencies (readelf -d NEEDED / RPATH / RUNPATH / interp)
+
+## Leak checks
+paths under /usr/lib/debug in payload: 0
+files whose CONTENT mentions '/usr/lib/debug': <none> 
+files whose CONTENT mentions /builddir/build|/usr/src/debug|/nix/store: <none> 

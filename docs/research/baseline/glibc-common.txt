@@ -1,0 +1,236 @@
+# Official Rocky Linux 10.2 baseline: glibc-common-2.39-142.el10_2.x86_64.rpm
+# sha256: fac4e461efe8a7fdca690367da2e42d4e5165ad8b7c954223ac50ebecc7da35c
+
+## Header summary
+NEVRA:        glibc-common-2.39-142.el10_2.x86_64
+Source RPM:   glibc-2.39-142.el10_2.src.rpm
+Build host:   ord1-prod-x86build009.svc.aws.rockylinux.org
+Build time:   1791453144 (Thu Oct  8 05:52:24 2026)
+Vendor:       Rocky Enterprise Software Foundation
+Packager:     Rocky Linux Build System <releng@rockylinux.org>
+License:      LGPL-2.1-or-later AND SunPro AND LGPL-2.1-or-later WITH GCC-exception-2.0 AND BSD-3-Clause AND GPL-2.0-or-later AND LGPL-2.1-or-later WITH GNU-compiler-exception AND GPL-2.0-only AND ISC AND LicenseRef-Fedora-Public-Domain AND HPND AND CMU-Mach AND LGPL-2.1-only AND LGPL-2.0-or-later AND Unicode-DFS-2015 AND GFDL-1.1-or-later AND GPL-1.0-or-later AND FSFUL AND MIT AND Inner-Net-2.0 AND X11 AND GPL-2.0-or-later WITH GCC-exception-2.0 AND GFDL-1.3-only AND GFDL-1.1-only AND GPL-3.0-or-later AND GPL-3.0-or-later WITH Autoconf-exception-generic-3.0 AND GPL-3.0-or-later WITH Texinfo-exception
+Group:        Unspecified
+URL:          http://www.gnu.org/software/glibc/
+Summary:      Common binaries and locale data for glibc
+Payload:      cpio / zstd level 19
+File digest:  8 (8=sha256)
+Size (inst):  1072866 bytes
+Archive size: 1080376
+Opt flags:    -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Wno-complain-wrong-lang -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2  
+Platform:     x86_64-redhat-linux-gnu
+RPM version:  4.19.1.1
+Files:        51
+
+## Description
+The glibc-common package includes common binaries for the GNU libc
+libraries, as well as national language (locale) support.
+
+## Files (path mode(octal) user group size flags linkto) [flags: c=config d=doc g=ghost l=license m=missingok n=noreplace]
+/usr/bin/gencat 100755 root root 28192  
+/usr/bin/getconf 100755 root root 27968  
+/usr/bin/getent 100755 root root 32688  
+/usr/bin/iconv 100755 root root 73960  
+/usr/bin/ld.so 120777 root root 29  ../lib64/ld-linux-x86-64.so.2
+/usr/bin/ldd 100755 root root 5395  
+/usr/bin/locale 100755 root root 52368  
+/usr/bin/localedef 100755 root root 317656  
+/usr/bin/pldd 100755 root root 19952  
+/usr/bin/sotruss 100755 root root 4282  
+/usr/bin/sprof 100755 root root 36368  
+/usr/bin/tzselect 100755 root root 15352  
+/usr/bin/zdump 100755 root root 24008  
+/usr/lib/.build-id 40755 root root 0 a 
+/usr/lib/.build-id/06/8e5d5e4daaf4924a8f2c11e171c2072ad0575b 120777 root root 24 a ../../../../usr/sbin/zic
+/usr/lib/.build-id/1c/f9b6255830fab5cb3579f3236c9eb43cb1fa00 120777 root root 26 a ../../../../usr/bin/getent
+/usr/lib/.build-id/2a 40755 root root 0 a 
+/usr/lib/.build-id/2a/333cf8f0f95b35bae9660d4874c231fb5b8d65 120777 root root 25 a ../../../../usr/bin/iconv
+/usr/lib/.build-id/7e 40755 root root 0 a 
+/usr/lib/.build-id/7e/c0f29e4580d3eb44096039d5914094a8a03d84 120777 root root 29 a ../../../../usr/bin/localedef
+/usr/lib/.build-id/a6 40755 root root 0 a 
+/usr/lib/.build-id/a6/f7a913c1e91c33713a88b90cd44fe1b56f38cd 120777 root root 25 a ../../../../usr/bin/sprof
+/usr/lib/.build-id/b5 40755 root root 0 a 
+/usr/lib/.build-id/b5/cb4b9522f05781eab9d4e95a69c6f60badfab5 120777 root root 26 a ../../../../usr/bin/locale
+/usr/lib/.build-id/b7/0dbedc04d7b9fc738a561ff177ea843638a24a.3 120777 root root 27 a ../../../../usr/bin/getconf
+/usr/lib/.build-id/bd 40755 root root 0 a 
+/usr/lib/.build-id/bd/388f672c74204c43b27aa32345637b0297eb35 120777 root root 25 a ../../../../usr/bin/zdump
+/usr/lib/.build-id/c2 40755 root root 0 a 
+/usr/lib/.build-id/c2/a5dd731968a49bdd032d3202b519259d290b49 120777 root root 24 a ../../../../usr/bin/pldd
+/usr/lib/.build-id/cc 40755 root root 0 a 
+/usr/lib/.build-id/cc/1dee934ecd047ac70c0d853ef315c50c92f3dd 120777 root root 26 a ../../../../usr/bin/gencat
+/usr/lib/locale 40755 root root 0  
+/usr/lib/locale/C.utf8 40755 root root 0  
+/usr/lib/locale/C.utf8/LC_ADDRESS 100644 root root 127  
+/usr/lib/locale/C.utf8/LC_COLLATE 100644 root root 1406  
+/usr/lib/locale/C.utf8/LC_CTYPE 100644 root root 360460  
+/usr/lib/locale/C.utf8/LC_IDENTIFICATION 100644 root root 258  
+/usr/lib/locale/C.utf8/LC_MEASUREMENT 100644 root root 23  
+/usr/lib/locale/C.utf8/LC_MESSAGES 40755 root root 0  
+/usr/lib/locale/C.utf8/LC_MESSAGES/SYS_LC_MESSAGES 100644 root root 48  
+/usr/lib/locale/C.utf8/LC_MONETARY 100644 root root 270  
+/usr/lib/locale/C.utf8/LC_NAME 100644 root root 62  
+/usr/lib/locale/C.utf8/LC_NUMERIC 100644 root root 50  
+/usr/lib/locale/C.utf8/LC_PAPER 100644 root root 34  
+/usr/lib/locale/C.utf8/LC_TELEPHONE 100644 root root 47  
+/usr/lib/locale/C.utf8/LC_TIME 100644 root root 3360  
+/usr/sbin/zic 100755 root root 65248  
+/usr/share/i18n 40755 root root 0  
+/usr/share/i18n/charmaps 40755 root root 0  
+/usr/share/i18n/locales 40755 root root 0  
+/usr/share/locale/locale.alias 100644 root root 2998  
+
+## Provides
+glibc-common = 2.39-142.el10_2
+glibc-common(x86-64) = 2.39-142.el10_2
+
+## Requires
+/usr/bin/bash
+glibc = 2.39-142.el10_2
+ld-linux-x86-64.so.2()(64bit)
+libc.so.6()(64bit)
+libc.so.6(GLIBC_2.10)(64bit)
+libc.so.6(GLIBC_2.14)(64bit)
+libc.so.6(GLIBC_2.15)(64bit)
+libc.so.6(GLIBC_2.2.5)(64bit)
+libc.so.6(GLIBC_2.28)(64bit)
+libc.so.6(GLIBC_2.3)(64bit)
+libc.so.6(GLIBC_2.3.4)(64bit)
+libc.so.6(GLIBC_2.33)(64bit)
+libc.so.6(GLIBC_2.34)(64bit)
+libc.so.6(GLIBC_2.38)(64bit)
+libc.so.6(GLIBC_2.4)(64bit)
+libc.so.6(GLIBC_2.7)(64bit)
+libc.so.6(GLIBC_2.8)(64bit)
+libc.so.6(GLIBC_ABI_DT_RELR)(64bit)
+libc.so.6(GLIBC_PRIVATE)(64bit)
+rpmlib(BuiltinLuaScripts) <= 4.2.2-1
+rpmlib(CompressedFileNames) <= 3.0.4-1
+rpmlib(FileDigests) <= 4.6.0-1
+rpmlib(PayloadFilesHavePrefix) <= 4.0-1
+rpmlib(PayloadIsZstd) <= 5.4.18-1
+rtld(GNU_HASH)
+
+## Recommends/Suggests/Supplements/Enhances
+recommends: tzdata >= 2003a
+
+## Conflicts / Obsoletes
+
+## Scripts
+
+## Triggers
+
+## File triggers
+transfiletriggerin scriptlet (using <lua>) -- /lib, /lib64, /usr/lib, /usr/lib64
+
+-- We use lua because there may be no shell that we can run during
+-- glibc upgrade. We used to implement much of %post as a C program,
+-- but from an overall maintenance perspective the lua in the spec
+-- file was simpler and safer given the operations required.
+-- All lua code will be ignored by rpm-ostree; see:
+-- https://github.com/projectatomic/rpm-ostree/pull/1869
+-- If we add new lua actions to the %post code we should coordinate
+-- with rpm-ostree and ensure that their glibc install is functional.
+-- We must not use rpm.execute because this is a RPM 4.15 features and
+-- we must still support downstream bootstrap with RPM 4.14 and missing
+-- containerized boostrap.
+
+-- Open-code rpm.execute with error message handling.
+function post_exec (msg, program, ...)
+  local pid = posix.fork ()
+  if pid == 0 then
+    posix.exec (program, ...)
+    io.stdout:write (msg)
+    assert (nil)
+  elseif pid > 0 then
+    posix.wait (pid)
+  end
+end
+
+-- Note: We use _prefix because Fedora's UsrMove says so.
+function call_ldconfig ()
+  post_exec("Error: call to /usr/sbin/ldconfig failed.n",
+	    "/usr/sbin/ldconfig")
+end
+
+function update_gconv_modules_cache ()
+  local iconv_dir = "/usr/lib64/gconv"
+  local iconv_cache = iconv_dir .. "/gconv-modules.cache"
+  local iconv_modules = iconv_dir .. "/gconv-modules"
+  if posix.utime(iconv_modules) == 0 then
+    if posix.utime (iconv_cache) == 0 then
+      post_exec ("Error: call to /usr/sbin/iconvconfig failed.n",
+		 "/usr/sbin/iconvconfig",
+		 "-o", iconv_cache,
+		 "--nostdlib",
+		 iconv_dir)
+    else
+      io.stdout:write ("Error: Missing " .. iconv_cache .. " file.n")
+    end
+  end
+end
+call_ldconfig()
+transfiletriggerpostun scriptlet (using <lua>) -- /lib, /lib64, /usr/lib, /usr/lib64
+
+-- We use lua because there may be no shell that we can run during
+-- glibc upgrade. We used to implement much of %post as a C program,
+-- but from an overall maintenance perspective the lua in the spec
+-- file was simpler and safer given the operations required.
+-- All lua code will be ignored by rpm-ostree; see:
+-- https://github.com/projectatomic/rpm-ostree/pull/1869
+-- If we add new lua actions to the %post code we should coordinate
+-- with rpm-ostree and ensure that their glibc install is functional.
+-- We must not use rpm.execute because this is a RPM 4.15 features and
+-- we must still support downstream bootstrap with RPM 4.14 and missing
+-- containerized boostrap.
+
+-- Open-code rpm.execute with error message handling.
+function post_exec (msg, program, ...)
+  local pid = posix.fork ()
+  if pid == 0 then
+    posix.exec (program, ...)
+    io.stdout:write (msg)
+    assert (nil)
+  elseif pid > 0 then
+    posix.wait (pid)
+  end
+end
+
+-- Note: We use _prefix because Fedora's UsrMove says so.
+function call_ldconfig ()
+  post_exec("Error: call to /usr/sbin/ldconfig failed.n",
+	    "/usr/sbin/ldconfig")
+end
+
+function update_gconv_modules_cache ()
+  local iconv_dir = "/usr/lib64/gconv"
+  local iconv_cache = iconv_dir .. "/gconv-modules.cache"
+  local iconv_modules = iconv_dir .. "/gconv-modules"
+  if posix.utime(iconv_modules) == 0 then
+    if posix.utime (iconv_cache) == 0 then
+      post_exec ("Error: call to /usr/sbin/iconvconfig failed.n",
+		 "/usr/sbin/iconvconfig",
+		 "-o", iconv_cache,
+		 "--nostdlib",
+		 iconv_dir)
+    else
+      io.stdout:write ("Error: Missing " .. iconv_cache .. " file.n")
+    end
+  end
+end
+call_ldconfig()
+
+## ELF dynamic dependencies (readelf -d NEEDED / RPATH / RUNPATH / interp)
+/usr/bin/gencat [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/bin/getconf [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/bin/getent [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/bin/iconv [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/bin/locale [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/bin/localedef [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/bin/pldd [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/bin/sprof [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/bin/zdump [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/sbin/zic [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+
+## Leak checks
+paths under /usr/lib/debug in payload: 0
+files whose CONTENT mentions '/usr/lib/debug': /usr/bin/sprof 
+files whose CONTENT mentions /builddir/build|/usr/src/debug|/nix/store: <none> 

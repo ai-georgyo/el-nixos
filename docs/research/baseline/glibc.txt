@@ -1,0 +1,557 @@
+# Official Rocky Linux 10.2 baseline: glibc-2.39-142.el10_2.x86_64.rpm
+# sha256: 99f6d17a3973447ab9b93df29772b6ac8ccaf5ddc8daa3cb3da3e0afd53bab85
+
+## Header summary
+NEVRA:        glibc-2.39-142.el10_2.x86_64
+Source RPM:   glibc-2.39-142.el10_2.src.rpm
+Build host:   ord1-prod-x86build009.svc.aws.rockylinux.org
+Build time:   1791453144 (Thu Oct  8 05:52:24 2026)
+Vendor:       Rocky Enterprise Software Foundation
+Packager:     Rocky Linux Build System <releng@rockylinux.org>
+License:      LGPL-2.1-or-later AND SunPro AND LGPL-2.1-or-later WITH GCC-exception-2.0 AND BSD-3-Clause AND GPL-2.0-or-later AND LGPL-2.1-or-later WITH GNU-compiler-exception AND GPL-2.0-only AND ISC AND LicenseRef-Fedora-Public-Domain AND HPND AND CMU-Mach AND LGPL-2.1-only AND LGPL-2.0-or-later AND Unicode-DFS-2015 AND GFDL-1.1-or-later AND GPL-1.0-or-later AND FSFUL AND MIT AND Inner-Net-2.0 AND X11 AND GPL-2.0-or-later WITH GCC-exception-2.0 AND GFDL-1.3-only AND GFDL-1.1-only AND GPL-3.0-or-later AND GPL-3.0-or-later WITH Autoconf-exception-generic-3.0 AND GPL-3.0-or-later WITH Texinfo-exception
+Group:        Unspecified
+URL:          http://www.gnu.org/software/glibc/
+Summary:      The GNU libc libraries
+Payload:      cpio / zstd level 19
+File digest:  8 (8=sha256)
+Size (inst):  6560802 bytes
+Archive size: 6575632
+Opt flags:    -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Wno-complain-wrong-lang -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2  
+Platform:     x86_64-redhat-linux-gnu
+RPM version:  4.19.1.1
+Files:        102
+
+## Description
+The glibc package contains standard libraries which are used by
+multiple programs on the system. In order to save disk space and
+memory, as well as to make upgrading easier, common system code is
+kept in one place and shared between programs. This particular package
+contains the most important sets of shared libraries: the standard C
+library and the standard math library. Without these two libraries, a
+Linux system will not function.
+
+## Files (path mode(octal) user group size flags linkto) [flags: c=config d=doc g=ghost l=license m=missingok n=noreplace]
+/etc/gai.conf 100644 root root 0 cmng 
+/etc/ld.so.cache 100644 root root 0 cmng 
+/etc/ld.so.conf 100644 root root 28 cn 
+/etc/ld.so.conf.d 40755 root root 0  
+/etc/rpc 100644 root root 1634 cn 
+/usr/lib/.build-id 40755 root root 0 a 
+/usr/lib/.build-id/06 40755 root root 0 a 
+/usr/lib/.build-id/06/668e01560de23dd84503a27a979c3d2b84ee76 120777 root root 42 a ../../../../usr/lib64/libBrokenLocale.so.1
+/usr/lib/.build-id/16 40755 root root 0 a 
+/usr/lib/.build-id/16/73ca9b131c522a935bdb65f6f17c55620e0c30 120777 root root 40 a ../../../../usr/lib64/gconv/ISO8859-1.so
+/usr/lib/.build-id/1c 40755 root root 0 a 
+/usr/lib/.build-id/1c/26297d960773ebdc483ddca2a4e44856150c63 120777 root root 37 a ../../../../usr/lib64/gconv/UTF-32.so
+/usr/lib/.build-id/1e 40755 root root 0 a 
+/usr/lib/.build-id/1e/db661bc6318993a78830b0b82369009e7c6dad 120777 root root 37 a ../../../../usr/lib64/gconv/CP1252.so
+/usr/lib/.build-id/23 40755 root root 0 a 
+/usr/lib/.build-id/23/fa8cc4eb3c5dba9fe00c0d5d7716cbb7e933dc 120777 root root 42 a ../../../../usr/lib64/ld-linux-x86-64.so.2
+/usr/lib/.build-id/28 40755 root root 0 a 
+/usr/lib/.build-id/28/cfaddeaecc323f9d4a87189de62e02a757c8a7 120777 root root 39 a ../../../../usr/lib64/libnss_files.so.2
+/usr/lib/.build-id/2b 40755 root root 0 a 
+/usr/lib/.build-id/2b/4f77f291d0d02f2449f0f0636b67615fd0fe49 120777 root root 37 a ../../../../usr/lib64/libpthread.so.0
+/usr/lib/.build-id/3b 40755 root root 0 a 
+/usr/lib/.build-id/3b/9247aae2a81a98724dbf29c7c965d27aac0a16 120777 root root 34 a ../../../../usr/lib64/libmvec.so.1
+/usr/lib/.build-id/40 40755 root root 0 a 
+/usr/lib/.build-id/40/e0078d065c30c0cd03953c8458b2e4e0d4092b 120777 root root 36 a ../../../../usr/lib64/libresolv.so.2
+/usr/lib/.build-id/46 40755 root root 0 a 
+/usr/lib/.build-id/46/eb84fb8bea172a3700a8ee03fdb1abfdf91252 120777 root root 33 a ../../../../usr/lib64/libanl.so.1
+/usr/lib/.build-id/4e 40755 root root 0 a 
+/usr/lib/.build-id/4e/6d996c12b9c74cb0edc7b385941952b4533359 120777 root root 37 a ../../../../usr/lib64/gconv/UTF-16.so
+/usr/lib/.build-id/55 40755 root root 0 a 
+/usr/lib/.build-id/55/82aa23cc425f8264f794e5a4b6d608748872d6 120777 root root 29 a ../../../../usr/sbin/ldconfig
+/usr/lib/.build-id/55/dc9ee8540848e043b082fc6628a3a95544ce51 120777 root root 31 a ../../../../usr/lib64/libm.so.6
+/usr/lib/.build-id/56 40755 root root 0 a 
+/usr/lib/.build-id/56/58c86088ba8c047a840c84ebfc01995bbd6457 120777 root root 34 a ../../../../usr/lib64/libutil.so.1
+/usr/lib/.build-id/64 40755 root root 0 a 
+/usr/lib/.build-id/64/ce0e90c78db88dc88524e83e29606fa79df28f 120777 root root 38 a ../../../../usr/lib64/gconv/UNICODE.so
+/usr/lib/.build-id/6a 40755 root root 0 a 
+/usr/lib/.build-id/6a/25a320c4def11d944073379ca448c1acb7a0e1 120777 root root 39 a ../../../../usr/lib64/libthread_db.so.1
+/usr/lib/.build-id/78 40755 root root 0 a 
+/usr/lib/.build-id/78/a224b188841069bcde83f055f3f721924278a6 120777 root root 37 a ../../../../usr/lib64/libnss_dns.so.2
+/usr/lib/.build-id/92 40755 root root 0 a 
+/usr/lib/.build-id/92/3e0b7d3b378c89a8378afbccdc6c889c3cc15d 120777 root root 41 a ../../../../usr/lib64/gconv/ISO8859-15.so
+/usr/lib/.build-id/9e 40755 root root 0 a 
+/usr/lib/.build-id/9e/f6ccc1622d88f128c7dda7ccc7728fa890c731 120777 root root 40 a ../../../../usr/lib64/libnss_compat.so.2
+/usr/lib/.build-id/ab 40755 root root 0 a 
+/usr/lib/.build-id/ab/80d1199d5bce3993e2823c56e1bf110c656766 120777 root root 42 a ../../../../usr/lib64/audit/sotruss-lib.so
+/usr/lib/.build-id/ae 40755 root root 0 a 
+/usr/lib/.build-id/ae/e8d0a6a2c492c96d24c2adf0c83358003cbbc3 120777 root root 32 a ../../../../usr/sbin/iconvconfig
+/usr/lib/.build-id/b7 40755 root root 0 a 
+/usr/lib/.build-id/b7/0dbedc04d7b9fc738a561ff177ea843638a24a 120777 root root 47 a ../../../../usr/libexec/getconf/XBS5_LP64_OFF64
+/usr/lib/.build-id/b7/0dbedc04d7b9fc738a561ff177ea843638a24a.1 120777 root root 51 a ../../../../usr/libexec/getconf/POSIX_V6_LP64_OFF64
+/usr/lib/.build-id/b7/0dbedc04d7b9fc738a561ff177ea843638a24a.2 120777 root root 51 a ../../../../usr/libexec/getconf/POSIX_V7_LP64_OFF64
+/usr/lib/.build-id/c9 40755 root root 0 a 
+/usr/lib/.build-id/c9/9a9aab9615e1f85175fed8ab510605a23e7e55 120777 root root 32 a ../../../../usr/lib64/librt.so.1
+/usr/lib/.build-id/db 40755 root root 0 a 
+/usr/lib/.build-id/db/a79f12241c9bc2cfc91d5b2f0f326a81129034 120777 root root 37 a ../../../../usr/lib64/libpcprofile.so
+/usr/lib/.build-id/dd 40755 root root 0 a 
+/usr/lib/.build-id/dd/8c68edff68c107b75c88f806c8d5079f0c6206 120777 root root 32 a ../../../../usr/lib64/libdl.so.2
+/usr/lib/.build-id/e5 40755 root root 0 a 
+/usr/lib/.build-id/e5/f7b656f02e889c5d9148239bffd1b869ab2ad1 120777 root root 36 a ../../../../usr/lib64/gconv/UTF-7.so
+/usr/lib/.build-id/f8 40755 root root 0 a 
+/usr/lib/.build-id/f8/06ee95bc79d0188f1ed66e91344c839af9d6ca 120777 root root 31 a ../../../../usr/lib64/libc.so.6
+/usr/lib64/audit 40755 root root 0  
+/usr/lib64/audit/sotruss-lib.so 100755 root root 15536  
+/usr/lib64/gconv 40755 root root 0  
+/usr/lib64/gconv/CP1252.so 100755 root root 19576  
+/usr/lib64/gconv/ISO8859-1.so 100755 root root 19576  
+/usr/lib64/gconv/ISO8859-15.so 100755 root root 19576  
+/usr/lib64/gconv/UNICODE.so 100755 root root 19576  
+/usr/lib64/gconv/UTF-16.so 100755 root root 19584  
+/usr/lib64/gconv/UTF-32.so 100755 root root 19584  
+/usr/lib64/gconv/UTF-7.so 100755 root root 27848  
+/usr/lib64/gconv/gconv-modules 100644 root root 3916 cn 
+/usr/lib64/gconv/gconv-modules.cache 100644 root root 0  
+/usr/lib64/gconv/gconv-modules.d 40755 root root 0  
+/usr/lib64/ld-linux-x86-64.so.2 100755 root root 939464  
+/usr/lib64/libBrokenLocale.so.1 100755 root root 15568  
+/usr/lib64/libanl.so.1 100755 root root 15472  
+/usr/lib64/libc.so.6 100755 root root 2344040  
+/usr/lib64/libdl.so.2 100755 root root 15472  
+/usr/lib64/libm.so.6 100755 root root 720624  
+/usr/lib64/libmvec.so.1 100755 root root 1027696  
+/usr/lib64/libnss_compat.so.2 100755 root root 45264  
+/usr/lib64/libnss_dns.so.2 100755 root root 15392  
+/usr/lib64/libnss_files.so.2 100755 root root 15392  
+/usr/lib64/libpcprofile.so 100755 root root 15472  
+/usr/lib64/libpthread.so.0 100755 root root 15496  
+/usr/lib64/libresolv.so.2 100755 root root 65968  
+/usr/lib64/librt.so.1 100755 root root 15632  
+/usr/lib64/libthread_db.so.1 100755 root root 45464  
+/usr/lib64/libutil.so.1 100755 root root 15472  
+/usr/libexec/getconf 40755 root root 0  
+/usr/libexec/getconf/POSIX_V6_LP64_OFF64 100755 root root 27968  
+/usr/libexec/getconf/POSIX_V7_LP64_OFF64 100755 root root 27968  
+/usr/libexec/getconf/XBS5_LP64_OFF64 100755 root root 27968  
+/usr/sbin/iconvconfig 100755 root root 32512  
+/usr/sbin/ldconfig 100755 root root 940280  
+/usr/share/licenses/glibc 40755 root root 0  
+/usr/share/licenses/glibc/COPYING 100644 root root 18092 l 
+/usr/share/licenses/glibc/COPYING.LIB 100644 root root 26530 l 
+/usr/share/licenses/glibc/LICENSES 100644 root root 20004 l 
+/var/cache/ldconfig 40700 root root 0  
+/var/cache/ldconfig/aux-cache 100600 root root 0 cmng 
+
+## Provides
+/lib64/ld-linux-x86-64.so.2
+/sbin/ldconfig
+/usr/sbin/ldconfig
+bundled(gnulib)
+config(glibc) = 2.39-142.el10_2
+glibc = 2.39-142.el10_2
+glibc(x86-64) = 2.39-142.el10_2
+ld-linux-x86-64.so.2()(64bit)
+ld-linux-x86-64.so.2(GLIBC_2.2.5)(64bit)
+ld-linux-x86-64.so.2(GLIBC_2.3)(64bit)
+ld-linux-x86-64.so.2(GLIBC_2.34)(64bit)
+ld-linux-x86-64.so.2(GLIBC_2.35)(64bit)
+ld-linux-x86-64.so.2(GLIBC_2.4)(64bit)
+ld-linux-x86-64.so.2(GLIBC_PRIVATE)(64bit)
+ldconfig
+libBrokenLocale.so.1()(64bit)
+libBrokenLocale.so.1(GLIBC_2.2.5)(64bit)
+libanl.so.1()(64bit)
+libanl.so.1(GLIBC_2.2.5)(64bit)
+libc.so.6()(64bit)
+libc.so.6(GLIBC_2.10)(64bit)
+libc.so.6(GLIBC_2.11)(64bit)
+libc.so.6(GLIBC_2.12)(64bit)
+libc.so.6(GLIBC_2.13)(64bit)
+libc.so.6(GLIBC_2.14)(64bit)
+libc.so.6(GLIBC_2.15)(64bit)
+libc.so.6(GLIBC_2.16)(64bit)
+libc.so.6(GLIBC_2.17)(64bit)
+libc.so.6(GLIBC_2.18)(64bit)
+libc.so.6(GLIBC_2.2.5)(64bit)
+libc.so.6(GLIBC_2.2.6)(64bit)
+libc.so.6(GLIBC_2.22)(64bit)
+libc.so.6(GLIBC_2.23)(64bit)
+libc.so.6(GLIBC_2.24)(64bit)
+libc.so.6(GLIBC_2.25)(64bit)
+libc.so.6(GLIBC_2.26)(64bit)
+libc.so.6(GLIBC_2.27)(64bit)
+libc.so.6(GLIBC_2.28)(64bit)
+libc.so.6(GLIBC_2.29)(64bit)
+libc.so.6(GLIBC_2.3)(64bit)
+libc.so.6(GLIBC_2.3.2)(64bit)
+libc.so.6(GLIBC_2.3.3)(64bit)
+libc.so.6(GLIBC_2.3.4)(64bit)
+libc.so.6(GLIBC_2.30)(64bit)
+libc.so.6(GLIBC_2.31)(64bit)
+libc.so.6(GLIBC_2.32)(64bit)
+libc.so.6(GLIBC_2.33)(64bit)
+libc.so.6(GLIBC_2.34)(64bit)
+libc.so.6(GLIBC_2.35)(64bit)
+libc.so.6(GLIBC_2.36)(64bit)
+libc.so.6(GLIBC_2.38)(64bit)
+libc.so.6(GLIBC_2.39)(64bit)
+libc.so.6(GLIBC_2.4)(64bit)
+libc.so.6(GLIBC_2.5)(64bit)
+libc.so.6(GLIBC_2.6)(64bit)
+libc.so.6(GLIBC_2.7)(64bit)
+libc.so.6(GLIBC_2.8)(64bit)
+libc.so.6(GLIBC_2.9)(64bit)
+libc.so.6(GLIBC_ABI_DT_RELR)(64bit)
+libc.so.6(GLIBC_ABI_DT_X86_64_PLT)(64bit)
+libc.so.6(GLIBC_ABI_GNU2_TLS)(64bit)
+libc.so.6(GLIBC_PRIVATE)(64bit)
+libdl.so.2()(64bit)
+libdl.so.2(GLIBC_2.2.5)(64bit)
+libdl.so.2(GLIBC_2.3.3)(64bit)
+libdl.so.2(GLIBC_2.3.4)(64bit)
+libm.so.6()(64bit)
+libm.so.6(GLIBC_2.15)(64bit)
+libm.so.6(GLIBC_2.18)(64bit)
+libm.so.6(GLIBC_2.2.5)(64bit)
+libm.so.6(GLIBC_2.23)(64bit)
+libm.so.6(GLIBC_2.24)(64bit)
+libm.so.6(GLIBC_2.25)(64bit)
+libm.so.6(GLIBC_2.26)(64bit)
+libm.so.6(GLIBC_2.27)(64bit)
+libm.so.6(GLIBC_2.28)(64bit)
+libm.so.6(GLIBC_2.29)(64bit)
+libm.so.6(GLIBC_2.31)(64bit)
+libm.so.6(GLIBC_2.32)(64bit)
+libm.so.6(GLIBC_2.35)(64bit)
+libm.so.6(GLIBC_2.38)(64bit)
+libm.so.6(GLIBC_2.39)(64bit)
+libm.so.6(GLIBC_2.4)(64bit)
+libmvec.so.1()(64bit)
+libmvec.so.1(GLIBC_2.22)(64bit)
+libmvec.so.1(GLIBC_2.35)(64bit)
+libnss_compat.so.2()(64bit)
+libnss_compat.so.2(GLIBC_PRIVATE)(64bit)
+libnss_dns.so.2()(64bit)
+libnss_dns.so.2(GLIBC_PRIVATE)(64bit)
+libnss_files.so.2()(64bit)
+libnss_files.so.2(GLIBC_PRIVATE)(64bit)
+libpcprofile.so()(64bit)
+libpthread.so.0()(64bit)
+libpthread.so.0(GLIBC_2.11)(64bit)
+libpthread.so.0(GLIBC_2.12)(64bit)
+libpthread.so.0(GLIBC_2.18)(64bit)
+libpthread.so.0(GLIBC_2.2.5)(64bit)
+libpthread.so.0(GLIBC_2.2.6)(64bit)
+libpthread.so.0(GLIBC_2.28)(64bit)
+libpthread.so.0(GLIBC_2.3.2)(64bit)
+libpthread.so.0(GLIBC_2.3.3)(64bit)
+libpthread.so.0(GLIBC_2.3.4)(64bit)
+libpthread.so.0(GLIBC_2.30)(64bit)
+libpthread.so.0(GLIBC_2.31)(64bit)
+libpthread.so.0(GLIBC_2.4)(64bit)
+libresolv.so.2()(64bit)
+libresolv.so.2(GLIBC_2.2.5)(64bit)
+libresolv.so.2(GLIBC_2.3.2)(64bit)
+libresolv.so.2(GLIBC_2.9)(64bit)
+libresolv.so.2(GLIBC_PRIVATE)(64bit)
+librt.so.1()(64bit)
+librt.so.1(GLIBC_2.2.5)(64bit)
+librt.so.1(GLIBC_2.3.3)(64bit)
+librt.so.1(GLIBC_2.3.4)(64bit)
+librt.so.1(GLIBC_2.4)(64bit)
+librt.so.1(GLIBC_2.7)(64bit)
+libthread_db.so.1()(64bit)
+libthread_db.so.1(GLIBC_2.2.5)(64bit)
+libthread_db.so.1(GLIBC_2.3)(64bit)
+libthread_db.so.1(GLIBC_2.3.3)(64bit)
+libutil.so.1()(64bit)
+libutil.so.1(GLIBC_2.2.5)(64bit)
+rtld(GNU_HASH)
+
+## Requires
+(glibc-gconv-extra(x86-64) = 2.39-142.el10_2 if redhat-rpm-config)
+basesystem
+basesystem
+config(glibc) = 2.39-142.el10_2
+glibc-common = 2.39-142.el10_2
+glibc-langpack = 2.39-142.el10_2
+ld-linux-x86-64.so.2()(64bit)
+ld-linux-x86-64.so.2(GLIBC_2.2.5)(64bit)
+ld-linux-x86-64.so.2(GLIBC_2.3)(64bit)
+ld-linux-x86-64.so.2(GLIBC_2.35)(64bit)
+ld-linux-x86-64.so.2(GLIBC_PRIVATE)(64bit)
+libc.so.6()(64bit)
+libc.so.6(GLIBC_2.14)(64bit)
+libc.so.6(GLIBC_2.2.5)(64bit)
+libc.so.6(GLIBC_2.28)(64bit)
+libc.so.6(GLIBC_2.3)(64bit)
+libc.so.6(GLIBC_2.3.4)(64bit)
+libc.so.6(GLIBC_2.33)(64bit)
+libc.so.6(GLIBC_2.34)(64bit)
+libc.so.6(GLIBC_2.38)(64bit)
+libc.so.6(GLIBC_2.4)(64bit)
+libc.so.6(GLIBC_2.8)(64bit)
+libc.so.6(GLIBC_ABI_DT_RELR)(64bit)
+libc.so.6(GLIBC_PRIVATE)(64bit)
+libgcc(x86-64)
+libgcc(x86-64)
+libm.so.6()(64bit)
+libm.so.6(GLIBC_2.2.5)(64bit)
+libm.so.6(GLIBC_2.27)(64bit)
+libm.so.6(GLIBC_2.29)(64bit)
+libm.so.6(GLIBC_2.32)(64bit)
+libm.so.6(GLIBC_2.35)(64bit)
+libm.so.6(GLIBC_2.39)(64bit)
+libresolv.so.2()(64bit)
+rpmlib(BuiltinLuaScripts) <= 4.2.2-1
+rpmlib(CompressedFileNames) <= 3.0.4-1
+rpmlib(FileDigests) <= 4.6.0-1
+rpmlib(PartialHardlinkSets) <= 4.0.4-1
+rpmlib(PayloadFilesHavePrefix) <= 4.0-1
+rpmlib(PayloadIsZstd) <= 5.4.18-1
+rpmlib(RichDependencies) <= 4.12.0-1
+rtld(GNU_HASH)
+
+## Recommends/Suggests/Supplements/Enhances
+recommends: glibc-gconv-extra(x86-64) = 2.39-142.el10_2
+suggests: glibc-minimal-langpack = 2.39-142.el10_2
+
+## Conflicts / Obsoletes
+conflicts: kernel < 3.2
+conflicts: prelink < 0.4.2
+obsoletes: glibc-profile < 2.4
+obsoletes: nscd < 2.35
+
+## Scripts
+preinstall scriptlet (using <lua>):
+-- Check that the running kernel is new enough
+required = '3.2'
+rel = posix.uname("%r")
+if rpm.vercmp(rel, required) < 0 then
+  error("FATAL: kernel too old", 0)
+end
+
+-- (1) Remove multilib libraries from previous installs.
+-- In order to support in-place upgrades, we must immediately remove
+-- all platform directories before installing a new glibc
+-- version.  RPM only deletes files removed by updates near the end
+-- of the transaction.  If we did not remove all platform
+-- directories here, they may be preferred by the dynamic linker
+-- during the execution of subsequent RPM scriptlets, likely
+-- resulting in process startup failures.
+
+-- Full set of libraries glibc may install.
+install_libs = { "anl", "BrokenLocale", "c", "dl", "m", "mvec",
+		 "nss_compat", "nss_db", "nss_dns", "nss_files",
+		 "nss_hesiod", "pthread", "resolv", "rt", "SegFault",
+		 "thread_db", "util" }
+
+-- We are going to remove these libraries. Generally speaking we remove
+-- all core libraries in the multilib directory.
+-- For the versioned install names, the version are [2.0,9.9*], so we
+-- match "libc-2.0.so" and so on up to "libc-9.9*".
+-- For the unversioned install names, we match the library plus ".so."
+-- followed by digests.
+remove_regexps = {}
+for i = 1, #install_libs do
+  -- Versioned install name.
+  remove_regexps[#remove_regexps + 1] = ("lib" .. install_libs[i]
+                                         .. "%-[2-9]%.[0-9]+%.so$")
+  -- Unversioned install name.
+  remove_regexps[#remove_regexps + 1] = ("lib" .. install_libs[i]
+                                         .. "%.so%.[0-9]+$")
+end
+
+-- Two exceptions:
+remove_regexps[#install_libs + 1] = "libthread_db%-1%.0%.so"
+remove_regexps[#install_libs + 2] = "libSegFault%.so"
+
+-- We are going to search these directories.
+local remove_dirs = { "/usr/lib64/i686",
+		      "/usr/lib64/i686/nosegneg",
+		      "/usr/lib64/power6",
+		      "/usr/lib64/power7",
+		      "/usr/lib64/power8",
+		      "/usr/lib64/power9",
+		    }
+
+-- Add all the subdirectories of the glibc-hwcaps subdirectory.
+repeat
+  local iter = posix.files("/usr/lib64/glibc-hwcaps")
+  if iter ~= nil then
+    for entry in iter do
+      if entry ~= "." and entry ~= ".." then
+        local path = "/usr/lib64/glibc-hwcaps/" .. entry
+        if posix.access(path .. "/.", "x") then
+          remove_dirs[#remove_dirs + 1] = path
+        end
+      end
+    end
+  end
+until true
+
+-- Walk all the directories with files we need to remove...
+for _, rdir in ipairs (remove_dirs) do
+  if posix.access (rdir) then
+    -- If the directory exists we look at all the files...
+    local remove_files = posix.files (rdir)
+    for rfile in remove_files do
+      for _, rregexp in ipairs (remove_regexps) do
+	-- Does it match the regexp?
+	local dso = string.match (rfile, rregexp)
+        if (dso ~= nil) then
+	  -- Removing file...
+	  os.remove (rdir .. '/' .. rfile)
+	end
+      end
+    end
+  end
+end
+postinstall scriptlet (using <lua>):
+
+-- We use lua because there may be no shell that we can run during
+-- glibc upgrade. We used to implement much of %post as a C program,
+-- but from an overall maintenance perspective the lua in the spec
+-- file was simpler and safer given the operations required.
+-- All lua code will be ignored by rpm-ostree; see:
+-- https://github.com/projectatomic/rpm-ostree/pull/1869
+-- If we add new lua actions to the %post code we should coordinate
+-- with rpm-ostree and ensure that their glibc install is functional.
+-- We must not use rpm.execute because this is a RPM 4.15 features and
+-- we must still support downstream bootstrap with RPM 4.14 and missing
+-- containerized boostrap.
+
+-- Open-code rpm.execute with error message handling.
+function post_exec (msg, program, ...)
+  local pid = posix.fork ()
+  if pid == 0 then
+    posix.exec (program, ...)
+    io.stdout:write (msg)
+    assert (nil)
+  elseif pid > 0 then
+    posix.wait (pid)
+  end
+end
+
+-- Note: We use _prefix because Fedora's UsrMove says so.
+function call_ldconfig ()
+  post_exec("Error: call to /usr/sbin/ldconfig failed.n",
+	    "/usr/sbin/ldconfig")
+end
+
+function update_gconv_modules_cache ()
+  local iconv_dir = "/usr/lib64/gconv"
+  local iconv_cache = iconv_dir .. "/gconv-modules.cache"
+  local iconv_modules = iconv_dir .. "/gconv-modules"
+  if posix.utime(iconv_modules) == 0 then
+    if posix.utime (iconv_cache) == 0 then
+      post_exec ("Error: call to /usr/sbin/iconvconfig failed.n",
+		 "/usr/sbin/iconvconfig",
+		 "-o", iconv_cache,
+		 "--nostdlib",
+		 iconv_dir)
+    else
+      io.stdout:write ("Error: Missing " .. iconv_cache .. " file.n")
+    end
+  end
+end
+-- (1) Update /etc/ld.so.conf
+-- Next we update /etc/ld.so.conf to ensure that it starts with
+-- a literal "include ld.so.conf.d/*.conf".
+
+local ldsoconf = "/etc/ld.so.conf"
+local ldsoconf_tmp = "/etc/glibc_post_upgrade.ld.so.conf"
+
+if posix.access (ldsoconf) then
+
+  -- We must have a "include ld.so.conf.d/*.conf" line.
+  local have_include = false
+  for line in io.lines (ldsoconf) do
+    -- This must match, and we don't ignore whitespace.
+    if string.match (line, "^include ld.so.conf.d/%*%.conf$") ~= nil then
+      have_include = true
+    end
+  end
+
+  if not have_include then
+    -- Insert "include ld.so.conf.d/*.conf" line at the start of the
+    -- file. We only support one of these post upgrades running at
+    -- a time (temporary file name is fixed).
+    local tmp_fd = io.open (ldsoconf_tmp, "w")
+    if tmp_fd ~= nil then
+      tmp_fd:write ("include ld.so.conf.d/*.conf\n")
+      for line in io.lines (ldsoconf) do
+        tmp_fd:write (line .. "\n")
+      end
+      tmp_fd:close ()
+      local res = os.rename (ldsoconf_tmp, ldsoconf)
+      if res == nil then
+        io.stdout:write ("Error: Unable to update configuration file (rename).\n")
+      end
+    else
+      io.stdout:write ("Error: Unable to update configuration file (open).\n")
+    end
+  end
+end
+
+-- (2) Rebuild ld.so.cache early.
+-- If the format of the cache changes then we need to rebuild
+-- the cache early to avoid any problems running binaries with
+-- the new glibc.
+
+call_ldconfig()
+
+-- (3) Update gconv modules cache.
+-- If the /usr/lib/gconv/gconv-modules.cache exists, then update it
+-- with the latest set of modules that were just installed.
+-- We assume that the cache is in _libdir/gconv and called
+-- "gconv-modules.cache".
+
+update_gconv_modules_cache()
+
+-- (4) On upgrades, restart systemd if installed.  "systemctl -q" does
+-- not suppress the error message (which is common in chroots), so
+-- open-code rpm.execute with standard error suppressed.
+if tonumber(arg[2]) >= 2
+   and posix.access("/usr/bin/systemctl", "x")
+then
+  local pid = posix.fork()
+  if pid == 0 then
+    posix.redirect2null(2)
+    posix.exec("/usr/bin/systemctl", "daemon-reexec")
+  elseif pid > 0 then
+    posix.wait(pid)
+  end
+end
+
+## Triggers
+
+## File triggers
+
+## ELF dynamic dependencies (readelf -d NEEDED / RPATH / RUNPATH / interp)
+/usr/lib64/audit/sotruss-lib.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/CP1252.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO8859-1.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/ISO8859-15.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/UNICODE.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/UTF-16.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/UTF-32.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/gconv/UTF-7.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/ld-linux-x86-64.so.2 [DYN] NEEDED: <none>
+/usr/lib64/libBrokenLocale.so.1 [DYN] NEEDED: libc.so.6 
+/usr/lib64/libanl.so.1 [DYN] NEEDED: libc.so.6 
+/usr/lib64/libc.so.6 [DYN] NEEDED: ld-linux-x86-64.so.2  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/lib64/libdl.so.2 [DYN] NEEDED: libc.so.6 
+/usr/lib64/libm.so.6 [DYN] NEEDED: libc.so.6 ld-linux-x86-64.so.2 
+/usr/lib64/libmvec.so.1 [DYN] NEEDED: libm.so.6 libc.so.6 ld-linux-x86-64.so.2 
+/usr/lib64/libnss_compat.so.2 [DYN] NEEDED: libc.so.6 
+/usr/lib64/libnss_dns.so.2 [DYN] NEEDED: libresolv.so.2 libc.so.6 
+/usr/lib64/libnss_files.so.2 [DYN] NEEDED: libc.so.6 
+/usr/lib64/libpcprofile.so [DYN] NEEDED: libc.so.6 
+/usr/lib64/libpthread.so.0 [DYN] NEEDED: libc.so.6 
+/usr/lib64/libresolv.so.2 [DYN] NEEDED: libc.so.6 
+/usr/lib64/librt.so.1 [DYN] NEEDED: libc.so.6 
+/usr/lib64/libthread_db.so.1 [DYN] NEEDED: libc.so.6 
+/usr/lib64/libutil.so.1 [DYN] NEEDED: libc.so.6 
+/usr/libexec/getconf/POSIX_V6_LP64_OFF64 [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/getconf/POSIX_V7_LP64_OFF64 [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/libexec/getconf/XBS5_LP64_OFF64 [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/sbin/iconvconfig [DYN] NEEDED: libc.so.6  INTERP: /lib64/ld-linux-x86-64.so.2
+/usr/sbin/ldconfig [DYN] NEEDED: <none>
+
+## Leak checks
+paths under /usr/lib/debug in payload: 0
+files whose CONTENT mentions '/usr/lib/debug': <none> 
+files whose CONTENT mentions /builddir/build|/usr/src/debug|/nix/store: /usr/lib64/libc.so.6 /usr/lib64/ld-linux-x86-64.so.2 
