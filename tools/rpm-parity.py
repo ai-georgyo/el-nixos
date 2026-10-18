@@ -40,24 +40,23 @@ tools/parity/default.json is always loaded unless --no-default-allow.
 Exit status: 0 = PASS, 1 = FAIL (unexpected differences / purity), 2 = error.
 """
 import argparse
-import bz2
 import difflib
 import fnmatch
-import gzip
 import hashlib
 import io
 import json
-import lzma
 import os
 import re
-import shutil
 import struct
-import subprocess
 import sys
 
 TOOL_DIR = os.path.dirname(os.path.abspath(__file__))
 ALLOW_DIR = os.path.join(TOOL_DIR, "parity")
-STORE = b"/nix/store"
+sys.path.insert(0, TOOL_DIR)  # -I drops the script dir from sys.path
+# rpm reading + the purity scanner (nested compression) are shared with the
+# build-time check (lib/default.nix buildSrpm runs rpm_purity.py)
+from rpm_purity import (STORE, ToolError, read_header, Reader, cpio_entries,  # noqa: E402
+                        open_payload, close_all, StoreCounter, is_interesting, nested_hits)
 
 # --------------------------------------------------------------------------- rpm tags
 # from rpm's rpmtag.h (numbers are stable across rpm versions)
@@ -184,55 +183,7 @@ FILEFLAG_LETTERS = [(1, "c"), (2, "d"), (8, "m"), (16, "n"), (32, "s"), (64, "g"
 DIGEST_ALGOS = {1: "md5", 2: "sha1", 8: "sha256", 9: "sha384", 10: "sha512", 11: "sha224"}
 
 
-class ToolError(Exception):
-    pass
-
-
 # --------------------------------------------------------------------------- rpm reading
-def _cstr(store, off):
-    end = store.index(b"\0", off)
-    return store[off:end].decode("utf-8", "surrogateescape"), end + 1
-
-
-def read_header(f, pad8):
-    intro = f.read(16)
-    if len(intro) != 16 or intro[:3] != b"\x8e\xad\xe8":
-        raise ToolError("bad header magic")
-    nindex, hsize = struct.unpack(">II", intro[8:16])
-    index = f.read(16 * nindex)
-    store = f.read(hsize)
-    if len(index) != 16 * nindex or len(store) != hsize:
-        raise ToolError("truncated header")
-    if pad8:
-        f.read((8 - hsize % 8) % 8)
-    tags = {}
-    for i in range(nindex):
-        tag, typ, off, cnt = struct.unpack_from(">IIiI", index, 16 * i)
-        if tag in (61, 62, 63, 64):
-            continue
-        if typ == 6:  # STRING
-            tags[tag] = _cstr(store, off)[0]
-        elif typ in (8, 9):  # STRING_ARRAY, I18NSTRING
-            out = []
-            for _ in range(cnt):
-                s, off = _cstr(store, off)
-                out.append(s)
-            tags[tag] = out
-        elif typ in (1, 2):  # CHAR, INT8
-            tags[tag] = list(store[off:off + cnt])
-        elif typ == 3:
-            tags[tag] = list(struct.unpack_from(">%dH" % cnt, store, off))
-        elif typ == 4:
-            tags[tag] = list(struct.unpack_from(">%dI" % cnt, store, off))
-        elif typ == 5:
-            tags[tag] = list(struct.unpack_from(">%dQ" % cnt, store, off))
-        elif typ == 7:  # BIN
-            tags[tag] = bytes(store[off:off + cnt])
-        else:
-            tags[tag] = None
-    return tags
-
-
 class Rpm:
     """Parsed RPM: header tags, derived file list, payload location."""
 
@@ -242,7 +193,7 @@ class Rpm:
             lead = f.read(96)
             if len(lead) != 96 or lead[:4] != b"\xed\xab\xee\xdb":
                 raise ToolError("%s: not an rpm (bad lead)" % path)
-            read_header(f, pad8=True)  # signature header: not compared
+            self.sigtags = read_header(f, pad8=True)  # signature header: not compared (purity only)
             self.tags = read_header(f, pad8=False)
             self.payload_offset = f.tell()
         t = self.tags
@@ -309,83 +260,8 @@ class Rpm:
             }
 
     def payload_stream(self):
-        comp = self.s("PAYLOADCOMPRESSOR") or "gzip"
-        fmt = self.s("PAYLOADFORMAT") or "cpio"
-        if fmt != "cpio":
-            raise ToolError("%s: unsupported payload format %s" % (self.path, fmt))
-        f = open(self.path, "rb")
-        f.seek(self.payload_offset)
-        if comp == "gzip":
-            return gzip.GzipFile(fileobj=f), [f]
-        if comp == "bzip2":
-            return bz2.BZ2File(f), [f]
-        if comp in ("xz", "lzma"):
-            return lzma.LZMAFile(f), [f]
-        if comp == "zstd":
-            try:
-                from compression import zstd  # Python >= 3.14
-                return zstd.ZstdFile(f), [f]
-            except ImportError:
-                pass
-            exe = shutil.which("zstd")
-            if not exe:
-                raise ToolError("zstd payload but neither compression.zstd nor `zstd` available")
-            p = subprocess.Popen([exe, "-dcq"], stdin=f, stdout=subprocess.PIPE)
-            return p.stdout, [f, p]
-        raise ToolError("%s: unsupported payload compressor %s" % (self.path, comp))
-
-
-class Reader:
-    def __init__(self, raw):
-        self.raw = raw
-
-    def read(self, n):
-        out = bytearray()
-        while len(out) < n:
-            b = self.raw.read(n - len(out))
-            if not b:
-                break
-            out += b
-        return bytes(out)
-
-    def exact(self, n):
-        b = self.read(n)
-        if len(b) != n:
-            raise ToolError("truncated payload")
-        return b
-
-
-def cpio_entries(raw):
-    """Yield (path, mode, size, reader) for each entry of a newc cpio stream.
-    The consumer must read exactly `size` bytes via reader.read before the
-    next iteration (or not at all: the remainder is skipped)."""
-    r = Reader(raw)
-    while True:
-        h = r.exact(110)
-        magic = h[:6]
-        if magic == b"07070X":
-            raise ToolError("rpm 'stripped' cpio payload (large files) is not supported")
-        if magic not in (b"070701", b"070702"):
-            raise ToolError("bad cpio magic %r" % magic)
-        fields = [int(h[6 + 8 * i:14 + 8 * i], 16) for i in range(13)]
-        mode, size, namesize = fields[1], fields[6], fields[11]
-        name = r.exact(namesize)[:-1].decode("utf-8", "surrogateescape")
-        r.exact((4 - (110 + namesize) % 4) % 4)
-        if name == "TRAILER!!!":
-            return
-        state = {"left": size}
-
-        def rd(n, state=state):
-            n = min(n, state["left"])
-            b = r.exact(n)
-            state["left"] -= n
-            return b
-
-        path = name[1:] if name.startswith("./") else ("/" + name if not name.startswith("/") else name)
-        yield path, mode, size, rd
-        while state["left"]:
-            rd(1 << 20)
-        r.exact((4 - size % 4) % 4)
+        return open_payload(self.path, self.payload_offset, self.s("PAYLOADCOMPRESSOR") or "gzip",
+                            self.s("PAYLOADFORMAT") or "cpio")
 
 
 # --------------------------------------------------------------------------- ELF
@@ -576,7 +452,179 @@ def _parse_elf(d):
         facts["comment"] = sorted({x.decode("utf-8", "replace") for x in raw.split(b"\0") if x})
     else:
         facts["comment"] = []
+    facts.update(_abi_facts(d, e, is64, etype, shdrs, phdrs))
     return facts
+
+
+SHT = {1: "PROGBITS", 2: "SYMTAB", 3: "STRTAB", 4: "RELA", 5: "HASH", 6: "DYNAMIC", 7: "NOTE",
+       8: "NOBITS", 9: "REL", 11: "DYNSYM", 14: "INIT_ARRAY", 15: "FINI_ARRAY",
+       16: "PREINIT_ARRAY", 17: "GROUP", 18: "SYMTAB_SHNDX", 19: "RELR",
+       0x6ffffff5: "GNU_ATTRIBUTES", 0x6ffffff6: "GNU_HASH", 0x6ffffffd: "VERDEF",
+       0x6ffffffe: "VERNEED", 0x6fffffff: "VERSYM"}
+PT = {0: "NULL", 1: "LOAD", 2: "DYNAMIC", 3: "INTERP", 4: "NOTE", 6: "PHDR", 7: "TLS",
+      0x6474e550: "GNU_EH_FRAME", 0x6474e551: "GNU_STACK", 0x6474e552: "GNU_RELRO",
+      0x6474e553: "GNU_PROPERTY", 0x6474e554: "GNU_SFRAME"}
+STT = {0: "NOTYPE", 1: "OBJECT", 2: "FUNC", 3: "SECTION", 4: "FILE", 5: "COMMON", 6: "TLS", 10: "IFUNC"}
+STB = {0: "LOCAL", 1: "GLOBAL", 2: "WEAK", 10: "UNIQUE"}
+STV = ["DEFAULT", "INTERNAL", "HIDDEN", "PROTECTED"]
+
+
+def _strz(d, off):
+    end = d.index(b"\0", off)
+    return d[off:end].decode("utf-8", "replace")
+
+
+def _unique_names(names):
+    """section names -> keys, duplicates (comdat .text.x, .group, ...) numbered #2, #3..."""
+    seen, out = {}, []
+    for n in names:
+        seen[n] = seen.get(n, 0) + 1
+        out.append(n if seen[n] == 1 else "%s#%d" % (n, seen[n]))
+    return out
+
+
+def _abi_facts(d, e, is64, etype, shdrs, phdrs):
+    """Facts that decide ABI and generated code/data (docs/parity.md):
+      dynsyms   .dynsym entries: name[@|@@version] type bind visibility section size
+                (no values: addresses are layout, covered by `alloc`)
+      verdef    version definitions (name [BASE] [< parents])
+      verneed   needed versions (file:version [WEAK])
+      alloc     {section: "TYPE flags=.. size=.. align=.. sha256"} for every SHF_ALLOC
+                section except .note.gnu.build-id: the bytes the loader maps
+      segments  program headers (type, offsets, sizes, flags, alignment)
+      symbols   ET_REL only: non-local .symtab symbols (defined: type bind vis
+                section size; undefined: UND)
+      relocs    ET_REL only: {target section: "n=.. sha256"} over (offset, type,
+                symbol or [section], addend) of relocations against SHF_ALLOC sections"""
+    out = {}
+    names = [s[10] for s in shdrs]
+    keys = _unique_names(names)
+
+    def secname(ndx):
+        if ndx == 0:
+            return "UND"
+        if ndx == 0xfff1:
+            return "ABS"
+        if ndx == 0xfff2:
+            return "COMMON"
+        return names[ndx] if ndx < len(names) else "0x%x" % ndx
+
+    def symbols(sec):
+        so, ss, sl = sec[4], sec[5], sec[6]
+        stro = shdrs[sl][4] if sl < len(shdrs) else None
+        fmt = e + ("IBBHQQ" if is64 else "IIIBBH")
+        ent = struct.calcsize(fmt)
+        res = []
+        for t in struct.iter_unpack(fmt, d[so:so + (ss // ent) * ent]):
+            if is64:
+                nm, info, other, shndx, val, size = t
+            else:
+                nm, val, size, info, other, shndx = t
+            res.append((_strz(d, stro + nm) if stro is not None else "?", info & 0xf, info >> 4,
+                        other & 3, shndx, val, size))
+        return res
+
+    # --- version definitions / needs
+    vdefs, vneeds, defs, needs = {}, {}, [], []
+    for s in shdrs:
+        if s[1] not in (0x6ffffffd, 0x6ffffffe):
+            continue
+        stro = shdrs[s[6]][4] if s[6] < len(shdrs) else None
+        if stro is None:
+            continue
+        o = s[4]
+        for _ in range(s[7]):  # sh_info = number of entries
+            if s[1] == 0x6ffffffd:
+                _ver, flags, ndx, cnt, _h, aux, nxt = struct.unpack_from(e + "HHHHIII", d, o)
+                vn, a = [], o + aux
+                for _j in range(cnt):
+                    vda_name, vda_next = struct.unpack_from(e + "II", d, a)
+                    vn.append(_strz(d, stro + vda_name))
+                    a += vda_next
+                if vn:
+                    vdefs[ndx] = vn[0]
+                    defs.append(vn[0] + (" BASE" if flags & 1 else "") + (" WEAK" if flags & 2 else "")
+                                + (" < " + ",".join(vn[1:]) if vn[1:] else ""))
+            else:
+                _ver, cnt, vfile, aux, nxt = struct.unpack_from(e + "HHIII", d, o)
+                fname, a = _strz(d, stro + vfile), o + aux
+                for _j in range(cnt):
+                    _h, vflags, other, vna_name, vna_next = struct.unpack_from(e + "IHHII", d, a)
+                    vname = _strz(d, stro + vna_name)
+                    vneeds[other] = vname
+                    needs.append("%s:%s%s" % (fname, vname, " WEAK" if vflags & 2 else ""))
+                    a += vna_next
+            if not nxt:
+                break
+            o += nxt
+    out["verdef"] = sorted(defs)
+    out["verneed"] = sorted(needs)
+
+    # --- dynamic symbols
+    dynsec = next((s for s in shdrs if s[1] == 11), None)
+    versym = next((s for s in shdrs if s[1] == 0x6fffffff), None)
+    dyn = []
+    if dynsec is not None:
+        syms = symbols(dynsec)
+        vs = list(struct.unpack_from(e + "%dH" % (versym[5] // 2), d, versym[4])) if versym else []
+        for i, (nm, typ, bind, vis, shndx, _val, size) in enumerate(syms):
+            if i == 0:
+                continue
+            v = vs[i] if i < len(vs) else 1
+            idx, hidden = v & 0x7fff, v & 0x8000
+            if idx in vdefs and idx > 1:
+                nm += ("@" if hidden else "@@") + vdefs[idx]
+            elif idx in vneeds:
+                nm += "@" + vneeds[idx]
+            dyn.append("%s %s %s %s %s %d" % (nm, STT.get(typ, typ), STB.get(bind, bind), STV[vis],
+                                              secname(shndx), size))
+    out["dynsyms"] = sorted(dyn)
+
+    # --- loaded bytes
+    alloc = {}
+    for s, k in zip(shdrs, keys):
+        if not s[2] & 0x2 or s[10] == ".note.gnu.build-id":
+            continue
+        v = "%s flags=0x%x size=0x%x align=%d" % (SHT.get(s[1], "0x%x" % s[1]), s[2], s[5], s[8])
+        if s[1] != 8:  # NOBITS: size only
+            v += " " + hashlib.sha256(d[s[4]:s[4] + s[5]]).hexdigest()[:20]
+        alloc[k] = v
+    out["alloc"] = alloc
+    out["segments"] = ["%s off=0x%x vaddr=0x%x filesz=0x%x memsz=0x%x flags=%s%s%s align=0x%x" % (
+        PT.get(pt, "0x%x" % pt), poff, pva, pfs, pms, "R" if pf & 4 else "-", "W" if pf & 2 else "-",
+        "X" if pf & 1 else "-", pal) for pt, pf, poff, pva, pfs, pms, pal in phdrs]
+
+    # --- relocatable objects (crt files, archive members): symbols + relocations
+    if etype == 1:
+        symtab = next((s for s in shdrs if s[1] == 2), None)
+        syms = symbols(symtab) if symtab is not None else []
+        out["symbols"] = sorted(
+            ("%s UND" % nm) if shndx == 0 else
+            "%s %s %s %s %s %d" % (nm, STT.get(typ, typ), STB.get(bind, bind), STV[vis], secname(shndx), size)
+            for nm, typ, bind, vis, shndx, _v, size in syms if bind != 0 and nm)
+        relocs = {}
+        for s in shdrs:
+            if s[1] not in (4, 9) or s[7] >= len(shdrs) or not shdrs[s[7]][2] & 0x2:
+                continue
+            rsyms = syms if s[6] < len(shdrs) and shdrs[s[6]] is symtab else \
+                (symbols(shdrs[s[6]]) if s[6] < len(shdrs) else [])
+            rela = s[1] == 4
+            fmt = e + (("QQq" if rela else "QQ") if is64 else ("IIi" if rela else "II"))
+            ent = struct.calcsize(fmt)
+            h, n = hashlib.sha256(), 0
+            for t in struct.iter_unpack(fmt, d[s[4]:s[4] + (s[5] // ent) * ent]):
+                off, info = t[0], t[1]
+                si, rt = (info >> 32, info & 0xffffffff) if is64 else (info >> 8, info & 0xff)
+                if si < len(rsyms):
+                    nm, typ, _b, _v, shndx, _val, _sz = rsyms[si]
+                    tgt = "[%s]" % secname(shndx) if typ == 3 else nm
+                else:
+                    tgt = "#%d" % si
+                h.update(("%x %d %s %d\n" % (off, rt, tgt, t[2] if rela else 0)).encode())
+                n += 1
+            relocs[keys[s[7]]] = "n=%d %s" % (n, h.hexdigest()[:20])
+        out["relocs"] = relocs
+    return out
 
 
 # props compared for ELF pairs (build_id compared for presence only)
@@ -586,10 +634,14 @@ ELF_PROPS = ["class", "machine", "type", "interp", "needed", "soname", "rpath", 
              "comment", "sections"]
 
 
-def ar_members(data):
+def parse_ar(data):
+    """Static archive -> {"members": [names in order], "armap": [symbol names],
+    "objects": {member key: ELF facts | {"digest": ...}}}; member keys are the
+    names, duplicates numbered name#2, ...  Member header fields (date, uid,
+    gid, mode) are deliberately ignored: metadata of the archiver."""
     if not data.startswith(b"!<arch>\n"):
         return None
-    p, names, longnames = 8, [], b""
+    p, names, bodies, longnames, armap = 8, [], [], b"", []
     while p + 60 <= len(data):
         h = data[p:p + 60]
         name = h[:16].decode("latin-1").rstrip()
@@ -600,12 +652,20 @@ def ar_members(data):
             longnames = body
             continue
         if name in ("/", "/SYM64/"):
+            w = 8 if name == "/SYM64/" else 4
+            n = int.from_bytes(body[:w], "big")
+            armap = [x.decode("latin-1") for x in body[w + n * w:].split(b"\0")[:n]]
             continue
         if name.startswith("/") and name[1:].isdigit():
             o = int(name[1:])
             name = longnames[o:longnames.index(b"\n", o)].decode("latin-1")
         names.append(name.rstrip("/"))
-    return sorted(names)
+        bodies.append(body)
+    objects = {}
+    for k, body in zip(_unique_names(names), bodies):
+        objects[k] = parse_elf(body) if body.startswith(b"\x7fELF") else \
+            {"digest": hashlib.sha256(body).hexdigest()[:20]}
+    return {"members": names, "armap": sorted(armap), "objects": objects}
 
 
 def kind_of(head):
@@ -620,7 +680,10 @@ def kind_of(head):
 def scan_payload(rpm, want, purity, integrity, keep_text_max=1 << 20):
     """Stream rpm's payload once.
     want: set of paths whose content facts are needed (kind, ELF facts, ar
-    members, small text).  Returns (facts_by_group, purity_hits, integrity_errors)."""
+    facts, small text).  purity: search every member for /nix/store, also
+    inside compressed members, ELF .gnu_debugdata / compressed sections and
+    archive members (rpm_purity.nested_hits).
+    Returns (facts_by_group, purity_hits, integrity_errors, digests_verified)."""
     facts, hits, ierr, verified = {}, [], [], 0
     want_groups = {rpm.files[p]["group_id"] for p in want if p in rpm.files}
     raw, closers = rpm.payload_stream()
@@ -636,77 +699,80 @@ def scan_payload(rpm, want, purity, integrity, keep_text_max=1 << 20):
             if (mode & 0o170000) != 0o100000 or size == 0:
                 continue
             gid = fe["group_id"] if fe else None
-            keep = gid in want_groups
+            keep = gid in want_groups          # content facts wanted
+            nest = False                       # buffered for the nested purity scan
             h = hashlib.new(rpm.digestalgo) if integrity and fe and fe["digest"] else None
             buf = bytearray() if keep else None
-            head, count, tail, ctx = b"", 0, b"", None
+            head = None
+            sc = StoreCounter() if purity else None
             while True:
                 chunk = rd(1 << 20)
                 if not chunk:
                     break
                 if h:
                     h.update(chunk)
-                if not head:
-                    head = chunk[:8]
-                if purity:
-                    win = tail + chunk
-                    i = win.find(STORE)
-                    while i >= 0:
-                        if i + len(STORE) > len(tail):  # not already counted in previous window
-                            count += 1
-                            if ctx is None:
-                                ctx = win[max(0, i - 40):i + 80]
-                        i = win.find(STORE, i + 1)
-                    tail = win[-(len(STORE) - 1):]
-                if keep:
-                    if kind_of(head) == "other" and len(buf) + len(chunk) > keep_text_max:
+                if head is None:
+                    head = chunk[:16]
+                    if purity and is_interesting(head):
+                        nest = True
+                        if buf is None:
+                            buf = bytearray()
+                if sc:
+                    sc.feed(chunk)
+                if buf is not None:
+                    if keep and not nest and kind_of(head) == "other" and len(buf) + len(chunk) > keep_text_max:
                         keep, buf = False, None
                         facts[gid] = {"kind": "other", "text": None}
                     else:
                         buf += chunk
-            if purity and count:
-                hits.append({"where": "payload", "path": path, "count": count,
-                             "context": ctx.decode("utf-8", "replace") if ctx else ""})
+            if sc and sc.count:
+                hits.append({"where": "payload", "path": path, "count": sc.count, "context": sc.context()})
+            data = bytes(buf) if buf is not None else None
+            if nest:
+                for where, n, ctx in nested_hits(data):
+                    hits.append({"where": "payload>" + where, "path": path, "count": n, "context": ctx})
             if h:
                 verified += 1
             if h and h.hexdigest() != fe["digest"]:
                 ierr.append({"path": path, "header": fe["digest"], "payload": h.hexdigest()})
             if keep:
-                data = bytes(buf)
                 k = kind_of(data[:8])
                 f = {"kind": k}
                 if k == "elf":
                     f["elf"] = parse_elf(data)
                 elif k == "ar":
-                    f["members"] = ar_members(data)
-                else:
+                    f["ar"] = parse_ar(data)
+                elif len(data) <= keep_text_max:
                     try:
                         f["text"] = data.decode("utf-8")
                     except UnicodeDecodeError:
                         f["text"] = None
+                else:
+                    f["text"] = None
                 facts[gid] = f
             elif gid in want_groups and gid not in facts:
-                facts[gid] = {"kind": kind_of(head), "text": None}
+                facts[gid] = {"kind": kind_of(head or b""), "text": None}
     finally:
-        for c in closers:
-            if isinstance(c, subprocess.Popen):
-                c.stdout.close()
-                c.wait()
-            else:
-                c.close()
+        close_all(closers)
     return facts, hits, ierr, verified
+
+
+def _tagname(tag):
+    if isinstance(tag, tuple):
+        return "signature tag %d" % tag[1]
+    return TAGS.get(tag, "tag %d" % tag)
 
 
 def header_purity(rpm):
     hits = []
-    for tag, val in rpm.tags.items():
+    for tag, val in list(rpm.tags.items()) + [(("sig", t), v) for t, v in rpm.sigtags.items()]:
         vals = val if isinstance(val, list) else [val]
         for x in vals:
             if isinstance(x, str) and "/nix/store" in x:
-                hits.append({"where": "header", "path": TAGS.get(tag, "tag %d" % tag),
+                hits.append({"where": "header", "path": _tagname(tag),
                              "context": x[max(0, x.find("/nix/store") - 40):x.find("/nix/store") + 80]})
             elif isinstance(x, bytes) and STORE in x:
-                hits.append({"where": "header", "path": TAGS.get(tag, "tag %d" % tag), "context": "<binary>"})
+                hits.append({"where": "header", "path": _tagname(tag), "context": "<binary>"})
     return hits
 
 
@@ -865,7 +931,8 @@ class Rules:
 
     def match_allow(self, key, did, ours, official):
         for r in self.allow:
-            if not fnmatch.fnmatchcase(did, r["id"]) or not self._pkg_match(r, key):
+            ids = [r["id"]] if isinstance(r["id"], str) else r["id"]
+            if not any(fnmatch.fnmatchcase(did, i) for i in ids) or not self._pkg_match(r, key):
                 continue
             if "ours" in r and not re.search(r["ours"], json.dumps(ours)):
                 continue
@@ -959,6 +1026,14 @@ def compare_pair(ours, off, rules, opts):
             if ta != tb:
                 detail = {"tokens_only_ours": [t for t in ta if t not in tb],
                           "tokens_only_official": [t for t in tb if t not in ta]}
+        if name == "PAYLOADDIGEST" and a != b and \
+                header_value(ours, TAGNUM["PAYLOADDIGESTALT"]) == header_value(off, TAGNUM["PAYLOADDIGESTALT"]):
+            # identical uncompressed payload (PAYLOADDIGESTALT), different
+            # compressed bytes: the compressor itself differs
+            res.value("payload.compressed", a, b, detail={
+                "compressor": [ours.s("PAYLOADCOMPRESSOR"), off.s("PAYLOADCOMPRESSOR")],
+                "flags": [ours.s("PAYLOADFLAGS"), off.s("PAYLOADFLAGS")]})
+            continue
         res.value("header." + name, a, b, detail=detail)
     # ---- changelog
     res.value("changelog", changelog(ours), changelog(off))
@@ -1036,24 +1111,56 @@ def compare_pair(ours, off, rules, opts):
             ea, eb = xa.get("elf", {}), xb.get("elf", {})
             if not same:
                 res.elf_rows.append({"path": p, "ours": summarize_elf(ea), "official": summarize_elf(eb)})
-            if "error" in ea or "error" in eb:
-                res.diff("elf.error:" + p, ea.get("error"), eb.get("error"))
-                continue
-            for prop in ELF_PROPS:
-                va, vb = ea.get(prop), eb.get(prop)
-                if prop == "build_id":
-                    va, vb = va is not None, vb is not None
-                if prop == "sections":
-                    res.setdiff("elf.section:" + p, va or [], vb or [])
-                    continue
-                res.value("elf.%s:%s" % (prop, p), va, vb)
+            compare_elf(res, p, ea, eb)
         elif kind == "ar":
             res.stats["ar_compared"] += 1
-            ma, mb = xa.get("members") or [], xb.get("members") or []
-            if ma != mb:
-                res.diff("ar.members:" + p, {"count": len(ma), "only": sorted(set(ma) - set(mb))[:50]},
-                         {"count": len(mb), "only": sorted(set(mb) - set(ma))[:50]})
+            compare_ar(res, p, xa.get("ar") or {}, xb.get("ar") or {})
     return res
+
+
+def compare_elf(res, p, ea, eb):
+    """All ELF facts of one file (or archive member `archive(member)`)."""
+    if "error" in ea or "error" in eb:
+        res.diff("elf.error:" + p, ea.get("error"), eb.get("error"))
+        return
+    for prop in ELF_PROPS:
+        va, vb = ea.get(prop), eb.get(prop)
+        if prop == "build_id":
+            va, vb = va is not None, vb is not None
+        if prop == "sections":
+            res.setdiff("elf.section:" + p, va or [], vb or [])
+            continue
+        res.value("elf.%s:%s" % (prop, p), va, vb)
+    # ABI: exported/imported symbols with versions, version definitions/needs
+    for prop, did in (("dynsyms", "elf.dynsym"), ("verdef", "elf.verdef"), ("verneed", "elf.verneed"),
+                      ("symbols", "elf.symbol")):
+        res.setdiff("%s:%s" % (did, p), ea.get(prop) or [], eb.get(prop) or [])
+    # generated code/data: every loaded section's bytes, the segment layout,
+    # and (relocatable objects) the relocations against loaded sections
+    for prop, did in (("alloc", "elf.alloc"), ("relocs", "elf.relocs")):
+        da, db = ea.get(prop) or {}, eb.get(prop) or {}
+        for k in sorted(set(da) | set(db)):
+            res.value("%s:%s:%s" % (did, p, k), da.get(k), db.get(k))
+    res.value("elf.segments:" + p, ea.get("segments"), eb.get("segments"))
+
+
+def compare_ar(res, p, aa, ab):
+    """Static archive: member order, armap symbols, each member's facts
+    (ELF members: everything compare_elf compares; others: content digest)."""
+    ma, mb = aa.get("members") or [], ab.get("members") or []
+    if ma != mb:
+        res.diff("ar.members:" + p, {"count": len(ma), "only": sorted(set(ma) - set(mb))[:50],
+                                     "order_differs": sorted(ma) == sorted(mb)},
+                 {"count": len(mb), "only": sorted(set(mb) - set(ma))[:50]})
+    res.setdiff("ar.armap:" + p, aa.get("armap") or [], ab.get("armap") or [])
+    oa, ob = aa.get("objects") or {}, ab.get("objects") or {}
+    for k in sorted(set(oa) & set(ob)):
+        xa, xb = oa[k], ob[k]
+        q = "%s(%s)" % (p, k)
+        if "digest" in xa or "digest" in xb:
+            res.value("ar.member:" + q, xa.get("digest", "elf"), xb.get("digest", "elf"))
+        else:
+            compare_elf(res, q, xa, xb)
 
 
 def summarize_elf(e):
@@ -1326,6 +1433,9 @@ def main(argv=None):
         "purity_violations": sum(len(p["purity"]) for p in pkgs),
         "integrity_errors": sum(len(p["integrity"]) for p in pkgs),
     }
+    if summary["pairs"] == 0:
+        raise ToolError("nothing compared: no package is present on both sides "
+                        "(ours: %d, official: %d after filtering)" % (len(ours), len(off)))
     fail = any(p["status"] == "FAIL" for p in pkgs) or (a.fail_on_unused and unused)
     report = {"tool": "rpm-parity", "format": 1, "name": a.name,
               "status": "FAIL" if fail else "PASS", "summary": summary,

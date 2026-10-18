@@ -1,4 +1,20 @@
 {
-  "description": "which (stage0.srpm.which) vs official which: only stage0 differences expected.",
-  "extends": ["stage0"]
+  "description": "which (stage0.srpm.which) vs official which: stage0 differences only.",
+  "extends": [
+    "stage0"
+  ],
+  "allow": [
+    {
+      "id": [
+        "elf.alloc:/usr/bin/which:.text",
+        "elf.alloc:/usr/bin/which:.rodata",
+        "elf.alloc:/usr/bin/which:.eh_frame",
+        "elf.alloc:/usr/bin/which:.eh_frame_hdr",
+        "elf.alloc:/usr/bin/which:.init_array",
+        "elf.alloc:/usr/bin/which:.fini_array"
+      ],
+      "packages": "which.x86_64",
+      "reason": "code generation differs inside main() (register allocation/scheduling; every section keeps its size, so the segments, dynamic symbols, versions, NEEDED and the section list are equal; .rodata/.eh_frame/.init_array follow the moved code). NOT caused by the C library: rebuilt in stage0-full with our Rocky-identical glibc/glibc-devel installed, which's bytes are unchanged. which is built with LTO (-flto=auto), glibc without (glibc is byte-identical in every loaded section). Remaining differences between the two compilations: Rocky's cc1 runs the annobin plugin, whose effect on the streamed LTO IR is the prime suspect (the final code comes from lto1, without the plugin, so the official binary carries no annobin notes either), and the stage0 gcc build (host libraries from nixpkgs; the omitted spec patches touch only tests, docs, isl dlopen, gcov, fortran and D). Not proven; re-check once annobin is built in stage0 (README, next steps)"
+    }
+  ]
 }

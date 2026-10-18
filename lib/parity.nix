@@ -26,7 +26,7 @@ let
   # only the tool + its allowlists (editing other tools does not rebuild checks)
   tool = lib.fileset.toSource {
     root = ../tools;
-    fileset = lib.fileset.unions [ ../tools/rpm-parity.py ../tools/parity ];
+    fileset = lib.fileset.unions [ ../tools/rpm-parity.py ../tools/rpm_purity.py ../tools/parity ];
   };
   allowDir = ../tools/parity;
 
@@ -137,6 +137,81 @@ let
     cp top/RPMS/noarch/*.rpm $out/
   '';
 
+  # the same, but every store path is HIDDEN: in a gzip'ed man page and in
+  # the xz-compressed .gnu_debugdata of an ELF library (the raw bytes of
+  # every payload file are clean) -- the nested purity scan must find both
+  nestedImpureRpm = pkgs.runCommandCC "parity-nested-impure-rpm"
+    { nativeBuildInputs = [ pkgs.rpm pkgs.xz ]; NIX_NO_SELF_RPATH = "1"; } ''
+    cd $TMPDIR
+    mkdir -p top tmp src
+    printf '.TH X 1\n.SH FILES\n/nix/store/00000000000000000000000000000000-perl/bin/perl\n' | gzip -9n > src/x.1.gz
+    printf 'int f(void){return 0;}\n' > f.c
+    gcc -O2 -fPIC -shared -nostdlib -Wl,-soname,libf.so.1 f.c -o libf.so.1
+    printf 'hidden /nix/store/11111111111111111111111111111111-hidden\0' | xz -c > dd.xz
+    objcopy --add-section .gnu_debugdata=dd.xz libf.so.1 src/libf.so.1
+    if grep -q /nix/store src/libf.so.1 src/x.1.gz; then echo "fixture leaks raw store paths" >&2; exit 1; fi
+    cat > nested.spec <<EOF
+    Name: parity-nested-impure
+    Version: 1
+    Release: 1
+    Summary: nested purity negative test
+    License: MIT
+    %description
+    test
+    %install
+    install -Dm644 $TMPDIR/src/x.1.gz %{buildroot}/usr/share/man/man1/x.1.gz
+    install -Dm755 $TMPDIR/src/libf.so.1 %{buildroot}/usr/lib/libf.so.1
+    %files
+    /usr/share/man/man1/x.1.gz
+    /usr/lib/libf.so.1
+    EOF
+    HOME=$TMPDIR rpmbuild -bb --quiet --define "_topdir $TMPDIR/top" --define "_tmppath $TMPDIR/tmp" \
+      --define '__os_install_post %{nil}' --define 'debug_package %{nil}' \
+      --define '_build_id_links none' --define '_binary_payload w9.gzdio' --nodeps nested.spec
+    mkdir -p $out
+    cp top/RPMS/*/*.rpm $out/
+  '';
+
+  # two builds of "abitest" whose libx.so.1 differ ONLY in the dynamic
+  # symbol table: official exports foo@@X_1.0 and bar@@X_1.0, ours drops bar.
+  # rpm's auto-Provides are identical (libx.so.1(X_1.0)(64bit)), so only the
+  # elf.dynsym comparison can tell them apart.
+  abiRpms = pkgs.runCommandCC "parity-abi-rpms"
+    { nativeBuildInputs = [ pkgs.rpm ]; NIX_NO_SELF_RPATH = "1"; } ''
+    cd $TMPDIR
+    printf 'int foo(void){return 1;}\nint bar(void){return 2;}\n' > official.c
+    printf 'int foo(void){return 1;}\n' > ours.c
+    printf 'X_1.0 { global: foo; bar; local: *; };\n' > official.map
+    printf 'X_1.0 { global: foo; local: *; };\n' > ours.map
+    for v in official ours; do
+      mkdir -p $v/top $v/tmp $v/src
+      gcc -O2 -fPIC -shared -nostdlib -Wl,-soname,libx.so.1 -Wl,--version-script=$v.map \
+        -o $v/src/libx.so.1 $v.c
+      if grep -q /nix/store $v/src/libx.so.1; then echo "fixture leaks store paths" >&2; exit 1; fi
+      cat > $v/x.spec <<EOF
+    Name: abitest
+    Version: 1
+    Release: 1
+    Summary: ABI negative test
+    License: MIT
+    %description
+    test
+    %install
+    install -Dm755 $TMPDIR/$v/src/libx.so.1 %{buildroot}/usr/lib64/libx.so.1
+    %files
+    /usr/lib64/libx.so.1
+    EOF
+      HOME=$TMPDIR rpmbuild -bb --quiet --define "_topdir $TMPDIR/$v/top" --define "_tmppath $TMPDIR/$v/tmp" \
+        --define '__os_install_post %{nil}' --define 'debug_package %{nil}' \
+        --define '_build_id_links none' --define '_binary_payload w9.gzdio' --nodeps $v/x.spec
+      mkdir -p $out/$v
+      cp $v/top/RPMS/*/*.rpm $out/$v/
+    done
+    # the premise: identical automatic Provides
+    q() { rpm -qp --nosignature --provides "$1" | sort; }
+    [ "$(q $out/ours/*.rpm)" = "$(q $out/official/*.rpm)" ]
+  '';
+
   # run the tool, expect FAIL, and require the given strings in report.json
   expectFail = { name, args, mustContain }:
     pkgs.runCommand "parity-selftest-${name}"
@@ -149,6 +224,20 @@ let
           grep -qF -- "$s" $out/report.json || { echo "report.json lacks: $s" >&2; exit 1; }
         done
         echo "negative test ${name}: FAIL as expected" > $out/result.txt
+      '';
+
+  # rpm_purity.py (the build-time scanner) on its own: exit 1 + the hits
+  purityScanFails = { name, rpms, mustContain }:
+    pkgs.runCommand "purity-selftest-${name}"
+      { nativeBuildInputs = [ pkgs.python3 pkgs.zstd ]; }
+      ''
+        rc=0
+        python3 -I ${tool}/rpm_purity.py --json $TMPDIR/r.json ${rpms} || rc=$?
+        [ $rc -eq 1 ] || { echo "expected exit 1 (store path found), got $rc" >&2; exit 1; }
+        for s in ${lib.escapeShellArgs mustContain}; do
+          grep -qF -- "$s" $TMPDIR/r.json || { echo "purity report lacks: $s" >&2; exit 1; }
+        done
+        mkdir $out; cp $TMPDIR/r.json $out/
       '';
 
   checks = {
@@ -169,6 +258,53 @@ let
       args = [ "--ours" "${impureRpm}" "--official" "${impureRpm}" ];
       mustContain = [ ''"purity_violations": 3'' "/usr/share/parity-impure/conf" "FILELINKTOS" ];
     };
+    # store paths hidden in nested compression (gzip man page, xz
+    # .gnu_debugdata): both the parity tool and the build-time scanner
+    parity-selftest-purity-nested = expectFail {
+      name = "purity-nested";
+      args = [ "--ours" "${nestedImpureRpm}" "--official" "${nestedImpureRpm}" ];
+      mustContain = [ ''"purity_violations": 2'' "payload>gzip" "payload>.gnu_debugdata" ];
+    };
+    purity-selftest-nested = purityScanFails {
+      name = "nested";
+      rpms = nestedImpureRpm;
+      mustContain = [ "payload>gzip" "payload>.gnu_debugdata" "/usr/share/man/man1/x.1.gz" "/usr/lib/libf.so.1" ];
+    };
+    purity-selftest-plain = purityScanFails {
+      name = "plain";
+      rpms = impureRpm;
+      mustContain = [ "/usr/share/parity-impure/conf" "symlink" ];
+    };
+    # a symbol removed from an existing version node (same rpm Provides)
+    parity-selftest-abi = expectFail {
+      name = "abi";
+      args = [ "--ours" "${abiRpms}/ours" "--official" "${abiRpms}/official" ];
+      mustContain = [ "elf.dynsym:/usr/lib64/libx.so.1:-bar@@X_1.0 FUNC GLOBAL DEFAULT .text"
+                      "elf.alloc:/usr/lib64/libx.so.1:.dynsym" ];
+    };
+    # the binutils-based ABI cross-check (tools/abi-compare.py, checks.glibc-abi)
+    # must catch the same removed symbol
+    abi-compare-selftest = pkgs.runCommand "abi-compare-selftest"
+      { nativeBuildInputs = [ pkgs.python3 pkgs.binutils-unwrapped pkgs.rpm pkgs.cpio ]; } ''
+        for v in ours official; do
+          mkdir -p $TMPDIR/$v && (cd $TMPDIR/$v && rpm2cpio ${abiRpms}/$v/*.rpm | cpio -idm --quiet --no-absolute-filenames)
+        done
+        rc=0
+        python3 -I ${lib.fileset.toSource { root = ../tools; fileset = ../tools/abi-compare.py; }}/abi-compare.py \
+          --pair abitest $TMPDIR/ours $TMPDIR/official --out $out || rc=$?
+        [ $rc -eq 1 ] || { echo "expected exit 1 (FAIL), got $rc" >&2; exit 1; }
+        grep -qF 'abi.dynsym:/usr/lib64/libx.so.1' $out/report.txt
+        grep -qF -- '-bar@@X_1.0 FUNC GLOBAL DEFAULT DEF' $out/report.txt
+      '';
+    # comparing nothing is a tool error (exit 2), never a PASS
+    parity-selftest-empty = pkgs.runCommand "parity-selftest-empty"
+      { nativeBuildInputs = [ pkgs.python3 pkgs.zstd ]; } ''
+        mkdir -p $TMPDIR/a $TMPDIR/b
+        rc=0
+        python3 -I ${tool}/rpm-parity.py --name empty --out $TMPDIR/o --ours $TMPDIR/a --official $TMPDIR/b || rc=$?
+        [ $rc -eq 2 ] || { echo "expected exit 2 (nothing compared), got $rc" >&2; exit 1; }
+        echo "empty comparison: tool error as expected" > $out
+      '';
   } // lib.optionalAttrs (stage0 != null) {
     parity-which = mkParityCheck { name = "which"; ours = stage0.srpm.which; };
     parity-redhat-rpm-config = mkParityCheck {
@@ -183,12 +319,12 @@ let
       args = [ "--no-default-allow" "--ours" "${stage0.srpm.which}/RPMS" "--official" "${fetchRpm "which.x86_64"}" ];
       mustContain = [
         "header.BUILDHOST" "header.OPTFLAGS" "redhat-annobin-cc1" "content.elf:/usr/bin/which"
-        "package.only-ours:which-debuginfo.x86_64" "file.class:/usr/share/man/man1/which.1.gz"
+        "package.only-ours:which-debuginfo.x86_64" "elf.alloc:/usr/bin/which:.text" "header.PAYLOADDIGESTALT"
       ];
     };
   };
 in
 {
-  inherit mkParityCheck checks impureRpm;
+  inherit mkParityCheck checks impureRpm nestedImpureRpm abiRpms;
   tool = "${tool}/rpm-parity.py";
 }

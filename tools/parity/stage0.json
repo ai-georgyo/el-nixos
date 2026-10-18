@@ -7,14 +7,6 @@
       "pattern": "-specs=/usr/lib/rpm/redhat/redhat-annobin-cc1",
       "replace": "",
       "reason": "stage0 has no annobin plugin: macros.stage0 sets %_annobin_gcc_plugin %{nil}, which empties exactly this token of %optflags"
-    },
-    {
-      "field": "file.class:*",
-      "side": "ours",
-      "pattern": ", original size modulo 2\\^32 \\d+",
-      "replace": "",
-      "optional": true,
-      "reason": "stage0's rpmbuild links nixpkgs' libmagic 5.47 (Rocky: file-5.45), which appends the original size to gzip descriptions (FILECLASS only, not content)"
     }
   ],
   "allow": [
@@ -29,11 +21,9 @@
       "reason": "stage0: no annobin plugin (official objects carry its build attribute notes)"
     },
     {
-      "id": "file.class:*",
-      "ours": "dynamically linked",
-      "official": "static-pie linked",
+      "id": "elf.section:*:-.rela.gnu.build.attributes",
       "optional": true,
-      "reason": "stage0's rpmbuild links nixpkgs' libmagic 5.47 (Rocky: file-5.45), which describes ld.so-style static-pie objects as 'dynamically linked' (FILECLASS text only; PIE/INTERP/dynamic properties are compared by the elf.* checks)"
+      "reason": "stage0: no annobin plugin; the plugin's .gnu.build.attributes notes in official objects (libc_nonshared.a members: glibc.spec adds -fplugin=annobin to BuildFlagsNonshared) carry address-range relocations"
     }
   ]
 }

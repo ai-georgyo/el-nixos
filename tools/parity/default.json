@@ -9,14 +9,14 @@
     { "id": "header.COOKIE", "reason": "rpmbuild --rebuild carries the source package's cookie (Rocky's build host + time) into the binaries; Koji-built official binaries have none" },
     { "id": "header.SIZE", "reason": "installed size follows the (expected) ELF size differences; file sizes are compared per file" },
     { "id": "header.LONGSIZE", "reason": "installed size, see header.SIZE" },
-    { "id": "header.PAYLOADDIGEST", "reason": "payload digest differs whenever any byte differs (ELF content, mtimes)" },
-    { "id": "header.PAYLOADDIGESTALT", "reason": "uncompressed payload digest, see header.PAYLOADDIGEST" },
+    { "id": "header.PAYLOADDIGESTALT", "reason": "digest of the uncompressed payload (cpio: file contents and metadata); differs whenever a file differs, e.g. any ELF object (content.elf)" },
+    { "id": "header.PAYLOADDIGEST", "reason": "digest of the compressed payload; rpm-parity reports it under this id only when PAYLOADDIGESTALT differs too (identical cpio but different compressed bytes is reported as payload.compressed, never allowed here)" },
     { "id": "header.VENDOR", "ours": "^null$", "reason": "Rocky's build system sets %vendor; we do not claim Rocky's identity (buildSrpm vendor = null)" },
     { "id": "header.PACKAGER", "ours": "^null$", "reason": "Rocky's build system sets %packager; we do not claim it (buildSrpm packager = null)" },
     { "id": "header.DISTRIBUTION", "ours": "^null$", "reason": "Rocky's build system sets %distribution 'Rocky Linux 10'; not set by our builds" },
     { "id": "header.BUGURL", "ours": "^null$", "reason": "Rocky's build system sets %bugurl https://bugs.rockylinux.org; not set by our builds" },
-    { "id": "content.elf:*", "reason": "ELF objects are not bit-identical across builds (build-id, code layout); their properties are compared separately (elf.*)" },
-    { "id": "content.ar:*", "reason": "static archives contain ELF objects (see content.elf); member lists are compared separately (ar.members)" },
+    { "id": "content.elf:*", "reason": "ELF files are not bit-identical across builds (build-id note, .gnu_debuglink CRC, debug sections); everything that is loaded or linked is compared separately and must match: elf.alloc (bytes of every SHF_ALLOC section), elf.segments, elf.dynsym/verdef/verneed, elf.symbol/elf.relocs (relocatable objects) and the elf.* properties" },
+    { "id": "content.ar:*", "reason": "static archives differ in member headers (date, uid/gid, mode: archiver metadata) and their ELF members as in content.elf; member names and order (ar.members), the armap (ar.armap) and every member's ELF facts (elf.*:<archive>(<member>)) are compared separately and must match" },
     { "id": "package.only-ours:*-debuginfo.*", "reason": "debuginfo packages are not in the lock (Rocky ships them in separate debug repos)" },
     { "id": "package.only-ours:*-debugsource.*", "reason": "debugsource packages are not in the lock (separate debug repos)" }
   ]

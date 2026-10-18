@@ -20,6 +20,22 @@
       "id": "file.only-*:/usr/lib/.build-id/<build-id>* -> ../../../../usr/libexec/getconf/*_LP64_OFF64",
       "packages": "glibc.x86_64",
       "reason": "POSIX_V7_LP64_OFF64 and XBS5_LP64_OFF64 are hard links to one getconf binary (one build-id); rpm names the build-id links <id> and <id>.2 in file-walk (readdir) order, which depends on the build filesystem (overlayfs here, xfs/ext4 on Rocky's builders). Same two targets on both sides"
+    },
+    {
+      "id": [
+        "elf.alloc:/usr/bin/memusagestat:.bss",
+        "elf.alloc:/usr/bin/memusagestat:.dynstr",
+        "elf.alloc:/usr/bin/memusagestat:.dynsym",
+        "elf.alloc:/usr/bin/memusagestat:.rela.dyn",
+        "elf.alloc:/usr/bin/memusagestat:.text"
+      ],
+      "packages": "glibc-utils.x86_64",
+      "reason": "memusagestat links libgd.so.3, which the stage0 glibc buildroot takes from nixpkgs (gd 2.3.3, bootstrap/glibc-build-deps.nix); nixpkgs' libgd defines gdFontLarge/gdFontSmall 32-byte aligned (Rocky's gd-2.3.3-22.el10: 8-byte), and ld places the copy-relocated objects by the defining DSO's alignment: .bss 0x78/align 32 vs 0x50/align 16, so the 3 copy-relocated symbols move (.dynsym values, .rela.dyn offsets, RIP-relative displacements in .text) and .dynstr follows libgd's symbol order. The code is identical (verified with displacement-normalized objdump), dynamic symbols/versions/NEEDED are equal (elf.dynsym etc. are not allowed here). Goes away when the buildroot links Rocky's libgd (stage1; docs/glibc.md, Known differences)"
+    },
+    {
+      "id": "elf.segments:/usr/bin/memusagestat",
+      "packages": "glibc-utils.x86_64",
+      "reason": "the RW PT_LOAD memsz follows the .bss size (see elf.alloc:/usr/bin/memusagestat:.bss)"
     }
   ]
 }
