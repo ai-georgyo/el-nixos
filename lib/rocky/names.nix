@@ -4,12 +4,18 @@
 #
 #   outputName { srpm, subpkg, prefix }      -> "out" | "dev" | "lib" | "debug" | "<X>" | ...
 #   outputsFor { srpm, sub, mergeOutputs ? [ ], prefixSubpackage ? null }
-#     sub = { names = [ <subpackage> ... ]; prefix = "<subpackage>"; shipped = { <name> = bool; }; }
-#     -> { outputs        [ "out" <sorted ...> "debug" "logs" ]
+#     sub = a lock/rocky-<rel>/subpackages.json entry (tools/lock_subpackages.py):
+#           { names = [ <subpackage> ... ];      debug packages excluded (§3.2)
+#             debug = [ <name>-debuginfo ... ];  the debug packages the spec builds
+#                                                (or a bool: whether it builds any)
+#             prefix = "<subpackage>"; shipped = { <name> = bool; }; ... }
+#           (debug names inside `names` are accepted too; absent `debug` = true)
+#     -> { outputs        [ "out" <sorted ...> "debug" "logs" ]  (debug iff any debug package)
 #          rpmOutputs     { <subpackage> = <output>; }   every subpackage, merged ones alias
-#                                                        their representative, *-debuginfo -> debug
+#                                                        their representative, debug ones -> debug
 #          shippedRpmOutputs  the same minus unshipped (what rocky.rpm.* aliases)
-#          unshipped      { <subpackage> = <output>; }   not in rpms.json (passthru.unshipped)
+#          unshipped      { <subpackage> = <output>; }   shipped = false (passthru.unshipped);
+#                                                        debug packages are never in it
 #          merged         { <member> = <representative>; }
 #          prefix         the prefix subpackage (-> out) }
 #   storeName { srpm, version, release, output ? "out" }  -> "<srpm>-<v>-<r>[-<output>]"
@@ -31,6 +37,17 @@
 #   * a full name that is still invalid gets a leading "_".
 # A merge group containing the prefix subpackage is always `out`, whatever
 # its first member (the first member is the representative otherwise).
+#
+# Heads-up for mkRpmPackage: the names include `dev`, `doc`, `info`, `bin`,
+# `lib`, `static` (all of them occur in the 10.2 lock), which nixpkgs'
+# multiple-outputs.sh treats specially: `_multioutDocs` / `_multioutDevs`
+# (preFixupHooks) move share/{doc,info,man}, include, lib/pkgconfig, ... of
+# every other output into $doc / $info / $dev, `_multioutPropagateDev`
+# (postFixupHooks) writes $dev/nix-support/propagated-build-inputs, and
+# `_multioutConfig` adds --bindir etc. to configureFlags.  The partition is
+# final, so the derivation must switch all of them off (`moveToDev = false`,
+# `propagatedBuildOutputs = ""`, `setOutputFlags = false`, and drop
+# `_multioutDocs` from preFixupHooks; there is no `dontMoveDocs`).
 { lib }:
 let
   storeNameChars = import ../store-name.nix; # '^' '~' -> '_' (RPM versions)
@@ -41,7 +58,9 @@ let
 
   isIdentifier = s: builtins.match "[A-Za-z_][A-Za-z0-9_]*" s != null;
 
-  isDebugName = n: lib.hasSuffix "-debuginfo" n || lib.hasSuffix "-debugsource" n;
+  # the lock generator's rule (tools/lock_subpackages.py DEBUG)
+  isDebugName = n: lib.hasSuffix "-debuginfo" n || lib.hasSuffix "-debugsource" n
+    || lib.hasInfix "-debuginfo-common-" n;
 
   # Output names that would shadow attributes of the derivation (nix
   # `derivation`, stdenv.mkDerivation, passthru) or variables setup.sh
@@ -80,7 +99,10 @@ let
   outputsFor = { srpm, sub, mergeOutputs ? [ ], prefixSubpackage ? null }:
     let
       where = "names.outputsFor (${srpm})";
-      names = lib.unique sub.names;
+      # `debug`: the lock's list of debug packages, or a bool (absent = true)
+      debugField = sub.debug or true;
+      debugList = if lib.isList debugField then debugField else [ ];
+      names = lib.unique (sub.names ++ debugList);
       prefix =
         if prefixSubpackage != null then prefixSubpackage
         else if sub.prefix or null != null then sub.prefix
@@ -115,7 +137,11 @@ let
         (lib.unique (lib.filter (s: lib.count (x: x == s) finals > 1) finals));
 
       errors =
-        lib.optional (prefix == null)
+        lib.optional (!(lib.isList debugField || lib.isBool debugField))
+          "`debug` must be a list of debug package names or a bool, got ${builtins.typeOf debugField}"
+        ++ map (n: "`debug` lists `${n}`, which is not a debuginfo/debugsource name")
+          (lib.filter (n: !(isDebugName n)) debugList)
+        ++ lib.optional (prefix == null)
           "no prefix subpackage: neither `${srpm}` nor `${srpm}-libs` exists; set prefixSubpackage (or subpackages.json prefix)"
         ++ lib.optional (prefix != null && !(lib.elem prefix names))
           "prefix subpackage `${prefix}` is not a subpackage of ${srpm}"
@@ -124,8 +150,9 @@ let
         ++ groupErrors ++ dupErrors ++ collisionErrors;
 
       rpmOutputs = lib.genAttrs names (n: if isDebugName n then "debug" else final.${rep n});
-      unshipped = lib.filterAttrs (n: _: !(shipped n)) rpmOutputs;
-      hasDebug = sub.debug or true || lib.any isDebugName names;
+      # the lock's `shipped` covers `names` only; debug packages are never "unshipped"
+      unshipped = lib.filterAttrs (n: _: !(isDebugName n) && !(shipped n)) rpmOutputs;
+      hasDebug = lib.any isDebugName names || debugField == true;
     in
     if errors != [ ] then throw "${where}: ${lib.concatStringsSep "; " errors}"
     else {

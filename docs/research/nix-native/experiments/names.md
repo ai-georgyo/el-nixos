@@ -3,14 +3,17 @@
 Files: `lib/rocky/{names,overrides,unions}.nix`, `lib/rocky/parts/{names,overrides,unions}.nix`
 (→ `legacyPackages.x86_64-linux.nn.{names,overrides,unions}`), `lib/rocky/checks/names.nix`
 (→ `checks.x86_64-linux.nn-names`), fixtures `lib/rocky/tests/glibc-subpackages.json`,
-`lib/rocky/tests/overrides/{good,bad}/default.nix`, `packages/README-overrides.md`.
+`lib/rocky/tests/names-overrides/{good,bad}/default.nix`, `packages/README-overrides.md`.
+Review fixes: [names-fix.md](names-fix.md).
 
 ## Commands
 
 ```
 git add -A
 nix build -L --cores 6 --max-jobs 2 --no-link --print-out-paths .#checks.x86_64-linux.nn-names
-#  -> /nix/store/wqy3w4bjb8y6ci14vyyg6dk9dg4dyh93-nn-names, 37 tests ok, 0 failed
+#  -> /nix/store/wqy3w4bjb8y6ci14vyyg6dk9dg4dyh93-nn-names: 36 eval-time + 1 build-time test, 0 failed
+#  (after the review fixes: /nix/store/lx3na9x75p5ap79cnid0c63ak3mlvg1r-nn-names,
+#   44 eval-time + 11 build-time tests, 0 failed; see names-fix.md)
 ```
 
 Mutation check: removing `"src"` from `names.reserved` makes 2 tests fail
@@ -63,9 +66,9 @@ Schema = §8.1 exactly (25 fields; nested records `bconds`, `inputs`, `forward`,
 with the file, e.g. for the `bad` fixture:
 
 ```
-lib/rocky/tests/overrides/bad/default.nix: unknown key `mergeOutput` (known: allowUnresolvedNeeded, ...)
-lib/rocky/tests/overrides/bad/default.nix: `doCheck`: expected a bool, got string "yes"
-lib/rocky/tests/overrides/bad/default.nix: unknown key `lateBind.common.interp` (known: interpreters, libs)
+lib/rocky/tests/names-overrides/bad/default.nix: unknown key `mergeOutput` (known: allowUnresolvedNeeded, ...)
+lib/rocky/tests/names-overrides/bad/default.nix: `doCheck`: expected a bool, got string "yes"
+lib/rocky/tests/names-overrides/bad/default.nix: unknown key `lateBind.common.interp` (known: interpreters, libs)
 ```
 
 Cross-field rules: merge groups ≥ 2 and disjoint, `runtimeSearchPaths` values ∈ unions
@@ -82,6 +85,7 @@ existing paths, prepends to existing values, `single` kinds do not override a se
 ## Not done / open
 
 * `subpackages.json` (WP1) not available: the real-lock comparison test is skipped and
-  reported as such in the check output.
+  reported as such in the check output. (Fixed in names-fix.md: the loader reads WP1's
+  actual format, and the test fails when the file exists without a glibc entry.)
 * The partitioner hook generator (WP5) and profiles are not written here; the hook-line
   contract is in the header of `lib/rocky/unions.nix`.
