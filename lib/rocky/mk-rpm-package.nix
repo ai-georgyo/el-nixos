@@ -10,12 +10,17 @@
 #   patchelf runtimeLibcFor libcDevFor systemLibDirsFor exceptionsFor
 #   resolveBuildDeps fhsPath overridesFor purity (and purityChecker through it)
 #
-# Runtime vs build-only inputs: what an output may reference is its siblings,
-# the stage libc (runtimeLibcFor), Rocky-built host inputs (passthru
-# rockyRequisites, transitively) and stage.exceptionsFor srpm; that list is
-# both outputChecks.<o>.allowedRequisites and the partition plan's
-# allowedStorePaths, and its lib dirs are the plan's inputLibDirs.  Every
-# other input (nixpkgs/stage0 tools, hoisted stage0 trees) is build-only.
+# Runtime vs build-only inputs (§7.1): the runtime inputs are the OUTPUTS
+# actually used -- the stage libc's out (runtimeLibcFor) and the Rocky host
+# outputs resolveBuildDeps picked (with their companions, stage.nix) -- plus
+# stage.exceptionsFor srpm.  An output may reference directly only its
+# siblings and those (outputChecks.<o>.allowedReferences; the partition plan's
+# allowedStorePaths; their lib dirs are the plan's inputLibDirs).  Its closure
+# may add what those outputs may reference in turn (their rockyRequisites:
+# outputChecks.<o>.allowedRequisites).  So a reference to e.g. glibc.dev or
+# xz.static from a consumer that uses only glibc.out / xz.dev fails, in the
+# partitioner and in Nix.  Every other input (nixpkgs/stage0 tools, hoisted
+# stage0 trees) is build-only.
 # The view (/usr and the $out alias) holds host inputs + the libc's dev
 # only: tools are PATH-only, so no library is reachable through the view
 # without also being a cc-wrapper input (E2 library hazard).
@@ -43,12 +48,20 @@
 #   fixup         patchShebangs --host only (strictDeps: HOST_PATH = runtime
 #                 inputs); strip, patchELF, moveLib64, moveSbin, move-docs,
 #                 gzipMan, prune-libtool-files, symlink rewriting, the
-#                 broken-symlink check and the multiple-outputs.sh hooks off
-#   enforcement   outputChecks.<o>.allowedRequisites (§7.1): siblings minus
-#                 debug/logs + runtime inputs' rockyRequisites + stage
-#                 exceptions; debug may reference siblings; logs nothing
-#   logs          build.log (store hashes normalised), rocky-report.json,
-#                 view collisions
+#                 broken-symlink check and the multiple-outputs.sh hooks off;
+#                 then `rocky-partition --check-shebangs`: an executable with
+#                 an FHS #! that patchShebangs did not bind, not runtime FHS
+#                 (#!/bin/sh, #!/usr/bin/env), not lateBind-covered and not in
+#                 fhsAllowlist (stage's // package's) fails the build
+#                 (decision 11, §1.4.3)
+#   enforcement   outputChecks.<o> (§7.1): allowedReferences = siblings minus
+#                 debug/logs + the runtime-input outputs used + stage
+#                 exceptions; allowedRequisites = that + the used outputs'
+#                 rockyRequisites; debug may reference siblings; logs nothing
+#   logs          rocky-report.json, plan.json, view collisions (store hashes
+#                 normalised; deterministic).  The raw rpmbuild log is not an
+#                 output (parallel make interleaving, timestamps, -jN): it is
+#                 Nix's build log (`nix log`)
 #
 # Override `env` keys that are not shell identifiers (glibc's
 # user-defined-trusted-dirs) never enter the structured `env` (setup.sh's
@@ -76,15 +89,33 @@ let
   libc = stage.runtimeLibcFor srpm;
 
   # ---- runtime closure (inductive, §7.1) ----------------------------------
-  # runtime inputs: the stage libc and Rocky-built host inputs (mkRpmPackage
-  # results carry passthru.rockyRequisites / rockyOutputs); plus the named
-  # stage exceptions.  Everything else (nixpkgs/stage0 tools, hoisted stage0
-  # trees, glibcBuildDeps) is build-only: not allowed in any output.
-  runtimeInputs = lib.optional (libc != null) libc ++ deps.runtime;
+  # runtime inputs: the outputs actually used -- the stage libc's out and the
+  # Rocky host outputs of resolveBuildDeps (deps.runtime, companions
+  # included); plus the named stage exceptions.  Everything else
+  # (nixpkgs/stage0 tools, hoisted stage0 trees, glibcBuildDeps) is
+  # build-only: not allowed in any output.
+  runtimeInputs = stage.uniqPaths (lib.optional (libc != null) libc ++ deps.runtime);
+  directRefs = stage.uniqPaths (stage.exceptionsFor srpm ++ runtimeInputs);
+  # closure bound of a used output: what its package's outputs may reference
+  # (the lock has no intra-SRPM Requires, so a sibling bound is the package);
+  # direct references are exact, so the closure is bounded inductively by
+  # every package's allowedReferences
   requisitesOf = d: d.rockyRequisites or [ d ];
-  runtimeClosure = lib.unique (stage.exceptionsFor srpm ++ lib.concatMap requisitesOf runtimeInputs);
-  outputsOf = d: d.rockyOutputs or [ d ];
-  libDirsOf = d: lib.concatMap (o: [ "${o}/lib64" "${o}/lib" ]) (outputsOf d);
+  runtimeClosure = stage.uniqPaths (directRefs ++ lib.concatMap requisitesOf runtimeInputs);
+  libDirsOf = o: [ "${o}/lib64" "${o}/lib" ];
+
+  # companions of each output (stage.nix linkOutputs): <base>-devel -> the
+  # outputs of <base> and <base>-libs, where its lib*.so links resolve
+  companionsOf = o: lib.unique (lib.filter (x: x != o && lib.elem x managed)
+    (lib.concatMap (n:
+      let base = lib.removeSuffix "-devel" n; in
+      map (c: outs.rpmOutputs.${c}) (lib.filter (c: outs.rpmOutputs ? ${c}) [ base "${base}-libs" ]))
+      (lib.filter (n: outs.rpmOutputs.${n} == o && lib.hasSuffix "-devel" n) (lib.attrNames outs.rpmOutputs))));
+
+  fhsAllowlist =
+    if stage.buildPure && ov.fhsAllowlist != { }
+    then throw "mkRpmPackage ${srpm}: fhsAllowlist is a bootstrap-only exception (design §1.4.3); stage ${stage.name} is buildPure"
+    else stage.fhsAllowlist or { } // ov.fhsAllowlist;
 
   # ---- partition plan (tools/rocky-partition/PLAN.md, schema v1) -----------
   isIdent = k: builtins.match "[A-Za-z_][A-Za-z0-9_]*" k != null;
@@ -119,14 +150,15 @@ let
     debugOutput = if hasDebug then "debug" else null;
     unmanagedOutputs = [ "logs" ];
     inherit (ov) mergeOutputs layout runtimeSearchPaths unionDirs danglingOk lateReferrers
-      noPatchelf fhsAllowlist strictFhs allowUnresolvedNeeded prefixRelativeOk integrityOk;
+      noPatchelf strictFhs allowUnresolvedNeeded prefixRelativeOk integrityOk;
+    inherit fhsAllowlist;
     inherit searchPaths;
     opaqueRefs = map opaqueRef ov.opaqueRefs;
     forward = ov.forward;
     lateBind = ov.lateBind;
     systemLibDirs = if ov.systemLibDirs != null then ov.systemLibDirs else stage.systemLibDirsFor srpm;
-    inputLibDirs = lib.unique (lib.concatMap libDirsOf runtimeInputs);
-    allowedStorePaths = map toString runtimeClosure;
+    inputLibDirs = lib.concatMap libDirsOf runtimeInputs;
+    allowedStorePaths = map toString directRefs;
     patchelf = "${stage.patchelf}/bin/patchelf";
     maxSamples = 50;
   };
@@ -317,7 +349,6 @@ let
       # every store hash (also without /nix/store/: prep-hooks prints patch
       # basenames) -> eeee..., so logs references nothing; rpm-tmp names fixed
       norm() { sed -E -e 's/[0-9a-df-np-sv-z]{32}-/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-/g' -e 's/rpm-tmp\.[A-Za-z0-9]+/rpm-tmp.XXXXXX/g' "$@"; }
-      norm $NIX_BUILD_TOP/build.log > $logs/build.log
       for f in rocky-report.json view-collisions.txt plan.json; do
         if [ -f $NIX_BUILD_TOP/$f ]; then
           norm $NIX_BUILD_TOP/$f > $logs/$f
@@ -354,13 +385,22 @@ let
       runHook postInstall
     '';
 
+    # decision 11 / §1.4.3: after patchShebangs, every FHS #! must be bound,
+    # runtime FHS, lateBind-covered or in fhsAllowlist
+    postFixup = ''
+      python3 -I $rockyPartition --plan $NIX_BUILD_TOP/plan.json --check-shebangs
+    '';
+
     outputChecks =
       let
-        siblings = lib.filter (o: o != "debug" && o != "logs") outs.outputs;
-        allowed = siblings ++ runtimeClosure;
+        siblings = managed;
+        refs = siblings ++ directRefs;
+        reqs = siblings ++ runtimeClosure;
       in
-      lib.genAttrs siblings (_: { allowedRequisites = allowed; })
-      // lib.optionalAttrs hasDebug { debug.allowedRequisites = allowed ++ [ "debug" ]; }
+      lib.genAttrs siblings (_: { allowedReferences = refs; allowedRequisites = reqs; })
+      // lib.optionalAttrs hasDebug {
+        debug = { allowedReferences = refs ++ [ "debug" ]; allowedRequisites = reqs ++ [ "debug" ]; };
+      }
       // { logs.allowedReferences = [ ]; };
 
     passthru = {
@@ -368,9 +408,12 @@ let
       inherit srpm;
       inherit (outs) rpmOutputs shippedRpmOutputs unshipped;
       overrides = ov;
-      # what a consumer's closure may contain because of this package (§7.1)
+      # what a consumer's closure may contain because of an output of this
+      # package (§7.1; the same bound for every output, see requisitesOf)
       rockyOutputs = map (o: raw.${o}) managed;
-      rockyRequisites = lib.unique (map (o: raw.${o}) managed ++ runtimeClosure);
+      rockyOutputsByName = lib.genAttrs managed (o: raw.${o});
+      rockyCompanions = lib.genAttrs managed companionsOf;
+      rockyRequisites = stage.uniqPaths (map (o: raw.${o}) managed ++ runtimeClosure);
       rockyDeps = deps;
       inherit rockyPlan;
     };

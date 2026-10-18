@@ -15,6 +15,9 @@ RUNTIME_FHS = ("/bin/sh", "/usr/bin/env")
 # documentation: references there are recorded (Nix edges) but not errors
 DOC_DIRS = ("share/doc/", "share/man/", "share/info/", "share/gtk-doc/", "share/help/")
 FHS_LITERAL = re.compile(rb"(?<![A-Za-z0-9_.+@%/-])/(?:usr|lib64|bin|sbin)/[A-Za-z0-9._+-]+")
+# CMake export files (install(EXPORT) <Pkg>Targets[-<config>].cmake): CMake
+# checks at find_package() time that every file they name exists
+CMAKE_IMPORT = re.compile(rb"_(?:cmake_import_check_files_for|IMPORT_CHECK_FILES_FOR)_|IMPORTED_LOCATION")
 
 
 def walk_files(root):
@@ -152,6 +155,7 @@ class Refs:
         edits = []
         file_subs = ctx.subs_of(y, rel)
         doc = rel.startswith(DOC_DIRS)
+        cmake_export = kind == "text" and rel.endswith(".cmake") and bool(CMAKE_IMPORT.search(data))
         for start, end, tail in full:
             r = norm_rel(tail) if tail.startswith("/") else None
             if not r:
@@ -214,7 +218,14 @@ class Refs:
                 if in_rpath:
                     continue                               # phase E
                 if kind == "text":
-                    if x == y or ctx.requires(y, x):
+                    if x == y or ctx.requires(y, x) or cmake_export:
+                        if not (x == y or ctx.requires(y, x)):
+                            # kept as $out it could never exist and find_package()
+                            # fails on every import; rewritten, the edge makes
+                            # the file present (Rocky: install the subpackage)
+                            rep.info("cmake-unrequired", "%s/%s: %s is in %s, which %s does not Require:"
+                                     " CMake export file, rewritten to $%s (edge %s -> %s)"
+                                     % (y, rel, tail, x, y, x, y, x), owner=x, **where)
                         edits.append((start, start + len(ctx.Pb), ctx.out[x].encode()))
                         ctx.add_edge(y, x, "%s: %s" % (rel, tail))
                         self.rewrites[(y, x)] += 1

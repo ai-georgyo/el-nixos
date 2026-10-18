@@ -13,6 +13,10 @@
 # spec runs unmodified.
 { lib, stage }:
 {
+  # the lock cannot resolve cmake(GTest) (builddeps.json `unresolved`; Rocky's
+  # gtest-devel is not in S1): named here, as mkStage requires, and turned off
+  # below (S1 only; from the stage with gtest it is a normal input again)
+  inputs.drop = lib.optionals (stage.name == "s1") [ "cmake(GTest)" ];
   defines = lib.optionalAttrs (stage.name == "s1") {
     _cmake_lib_suffix64 = "-DLIB_SUFFIX=64 -DWITH_GTEST=OFF";
   };

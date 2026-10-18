@@ -21,13 +21,13 @@ All with `nix build -L --cores 8 --max-jobs 2` in the local sandbox.
 | attribute | outputs | partition report | result |
 |---|---|---|---|
 | `rockyBoot.s1.which` | out debug logs | 0 errors, 0 warnings | built; closure = out + stage0 libc tree; `which --version` runs from the store |
-| `rockyBoot.s1.xz` | out dev lib lzma_compat static debug logs (= subpackages.json: xz, xz-devel, xz-libs, xz-lzma-compat, xz-static (unshipped)) | 0 errors, 4 warnings (`fhs-shebang` `#!/usr/bin/sh` in xzdiff/xzgrep/xzless/xzmore) | built; `xz` RUNPATH `$lib/lib64:<stage0Libc>/lib64`, liblzma RUNPATH `<stage0Libc>/lib64`; closures = own outputs + stage0 libc tree |
-| `rockyBoot.s1.zlib-ng` | out dev compat compat_devel compat_static debug logs | 0 errors, 2 warnings (`not-required`: compat_devel's ZLIB-release.cmake names compat_static's libz.a) | built, after `packages/zlib-ng` (S1: WITH_GTEST=OFF) and the partitioner's CMake export rule; closures = own outputs + stage0 libc tree |
-| `rockyBoot.s1.gzip` | out debug logs | 0 errors, 12 warnings (`fhs-shebang` `#!/usr/bin/sh`, as Rocky's) | built; gzip/gunzip round trip from the store; closure = out + stage0 libc tree |
+| `rockyBoot.s1.xz` | out dev lib lzma_compat static debug logs (= subpackages.json: xz, xz-devel, xz-libs, xz-lzma-compat, xz-static (unshipped)) | 0 errors, 0 warnings (the 4 `#!/usr/bin/sh` scripts xzdiff/xzgrep/xzless/xzmore are `fhs-shebang` info: S1 fhsAllowlist) | built; `xz` RUNPATH `$lib/lib64:<stage0Libc>/lib64`, liblzma RUNPATH `<stage0Libc>/lib64`; closures = own outputs + stage0 libc tree. The ELF programs run from the store anywhere; the 4 scripts need `/usr/bin/sh` (named S1 exception) |
+| `rockyBoot.s1.zlib-ng` | out dev compat compat_devel compat_static debug logs | 0 errors, 0 warnings (`cmake-unrequired` info: compat_devel's ZLIB-release.cmake → `$compat_static/lib64/libz.a`) | built, after `packages/zlib-ng` (S1: WITH_GTEST=OFF, `inputs.drop` cmake(GTest)) and the partitioner's CMake export rules; closures = own outputs + stage0 libc tree; nixpkgs cmake `find_package(ZLIB CONFIG REQUIRED)` with `ZLIB_DIR=<compat_devel>/lib64/cmake/ZLIB` succeeds (nn-s1-smoke) |
+| `rockyBoot.s1.gzip` | out debug logs | 0 errors, 0 warnings (12 `#!/usr/bin/sh` scripts as `fhs-shebang` info: S1 fhsAllowlist) | built; closure = out + stage0 libc tree. `gzip`/`gzip -d` (ELF) round trip from the store. **gunzip, zcat, zgrep and the other z\* scripts are `#!/usr/bin/sh` scripts and do not run where `/usr/bin/sh` is missing** (NixOS, the test sandbox: `bad interpreter`, rc 126; asserted in nn-s1-smoke). The first version of this table said "gzip/gunzip round trip from the store": that was wrong (review finding 1) |
 | `rockyBoot.s1.glibc` (packages/glibc/default.nix = WP7 draft) | 225 (223 + debug + logs) | rpmbuild completes; partition **235 errors**: 229 `prefix-relative` (benchtests), 6 `dangling` (ldd → libx32, libc.so.6/libc.a → lib/gconv, memusage → lib/libmemusage.so) | fails; exactly the entries the replay found (tools/rocky-partition/tests/glibc-overrides.nix), missing from WP7's draft |
 | same + those entries (ad-hoc expression, not committed: draft // danglingOk `libx32 lib/gconv lib/libmemusage.so`, prefixRelativeOk + opaqueRefs `benchtests sysroot_x86_64_el10_glibc`) | 225 | **0 errors**, 3 warnings | **built, all outputChecks passed**; out/common/utils/dev closure = own outputs + `libgccForGlibc`; `ld.so --list-diagnostics`: prefix and rtld in `$out`, system dirs `$out/lib64/`, `<libgccForGlibc>/lib64/`, `<libgccForGlibc>/lib/` (the `env 'user-defined-trusted-dirs=…'` route works); `getconf GNU_LIBC_VERSION` and `iconv` from `common` run with no RUNPATH; memusagestat NEEDs libgd/libpng/libz with no RUNPATH (build-only glibcBuildDeps never leak) |
-| `checks.nn-s1-smoke` | | | **passes** (10 eval + 20 build assertions; below) |
-| `nix build --rebuild` which, xz | | | every output but `logs` bit-identical; `logs` differs (configure-diff timestamps, `make -jN`) |
+| `checks.nn-s1-smoke` | | | **passes** (21 eval + 28 build assertions after the review fixes; below) |
+| `nix build --rebuild` which, xz, gzip, zlib-ng (after review fix 5) | | | REBUILD_RESULT |
 
 First runs that failed and what fixed them (all in this branch): which —
 `foreign-store-path` for the gcc copy in RUNPATH (deviation 7); gzip/xz —
@@ -54,6 +54,89 @@ Component self-tests after the integration changes: nn-partition-selftest
 (18 cases incl. 2 new: cmake_export, rpath_foreign), nn-names, nn-rpm-config,
 nn-purity, nn-shim, nn-cc-toolchain, nn-order: all pass.
 
+After the review fixes, nn-s1-smoke also covers: zlib-ng and gzip reports
+and closures; the gzip ELF round trip; gunzip is `#!/usr/bin/sh` and does
+not run without /usr/bin/sh; every FHS shebang in gzip/xz `bin` is
+`#!/usr/bin/sh` (or runtime-FHS `#!/bin/sh`); compat_devel's CMake export
+names compat_static and `find_package(ZLIB CONFIG)` works; at eval time:
+xz on glibc¹ (`nn.stages.s1Glibc1`) has `allowedStorePaths` = [glibc.out],
+`inputLibDirs` = glibc.out's, `allowedReferences` = siblings + glibc.out and
+glibc.dev only in `allowedRequisites`; companions (xz dev → out lib, zlib-ng
+compat_devel → compat); an unnamed unresolved BuildRequire is an eval error;
+the S1 fhsAllowlist is `#!/usr/bin/sh` only; no purity violation of
+which/xz/zlib-ng/gzip comes from the stage machinery.
+
+## Review fixes (branch nn-fix-wp6, on 4bc5642)
+
+All six findings of the WP6 review were real; each is fixed:
+
+1. **Unbound `#!/usr/bin/sh` shebangs** (critical). Decision 11 / §1.4.3 now
+   holds: `rocky-partition --check-shebangs` (new mode,
+   `rocky_partition/shebangs.py`, PLAN.md) runs in mkRpmPackage's
+   `postFixup`, after `patchShebangs --host`, and fails the build on any
+   executable in a managed output whose `#!` is under /usr/, /bin/, /sbin/
+   and is not runtime FHS (`/bin/sh`, `/usr/bin/env`), not a lateBind
+   interpreter of that output and not in `fhsAllowlist`. The partition's own
+   `fhs-shebang` stays a warning (it runs before patchShebangs). mkStage has
+   a stage-wide `fhsAllowlist` (merged under the package's), an eval error
+   with `buildPure`, as is a package fhsAllowlist in a buildPure stage
+   (bootstrap only, §1.4.3). S1 sets `"#!/usr/bin/sh"` as a named exception:
+   S1 has no Rocky shell to bind it to, and nixpkgs' bash must not enter an
+   output. So in S1 these scripts need /usr/bin/sh at run time; binding them
+   needs a Rocky bash as a runtime input (S2+). Considered and not done:
+   rewriting `#!/usr/bin/sh` → `#!/bin/sh` (identical on usr-merged Rocky,
+   and /bin/sh is runtime FHS on NixOS) — a byte change against the official
+   RPMs that the design does not have; a design decision, not WP6's. The
+   gzip claim above is corrected. Self-test `shebang_gate`.
+2. **Runtime-input closures per package instead of per output** (major).
+   `deps.runtime` and the libc are now the outputs actually used: the
+   providing output of a BuildRequire (e.g. `xz.dev`) plus its companions
+   (`passthru.rockyCompanions`: `<base>-devel` → the outputs of `<base>` and
+   `<base>-libs` of the same SRPM, where its `lib*.so` links resolve — Rocky
+   naming, static; the old rule took `out`/`lib` of the package, which was
+   wrong for zlib-ng-compat-devel → `compat`), and the libc's `out`.
+   `allowedStorePaths`, `inputLibDirs` and the new
+   `outputChecks.<o>.allowedReferences` are exactly those (+ exceptions,
+   + siblings for allowedReferences). `allowedRequisites` keeps the closure
+   bound, which for a used output is still its package's outputs + their own
+   bound: the lock has no intra-SRPM Requires, so no tighter sibling bound is
+   known at eval time. That is enough: since every Rocky output now has exact
+   `allowedReferences`, the closure is bounded inductively, and a consumer
+   using glibc.out can no longer reference glibc.dev/static/langpacks
+   (partitioner `foreign-store-path`, and Nix's allowedReferences).
+   Measured on `nn.stages.s1Glibc1` xz: 1 allowed store path (was 224), 2
+   input lib dirs (was 446), allowedRequisites 229 entries. Dedup is
+   `stage.uniqPaths` (listToAttrs by path, order kept), not `lib.unique`.
+3. **mkStage purity wiring** (major). `allowedBuildDrvs` now also has rpm,
+   rpmConfig, every package's libc (out, dev), the previous stage's `pkgs`
+   (new `prev` parameter) and the derivations in the string context of
+   `fhsBins`/`rpmBin`/`rpmLibDir`; the `ccFor` wrappers of all packages are
+   `transparent` (plus a `transparent` parameter);
+   `extraAllowedSources = [ partitionTool ]` (+ parameter) for the
+   fileset-filtered rocky-partition source. Fallback entries are not allowed
+   (a buildPure stage has none). nn-s1-smoke asserts that every violation of
+   which/xz/zlib-ng/gzip comes from S1's declared nixpkgs/stage0 parts (the
+   stdenv, its builder shell, the cc wrapper descent, fallback entries):
+   which went from 799 violations to 775, all of those kinds.
+4. **zlib-ng compat_devel CMake config** (minor). New partition rule
+   `cmake-unrequired` (info): a reference in a CMake export file (one naming
+   `_cmake_import_check_files_for_*`, `_IMPORT_CHECK_FILES_FOR_*` or
+   `IMPORTED_LOCATION`) to a sibling the output does not Require is
+   rewritten anyway and the edge added (compat_devel → compat_static), since
+   find_package() checks every imported file and `$out/lib64/libz.a` could
+   never exist. Self-test `cmake_unrequired`; nn-s1-smoke runs
+   find_package(ZLIB CONFIG). The earlier note ("same as with RPMs that are
+   not installed together") was wrong for Nix.
+5. **`logs` not reproducible** (minor). The raw rpmbuild log is no longer in
+   `logs` (it is Nix's build log); `logs` keeps the report, plan and view
+   collisions (store hashes normalised).
+6. **Unresolved BuildRequires skipped silently** (minor). `resolveBuildDeps`
+   now throws for a builddeps.json `unresolved` entry not named in the
+   package's `inputs.drop` or the stage's `fallback`
+   (`packages/zlib-ng/default.nix`: `inputs.drop = [ "cmake(GTest)" ]` in
+   S1); `stageOut` throws instead of falling back to `out` when the provider
+   RPM is not a subpackage of its SRPM.
+
 ## The derivation (what mkRpmPackage does)
 
 * `outputs` = `names.outputsFor` (out first, the rest sorted, `debug`,
@@ -76,27 +159,35 @@ nn-purity, nn-shim, nn-cc-toolchain, nn-order: all pass.
 * `installPhase`: the plan = structured `rockyPlan` + `buildroot`/`rpmsDir`/
   `outputs`/`reportFile` found at build time → `$NIX_BUILD_TOP/plan.json`;
   `python3 -I <partitionTool>/rocky-partition --plan plan.json`; the `logs`
-  output gets `build.log`, the report, the plan and the view collisions with
-  every store hash replaced by `eeee…` (so `logs` references nothing);
+  output gets the report, the plan and the view collisions with every store
+  hash replaced by `eeee…` (so `logs` references nothing; deterministic). The
+  raw rpmbuild log is not an output any more (review fix 5): parallel make
+  interleaves it, it carries timestamps and `-jN`; it is Nix's build log
+  (`nix log`);
   `-devel` outputs get `nix-support/propagated-build-inputs` (below); the
   moving hooks of `multiple-outputs.sh`/`move-docs.sh` are removed from
   `preFixupHooks`/`postFixupHooks`.
 * fixup: only `patchShebangs --host` (HOST_PATH = buildInputs' `bin`, i.e.
-  runtime inputs, thanks to `strictDeps`) and audit-tmpdir; `dontStrip`,
+  runtime inputs, thanks to `strictDeps`) and audit-tmpdir, then the shebang
+  gate `rocky-partition --check-shebangs` (`postFixup`, review fix 1); `dontStrip`,
   `dontPatchELF`, `dontMoveLib64`, `dontMoveSbin`, `dontMoveSystemdUserUnits`,
   `dontGzipMan`, `dontPruneLibtoolFiles`, `dontRewriteSymlinks`,
   `dontCheckForBrokenSymlinks`, `setOutputFlags = false`, `moveToDev = false`,
   `propagatedBuildOutputs = ""`.
-* `outputChecks.<o>.allowedRequisites` (every managed output) = sibling
-  outputs minus `debug`/`logs` + the runtime closure; `debug` additionally
-  itself; `logs.allowedReferences = [ ]`.
-* runtime closure = `stage.exceptionsFor srpm` + the runtime libc
-  (`stage.runtimeLibcFor`, none for the libc itself) + Rocky-built host
-  inputs' `passthru.rockyRequisites` (inductive). The same list is the
-  plan's `allowedStorePaths`; its `lib64`/`lib` dirs are `inputLibDirs`.
+* `outputChecks.<o>` (every managed output; review fix 2):
+  `allowedReferences` = sibling outputs minus `debug`/`logs` + the
+  runtime-input **outputs actually used** + the stage exceptions;
+  `allowedRequisites` = that + the used outputs' `rockyRequisites`; `debug`
+  additionally itself; `logs.allowedReferences = [ ]`.
+* runtime-input outputs = the runtime libc's `out` (`stage.runtimeLibcFor`,
+  none for the libc itself) + the Rocky host outputs `resolveBuildDeps` picked
+  (the providing output, e.g. `xz.dev`, and its companions `xz.out`/`xz.lib`).
+  Those + the exceptions are the plan's `allowedStorePaths`; their
+  `lib64`/`lib` dirs are `inputLibDirs`.
 * passthru: `rockyStage srpm rpmOutputs shippedRpmOutputs unshipped
-  overrides rockyOutputs rockyRequisites rockyDeps rockyPlan`; the result
-  goes through `stage.purity.check stage` (no-op unless `buildPure`).
+  overrides rockyOutputs rockyOutputsByName rockyCompanions rockyRequisites
+  rockyDeps rockyPlan`; the result goes through `stage.purity.check stage`
+  (no-op unless `buildPure`).
 
 ## Design deviations (and why)
 
@@ -123,8 +214,8 @@ nn-purity, nn-shim, nn-cc-toolchain, nn-order: all pass.
    only): Rocky's buildroot always has glibc-devel in `/usr/include`
    (gcc Requires it); first-wins keeps any declared input in front.
 4. **Runtime vs build-only inputs** (§5.6/§7.1 do not distinguish): only the
-   stage libc, Rocky-built host inputs (they carry `rockyRequisites`) and the
-   named stage exceptions may be referenced; nixpkgs/stage0 trees given via
+   outputs used of the stage libc and of Rocky-built host inputs (they carry
+   `rockyRequisites`) and the named stage exceptions may be referenced; nixpkgs/stage0 trees given via
    the fallback set or `inputs.add` (glibc's `glibcBuildDeps`) are build-only
    — not in `inputLibDirs`, not in `allowedStorePaths`, not in
    `allowedRequisites`. This is what keeps memusagestat's nixpkgs libgd out of
@@ -248,7 +339,7 @@ integration owner of `lib/rocky/**`, `tools/rocky-partition/**`,
 | glibc | what S3a's glibcBuildDeps provides | not decided here (S3 does not exist); S1's is the hoisted stage0 tree, build-only |
 | lock/rpmconfig | %distcore, never %dist; `--dist distOf` | done |
 | rpmconfig | SOURCE_DATE_EPOCH unset for rpmbuild | done (`env -u SOURCE_DATE_EPOCH`) |
-| purity | `purityChecker = purity.forStage <stage>` once per stage; allowedBuildDrvs via drvSet; stdenv/stdenvNoCC on the stage; buildPure for S3/S4 | done in mkStage (buildPure is a parameter; S1 false). `nn.purity.violations nn.stages.s1 rockyBoot.s1.which` lists 799 entries (nixpkgs tools: S1 is not build-pure, as designed) |
+| purity | `purityChecker = purity.forStage <stage>` once per stage; allowedBuildDrvs via drvSet; stdenv/stdenvNoCC on the stage; buildPure for S3/S4 | done in mkStage (buildPure is a parameter; S1 false). After review fix 3 the stage machinery is allowed/transparent; `nn.purity.violations nn.stages.s1 rockyBoot.s1.which` lists 775 entries, all from what S1 declares as nixpkgs/stage0 (stdenv 189, its builder shell 1, the cc wrapper descent 585) |
 | purity | wrap with `purity.check`; out first in outputs | done |
 | names | multiple-outputs.sh hooks off; `checkOutputs`; rpmOutputs for the plan, shippedRpmOutputs for aliases | done (`stage.rpm` keys = shipped names from the lock) |
 | names | partitioner hooks: provider/yieldsTo contract | not done (deviation 11) |
@@ -270,18 +361,14 @@ integration owner of `lib/rocky/**`, `tools/rocky-partition/**`,
 * **kernel-headers** is an interim hoisted copy of stage0's Rocky
   kernel-headers RPM (`passthru.interim = true`), not mkRpmPackage (WP8).
 * **FHS shebangs** `#!/usr/bin/sh` (brp-mangle-shebangs of `/bin/sh`) stay in
-  S1 outputs as `fhs-shebang` warnings (gzip 12, xz 4); `/usr/bin/sh` is not
-  in the runtime-FHS set, and on NixOS it does not exist. patchShebangs binds
-  them once a Rocky bash is a runtime input (S2/S3), or `fhsAllowlist`.
-* zlib-ng: `ZLIB-release.cmake` (compat_devel) names `$out/lib64/libz.a`
-  (compat_static) — `not-required` warning; the static CMake target of the
-  compat package does not resolve unless compat_static is installed next to
-  it (same as with RPMs that are not installed together).
+  S1 outputs (gzip 12, xz 4) as the named S1 exception (stage
+  fhsAllowlist): those scripts do not run on NixOS. patchShebangs binds them
+  once a Rocky bash is a runtime input (S2+); then the S1 entry must go.
+* The closure bound (`allowedRequisites`) of a used output is its package's
+  outputs: tighter needs per-subpackage Requires in the lock (§5.6).
 * `-devel` propagation is intra-SRPM only; cross-SRPM `-devel` Requires
   (glibc-devel → kernel-headers) need a lock file of Requires (§5.6).
 * Phase E's NEEDED guard skips `noPatchelf` files; view-leak detection in DWARF
   is directory-granular (handoff open items, unchanged).
-* `logs` is not reproducible (timestamps, `make -jN`); only which and xz were
-  `--rebuild`-checked.
 * The partitioner's hook writer ignores the unions table's provider/yieldsTo.
 

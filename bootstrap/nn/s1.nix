@@ -194,6 +194,17 @@ let
     # -fplugin=annobin to BuildFlagsNonshared) see 0, as in M1 (docs/glibc.md)
     defines = { _annotated_build = "0"; };
     inherit fallback;
+    # named S1 exception (design §1.4.3: fhsAllowlist, bootstrap only):
+    # brp-mangle-shebangs writes Rocky's `#!/usr/bin/sh`, and S1 has no Rocky
+    # shell that patchShebangs could bind it to (nixpkgs' bash must not enter
+    # an output).  The scripts (gzip's gunzip/zcat/zgrep/..., xz's
+    # xzgrep/xzdiff/xzless/xzmore) therefore need /usr/bin/sh at run time:
+    # they do NOT run on NixOS or in a sandbox without /usr; the ELF programs
+    # do.  Bound once a stage has a Rocky bash as a runtime input (S2+).
+    # Every other unbound FHS shebang fails the build (--check-shebangs).
+    fhsAllowlist = {
+      "#!/usr/bin/sh" = "S1 bootstrap exception: no Rocky shell to bind /usr/bin/sh to (needs /usr/bin/sh at run time)";
+    };
     # glibc uses no S1 package (see the header)
     usesStagePackage = srpm: _provider: srpm != "glibc";
     exceptionsFor = srpm:

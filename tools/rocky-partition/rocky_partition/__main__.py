@@ -3,6 +3,7 @@ subpackage (design docs/nix-native-design.md §2; plan schema ../PLAN.md).
 
   python3 -I <tool>/rocky-partition --plan plan.json        (in the build)
   python3 -I <tool>/rocky-partition --plan plan.json --replay <tree> [--remap OLD=NEW]
+  python3 -I <tool>/rocky-partition --plan plan.json --check-shebangs   (after fixup)
 
 Exit status: 0 = done (no errors, or failOnError false), 1 = errors (see
 $<prefix output>/nix-support/rocky-report.json and stderr), 2 = tool/plan
@@ -23,6 +24,7 @@ from .plan import PlanError, load
 from .refs import Refs
 from .replay import remap_outputs, tree_args
 from .report import Report
+from .shebangs import check as check_shebangs
 from .runpath import Runpath
 
 
@@ -108,8 +110,12 @@ def main(argv=None):
     ap.add_argument("--remap", metavar="OLD=NEW", help="with --replay: the tree's prefix and the new prefix output path")
     ap.add_argument("--report", help="also write the report here")
     ap.add_argument("--no-fail", action="store_true", help="exit 0 even with errors (experiments)")
+    ap.add_argument("--check-shebangs", action="store_true",
+                    help="only check the finished outputs for unbound FHS shebangs (after patchShebangs)")
     a = ap.parse_args(argv)
     try:
+        if a.check_shebangs:
+            return 1 if check_shebangs(load(a.plan)) else 0
         return run(a)
     except (PlanError, headers.HeaderError) as e:
         print("rocky-partition: error: %s" % e, file=sys.stderr)

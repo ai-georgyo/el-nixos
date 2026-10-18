@@ -3,6 +3,6 @@
 # purity and overridesFor are filled in here.
 { lib, readLock, self, ... }:
 args: import ../stage.nix { inherit lib readLock; names = self.names; } ({
-  inherit (self) mkRpmPackage purity;
+  inherit (self) mkRpmPackage purity partitionTool;
   overridesFor = self.overrides.overridesFor;
 } // args)

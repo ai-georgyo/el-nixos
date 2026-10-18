@@ -53,7 +53,7 @@ machinery. A package that needs more gets an optional override file
 | `doCheck` | bool (`false`) | run `%check` (omit `--nocheck`); give the reason in a comment when it stays off in S3 |
 | `prefixView` | bool (`true`) | bind the declared-input `/usr` view at `$out` while rpmbuild runs (self-prefix alias, §1.5); `false` = the `$out` directory is empty during the build and the package needs `specSubstitutions` instead |
 | `strictFhs` | bool (`false`) | FHS literals found in outputs (`/usr/…`, `/lib64/…` not on the runtime allowlist) are errors instead of report entries |
-| `inputs` | `{ add = [ ]; addNative = [ ]; drop = [ str ]; }` | `add` / `addNative`: extra host / build inputs (derivations, store paths) beyond `builddeps.json`; `drop`: BuildRequires names not to map to inputs |
+| `inputs` | `{ add = [ ]; addNative = [ ]; drop = [ str ]; }` | `add` / `addNative`: extra host / build inputs (derivations, store paths) beyond `builddeps.json`; `drop`: BuildRequires names not to map to inputs (provider RPM names from `builddeps.json` `inputs`, or entries of its `unresolved` list, which must be named here or in the stage fallback, else evaluation fails) |
 | `stage` | null or string (`null`) | bootstrap placement of a low-level package (which `rockyBoot` stage first builds it) |
 
 ## Output fields
@@ -73,7 +73,7 @@ machinery. A package that needs more gets an optional override file
 | `integrityOk` | list of output patterns (`[ ]`) | acknowledges patching the RUNPATH of a file whose FIPS integrity data cannot follow (PLAN.md `integrityOk`) |
 | `systemLibDirs` | null or list of strings (`null`) | the libc system dirs for the RUNPATH recompute (sonames found there get no RUNPATH entry); `@<output>@` names an own output. `null`: the stage's (`["@out@/lib64" "@out@/lib"]` for the libc itself) |
 | `allowUnresolvedNeeded` | list of sonames (`[ ]`) | `DT_NEEDED` sonames that may stay unresolved (bootstrap stages: libraries not yet Rocky-built) |
-| `fhsAllowlist` | set of literal → reason (`{ }`) | FHS strings (e.g. `"#!/usr/bin/bash"`) accepted in outputs, with the reason (bootstrap only, or late-bound later) |
+| `fhsAllowlist` | set of literal → reason (`{ }`) | FHS shebangs (`"#!/usr/bin/bash"` or `"/usr/bin/bash"`) accepted in outputs, with the reason; merged over the stage's `fhsAllowlist`; bootstrap stages only (an eval error in a `buildPure` stage). Any other FHS `#!` in an executable that patchShebangs did not bind, that is not runtime FHS (`/bin/sh`, `/usr/bin/env`) and not a lateBind interpreter fails the build (`rocky-partition --check-shebangs`) |
 | `lateBind` | set of output name → `{ interpreters = [ ]; libs = [ ]; }` (`{ }`) | outputs whose shebangs (`interpreters`: SRPM names of bash, perl, …) and RUNPATH (`libs`: SRPM names) are bound to packages built later, by the cheap bind derivation (§2.9, §11.3) |
 | `lateReferrers` | set of late output → list of output names or globs over them (`{ }`) | sibling outputs that reference a `lateBind` output and are therefore re-bound with it (glibc: `common → [ "minimal_langpack" "langpack_*" ]`); keys must be `lateBind` outputs; the partitioner verifies the list is complete |
 

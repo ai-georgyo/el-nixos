@@ -14,6 +14,7 @@ patched libraries are recomputed or the patch is refused, see Phase E below).
 python3 -I $tool/rocky-partition --plan "$NIX_ATTRS_JSON_FILE"            # in the build
 python3 -I $tool/rocky-partition --plan plan.json --replay TREE [--remap OLD=NEW]   # development
 PYTHONPATH=tools/rocky-partition python3 -m rocky_partition --plan ...    # from a checkout
+python3 -I $tool/rocky-partition --plan plan.json --check-shebangs        # after fixupPhase
 ```
 
 `$tool` = `self.partitionTool` (`lib/rocky/parts/partitionTool.nix`), a plain
@@ -31,6 +32,7 @@ binary of the plan, `patchelf` of the plan (only when a RUNPATH changes), and
 | `--remap OLD=NEW` | with `--replay`: OLD must be the tree's prefix, NEW the path of `prefixOutput` (default: exactly that) |
 | `--report FILE` | also write the report here (e.g. `$NIX_BUILD_TOP`, survives a failed build with `--keep-failed`) |
 | `--no-fail` | exit 0 even with errors (experiments; `failOnError = false` in the plan does the same) |
+| `--check-shebangs` | only the shebang gate (design decision 11, §1.4.3), run after `patchShebangs` (mkRpmPackage's `postFixup`): every executable regular file of a managed output (not `debugOutput`, not `unmanagedOutputs`) whose `#!` interpreter is under `/usr/`, `/bin/`, `/sbin/` is an error (exit 1) unless runtime FHS (`/bin/sh`, `/usr/bin/env`), its basename is in `lateBind.<output>.interpreters`, or it is in `fhsAllowlist`. Only `outputs`, `debugOutput`, `unmanagedOutputs`, `lateBind`, `fhsAllowlist` of the plan are read |
 
 Exit status: **0** done (no error, or errors not fatal), **1** errors (listed
 on stderr, all in `$<prefixOutput>/nix-support/rocky-report.json`), **2**
@@ -194,7 +196,7 @@ samples), `runpath` (changes), `stubs`, `piecedRefs`, `nestedRefs`,
 | `late-referrer-missing` | error | an output reaches a lateBind output but is not in `lateReferrers` | add it |
 | `late-elf-ref` | error | ELF content in L* references a late output (outside RUNPATH) | — |
 | `replay-remap-incomplete` | warning | the replayed tree's prefix survives (e.g. in a compressed ELF section) | — |
-| info codes | info | `union-self`, `pc-expanded`, `cmake-expanded`, `integrity-file`, `integrity-rehashed`, `prefix-relative-out`, `nested-ref`, `pieced`, `runpath-changed`, `shared-file`, `setid-dropped`, `hardlink-split`, `build-id-dropped`, `other-absolute`, `fhs-shebang`, `fhs-literal`, `merge-unneeded`, `late-referrer-unused` | |
+| info codes | info | `union-self`, `pc-expanded`, `cmake-expanded`, `cmake-unrequired`, `integrity-file`, `integrity-rehashed`, `prefix-relative-out`, `nested-ref`, `pieced`, `runpath-changed`, `shared-file`, `setid-dropped`, `hardlink-split`, `build-id-dropped`, `other-absolute`, `fhs-shebang`, `fhs-literal`, `merge-unneeded`, `late-referrer-unused` | |
 
 ## Reference classification (design §2.5, as implemented)
 
@@ -234,12 +236,20 @@ no anchor = dangling.
   absolute install dirs): every `${_IMPORT_PREFIX}` is written out as P, so
   `${_IMPORT_PREFIX}/include` becomes a literal path the rules above rewrite
   (`$dev/include`); the now unused definition is acked.
+  A reference in a CMake export file (`*.cmake` naming
+  `_cmake_import_check_files_for_*`, `_IMPORT_CHECK_FILES_FOR_*` or
+  `IMPORTED_LOCATION`) to a sibling the file's output does not Require is
+  rewritten anyway (`cmake-unrequired`, info; the edge is added): find_package()
+  checks that every imported file exists, and `$P/rel` never would (zlib-ng:
+  `compat_devel`'s `ZLIB::zlibstatic` names `libz.a` of `compat_static`; on
+  Rocky installing `-static` makes the path exist, in Nix the edge does).
 * files below `share/doc`, `share/man`, `share/info`, `share/gtk-doc`,
   `share/help`: references are classified and recorded (edges) but never
   errors (prose mentions install dirs).
 * shebangs: `#!/bin/sh` and `#!/usr/bin/env` are runtime FHS (design §1.4);
   other FHS interpreters are `fhs-shebang` warnings unless allowlisted or
-  late-bound (patchShebangs in fixupPhase is expected to bind them).
+  late-bound (patchShebangs in fixupPhase is expected to bind them); what is
+  still unbound after it fails `--check-shebangs`.
 
 Store-by-pieces windows: 8-byte windows of P holding at least 6 bytes of its
 hash, in loaded sections of ELF files, outside full occurrences.

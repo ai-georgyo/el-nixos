@@ -636,6 +636,69 @@ def t_cmake_export():
     c.has("prefix-relative", "info", "CMake export file")
 
 
+def t_cmake_unrequired():
+    """CMake export file in -devel naming the static archive of -static,
+    which -devel does not Require: rewritten to $static anyway (find_package
+    checks every imported file; $out/lib64/libfoo.a would never exist), with
+    the edge; a plain text file keeps the not-required rule (WP6 review,
+    zlib-ng compat_devel)"""
+    c = Case("cmakeunreq")
+    c.sub("foo").sub("foo-devel", ["foo"]).sub("foo-static")
+    c.cc("foo", "lib64/libfoo.so.1.0", LIB_SRC, ["-Wl,-soname,libfoo.so.1"], shared=True)
+    c.link("foo", "lib64/libfoo.so.1", "libfoo.so.1.0")
+    c.text("foo-static", "lib64/libfoo.a", "!<arch>\n")
+    c.text("foo-devel", "lib64/cmake/foo/foo-release.cmake",
+           'set_target_properties(foo::foostatic PROPERTIES IMPORTED_LOCATION_RELEASE "@P@/lib64/libfoo.a")\n'
+           'list(APPEND _cmake_import_check_files_for_foo::foostatic "@P@/lib64/libfoo.a" )\n')
+    c.text("foo-devel", "share/foo/notes.txt", "static archive: @P@/lib64/libfoo.a\n")
+    c.run({"foo": "out", "foo-devel": "dev", "foo-static": "static"}, expect_rc=0)
+    c.no_errors()
+    eq(c.read("dev", "lib64/cmake/foo/foo-release.cmake"),
+       'set_target_properties(foo::foostatic PROPERTIES IMPORTED_LOCATION_RELEASE "%s/lib64/libfoo.a")\n'
+       'list(APPEND _cmake_import_check_files_for_foo::foostatic "%s/lib64/libfoo.a" )\n'
+       % (c.p("static"), c.p("static")), "foo-release.cmake")
+    c.has("cmake-unrequired", "info", "dev/lib64/cmake/foo/foo-release.cmake")
+    true("static" in c.report["graph"]["edges"].get("dev", {}), "dev -> static edge")
+    eq(c.read("dev", "share/foo/notes.txt"), "static archive: %s/lib64/libfoo.a\n" % c.P, "notes.txt kept")
+    c.has("not-required", "warning", "share/foo/notes.txt")
+
+
+def t_shebang_gate():
+    """--check-shebangs (after fixup): an executable with an unbound FHS #!
+    fails unless runtime FHS, late-bound or allowlisted; non-executable files
+    and the debug output are not checked (WP6 review: gzip's #!/usr/bin/sh)"""
+    c = Case("shebanggate")
+    c.sub("foo").sub("foo-tools", ["foo"])
+    c.text("foo", "bin/gunzip", "#!/usr/bin/sh\nexec true\n", mode=0o755)
+    c.text("foo", "bin/runtime", "#!/bin/sh\nexec true\n", mode=0o755)
+    c.text("foo", "bin/env", "#!/usr/bin/env perl\n", mode=0o755)
+    c.text("foo", "share/foo/example.pl", "#!/usr/bin/perl\n", mode=0o644)
+    c.text("foo-tools", "bin/tool", "#!/usr/bin/bash\n", mode=0o755)
+    c.run({"foo": "out", "foo-tools": "tools"}, expect_rc=0)
+    pf = os.path.join(c.dir, "plan.json")
+
+    def gate(extra):
+        with open(pf) as f:
+            plan = json.load(f)
+        plan.update(extra)
+        g = os.path.join(c.dir, "gate.json")
+        with open(g, "w") as f:
+            json.dump(plan, f)
+        return subprocess.run([sys.executable, "-I", os.path.join(TOOL, "rocky-partition"), "--plan", g,
+                               "--check-shebangs"], capture_output=True, text=True)
+    p = gate({})
+    eq(p.returncode, 1, "rc without allowlist\n" + p.stderr)
+    true("out/bin/gunzip: #!/usr/bin/sh" in p.stderr and "tools/bin/tool: #!/usr/bin/bash" in p.stderr, p.stderr)
+    true("out/bin/runtime" not in p.stderr and "out/bin/env" not in p.stderr and "example.pl" not in p.stderr, p.stderr)
+    true("2 unbound FHS shebang(s)" in p.stderr, p.stderr)
+    p = gate({"fhsAllowlist": {"#!/usr/bin/sh": "bootstrap"}, "lateBind": {"tools": {"interpreters": ["bash"]}}})
+    eq(p.returncode, 0, "rc with allowlist + lateBind\n" + p.stderr)
+    true("allowed: bootstrap" in p.stderr and "allowed: lateBind.tools.interpreters" in p.stderr, p.stderr)
+    p = gate({"fhsAllowlist": {"/usr/bin/sh": "bootstrap"}})
+    eq(p.returncode, 1, "rc with only /usr/bin/sh allowed\n" + p.stderr)
+    true("1 unbound FHS shebang(s), 1 allowed" in p.stderr, p.stderr)
+
+
 def toolchain_paths(path, skip):
     """store paths in a fixture that come from the test's own toolchain
     (PT_INTERP, bytes patchelf left behind), except the one under test"""
@@ -682,7 +745,7 @@ def t_rpath_foreign():
 
 CASES = [t_split, t_libs_self_cycle, t_nested_stubs, t_integrity, t_pc_derived, t_token_split, t_search_path, t_text_cycle, t_dangling_foreign_union, t_pieced,
          t_prefix_relative, t_late, t_subpackages_unclaimed, t_replay, t_layout_and_docs, t_plan_errors,
-         t_cmake_export, t_rpath_foreign]
+         t_cmake_export, t_rpath_foreign, t_cmake_unrequired, t_shebang_gate]
 
 
 def main():
