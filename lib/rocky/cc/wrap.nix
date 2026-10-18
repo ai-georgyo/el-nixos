@@ -21,7 +21,18 @@
 #   * --enable-new-dtags (Rocky's ld defaults to DT_RPATH [NF-S2]) so the
 #     wrapper's -rpath entries become DT_RUNPATH;
 #   * self rpath $out/lib64 instead of $out/lib (lib64-rpath.sh, setup hook);
-#   * dynamic-linker <out>/lib64/ld-linux-x86-64.so.2, -m32: <out>/lib/ld-linux.so.2.
+#   * dynamic-linker <out>/lib64/ld-linux-x86-64.so.2, -m32: <out>/lib/ld-linux.so.2;
+#     cc-wrapper-hook m32-libc.sh: -m32 takes crt files and libc.so from <libc>/lib
+#     (gcc never maps a -B dir to ../lib by itself);
+#   * the gcc copy's runtime libraries that NEED libgcc_s.so.1 get RUNPATH $ORIGIN.
+#
+# Known limits (stage0 gcc, no no-sys-dirs patch yet, §5.2): the default
+# search dirs /usr/local/include, /usr/include, /lib64, /usr/lib64 stay; they
+# do not exist in the Nix sandbox, and in the tool shim /usr is the view of
+# declared inputs.  libc.so.6/libm.so.6 needed by the gcc copy's libstdc++
+# are found through the loader's system dir: <glibc>/lib64 for a relocated
+# glibc; stage0Libc's loader still has the FHS dirs (programs linked with
+# --as-needed against libstdc++ need LD_LIBRARY_PATH=<stage0Libc>/lib64).
 #
 # Usable from PATH without setup hooks (mkRpmPackage's tool shim): gcc cc g++
 # c++ cpp, x86_64-redhat-linux-{gcc,g++,c++}, gcc-ar gcc-nm gcc-ranlib gcov

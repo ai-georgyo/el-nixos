@@ -116,6 +116,7 @@ let
     passAsFile = [ "inputList" ];
     inputList = lib.concatMapStringsSep "\n" toString inputs;
   } ''
+    set +e   # a report: every section runs, findings are data
     G=${glibc}
     mkdir -p $out
     {
