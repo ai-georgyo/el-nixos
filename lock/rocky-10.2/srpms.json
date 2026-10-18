@@ -68,6 +68,98 @@
         "zlib-devel"
       ]
     },
+    "debugedit": {
+      "epoch": 0,
+      "version": "5.1",
+      "release": "8.el10",
+      "repo": "AppStream",
+      "path": "Packages/d/debugedit-5.1-8.el10.src.rpm",
+      "sha256": "7a3ab1c9ce75d29592e5801e1a77ede6d5285a3fc2ddc169d447396ec8088fe7",
+      "size": 231066,
+      "buildRequires": [
+        "autoconf",
+        "automake",
+        "dwz",
+        "gcc",
+        "gnupg2",
+        "help2man",
+        "make",
+        "pkgconfig(libdw)",
+        "pkgconfig(libelf)",
+        "xxhash-devel",
+        "xxhash-static"
+      ]
+    },
+    "dwz": {
+      "epoch": 0,
+      "version": "0.16",
+      "release": "1.el10",
+      "repo": "AppStream",
+      "path": "Packages/d/dwz-0.16-1.el10.src.rpm",
+      "sha256": "3a9c7b51a69c56f58d84b77c1e82f901aceb200ef11dcdb52d6bc67d7a496d56",
+      "size": 172333,
+      "buildRequires": [
+        "dejagnu",
+        "elfutils",
+        "elfutils-libelf-devel",
+        "gcc",
+        "gcc-c++",
+        "gdb",
+        "make",
+        "xxhash-devel"
+      ]
+    },
+    "efi-rpm-macros": {
+      "epoch": 0,
+      "version": "6",
+      "release": "7.el10.rocky.0.1",
+      "repo": "BaseOS",
+      "path": "Packages/e/efi-rpm-macros-6-7.el10.rocky.0.1.src.rpm",
+      "sha256": "b7f8099dc95ecc0b6596f42d680e73c5c527dee7dc4ea3c8b3683e5b686984cc",
+      "size": 33141,
+      "buildRequires": [
+        "git",
+        "make",
+        "sed"
+      ]
+    },
+    "filesystem": {
+      "epoch": 0,
+      "version": "3.18",
+      "release": "17.el10",
+      "repo": "BaseOS",
+      "path": "Packages/f/filesystem-3.18-17.el10.src.rpm",
+      "sha256": "f82a4f93d52b5ba2448b72c79aacb49c6261bf50c9f0c20b67e3f0ffe991ff43",
+      "size": 54796,
+      "buildRequires": [
+        "iso-codes"
+      ]
+    },
+    "fonts-rpm-macros": {
+      "epoch": 1,
+      "version": "2.0.5",
+      "release": "18.el10",
+      "repo": "BaseOS",
+      "path": "Packages/f/fonts-rpm-macros-2.0.5-18.el10.src.rpm",
+      "sha256": "3bc5f6ed8179230a068832d020a73521119e130e6eb139d60c5d89f525e081f5",
+      "size": 61433,
+      "buildRequires": []
+    },
+    "forge-srpm-macros": {
+      "epoch": 0,
+      "version": "0.4.0",
+      "release": "6.el10",
+      "repo": "AppStream",
+      "path": "Packages/f/forge-srpm-macros-0.4.0-6.el10.src.rpm",
+      "sha256": "1227c9b34b142ac09e072b42f275f88518f44963113e6183f40ac35e8d6d7e00",
+      "size": 35608,
+      "buildRequires": [
+        "make",
+        "python3-pytest",
+        "python3-pyyaml",
+        "python3-rpm-macros"
+      ]
+    },
     "gcc": {
       "epoch": 0,
       "version": "14.3.1",
@@ -163,6 +255,18 @@
         "zlib-devel"
       ]
     },
+    "go-rpm-macros": {
+      "epoch": 0,
+      "version": "3.8.0",
+      "release": "1.el10",
+      "repo": "AppStream",
+      "path": "Packages/g/go-rpm-macros-3.8.0-1.el10.src.rpm",
+      "sha256": "8d4f2d171cd6d3a176e6b0df324cab4edb56fa81c310e8b168930a4dd320dab1",
+      "size": 148347,
+      "buildRequires": [
+        "golang"
+      ]
+    },
     "kernel": {
       "epoch": 0,
       "version": "6.12.0",
@@ -228,6 +332,16 @@
       "size": 39539,
       "buildRequires": []
     },
+    "lua-rpm-macros": {
+      "epoch": 0,
+      "version": "1",
+      "release": "15.el10",
+      "repo": "AppStream",
+      "path": "Packages/l/lua-rpm-macros-1-15.el10.src.rpm",
+      "sha256": "0cfb52dd8d78ac157fee735f2e14cb1a172967ad1410ce47bea009426d490008",
+      "size": 13786,
+      "buildRequires": []
+    },
     "ocaml-srpm-macros": {
       "epoch": 0,
       "version": "10",
@@ -246,6 +360,16 @@
       "path": "Packages/o/openblas-srpm-macros-2-19.el10.src.rpm",
       "sha256": "736452bde6897e9a9e06765d2e0863bf7d5c3ffc01cd17ea8b76d47c7e006219",
       "size": 11462,
+      "buildRequires": []
+    },
+    "package-notes": {
+      "epoch": 0,
+      "version": "0.5",
+      "release": "13.el10",
+      "repo": "AppStream",
+      "path": "Packages/p/package-notes-0.5-13.el10.src.rpm",
+      "sha256": "998ed918c6657538dccb23f5e705fc3f8389ce4ce86523947fcfc5cd2c93bf9c",
+      "size": 15496,
       "buildRequires": []
     },
     "perl-srpm-macros": {
@@ -288,6 +412,16 @@
       "path": "Packages/p/python-rpm-macros-3.12-11.el10.src.rpm",
       "sha256": "7999d8ca4fe38e31204c4bd4d91635ec77ff75fdaa8499b4483381b8a0f8a070",
       "size": 60970,
+      "buildRequires": []
+    },
+    "qt6": {
+      "epoch": 0,
+      "version": "6.10.1",
+      "release": "1.el10",
+      "repo": "AppStream",
+      "path": "Packages/q/qt6-6.10.1-1.el10.src.rpm",
+      "sha256": "6d6b77c5a718fd67d069433c7656eedbf83a0eca565bc20a854ad18bf4b8c013",
+      "size": 26612,
       "buildRequires": []
     },
     "redhat-rpm-config": {
@@ -351,6 +485,22 @@
         "systemd-rpm-macros",
         "xz-devel >= 4.999.8",
         "zlib-devel"
+      ]
+    },
+    "setup": {
+      "epoch": 0,
+      "version": "2.14.5",
+      "release": "7.el10",
+      "repo": "BaseOS",
+      "path": "Packages/s/setup-2.14.5-7.el10.src.rpm",
+      "sha256": "10ab6fd825cb2b6c9cf942176a566142459de0a9ba991f328c5f0afae38e61b5",
+      "size": 251803,
+      "buildRequires": [
+        "bash",
+        "make",
+        "perl-interpreter",
+        "systemd-rpm-macros",
+        "tcsh"
       ]
     },
     "which": {

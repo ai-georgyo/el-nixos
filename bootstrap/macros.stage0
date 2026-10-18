@@ -1,0 +1,20 @@
+# /etc/rpm/macros.stage0 -- stage0-only rpm configuration (el-nixos).
+#
+# Read after /usr/lib/rpm/macros, /usr/lib/rpm/macros.d/* and
+# /usr/lib/rpm/redhat/macros, so it overrides Rocky's defaults.  Every entry
+# here is a deliberate deviation from a real Rocky buildroot and is listed in
+# docs/stage0.md.  Later stages do not ship this file.
+
+# Marker so specs/tools can tell they are in the stage0 bootstrap buildroot.
+%el_nixos_stage 0
+
+# Same value as redhat-rpm-config; repeated here so the packages built before
+# redhat-rpm-config is installed (rocky-release, macro packages pass A) get
+# Rocky's payload format too (rpm's built-in default differs).
+%_binary_payload w19.zstdio
+
+# Annobin: redhat-rpm-config adds -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1
+# (-fplugin=annobin) to CFLAGS/LDFLAGS.  There is no annobin plugin for the
+# stage0 gcc yet, so the plugin spec is emptied (equivalent to
+# `%undefine _annotated_build` for flag purposes; macro files cannot undefine).
+%_annobin_gcc_plugin %{nil}
