@@ -1,0 +1,147 @@
+{
+  "description": "nn-parity content: the relocated glibc (one output per subpackage) vs the 221 official RPMs (checks.nn-glibc-content). Generic relocation effects are classified by tools/nn-parity.py itself (path map, RIP-relative displacements, layout, string pools, jump-table offsets, path-sized objects); every rule here is a remaining, understood effect, named in 'effect'; anything else fails. Effects: P1/P2/P3 = the Nix-side glibc patches (design §4.3); store-by-pieces = gcc expands a constant string that now contains the 56-byte store prefix into immediate stores / 16- and 32-byte vector constants (.rodata.cst16/32) in code, so code, function sizes and unwind tables change (design §2.8, E4: ld.so, ldconfig, locale, localedef; also libc's catopen/NLSPATH, iconvconfig, the static dl-load/tzfile/... objects); trusted-dirs = libgccForGlibc's dirs as rtld system dirs (§4.5); build-dir = rpmbuild's %_topdir. Rules marked optional are effects of patches the development input lacks (P2, P3, trusted dirs) and stay quiet when unused.",
+  "extends": [
+    "stage0"
+  ],
+  "rewrite": [
+    {
+      "field": "elf.strings",
+      "side": "ours",
+      "pattern": "^/build/rpmbuild/BUILD/",
+      "replace": "/builddir/build/BUILD/",
+      "effect": "build-dir",
+      "reason": "glibc-benchtests programs embed the glibc build tree (the test-run paths of the bench Makefile): ours is %_topdir = $NIX_BUILD_TOP/rpmbuild (= /build/rpmbuild in the Nix sandbox, macros.nix-reloc @BUILDTOP@), Rocky's mock/koji tree is /builddir/build. Same strings otherwise"
+    }
+  ],
+  "allow": [
+    {
+      "id": [
+        "elf.alloc:/usr/lib64/ld-linux-x86-64.so.2:.text",
+        "elf.alloc:/usr/lib64/ld-linux-x86-64.so.2:.rodata",
+        "elf.alloc:/usr/lib64/ld-linux-x86-64.so.2:.eh_frame"
+      ],
+      "packages": "glibc.x86_64",
+      "effect": "P1+store-by-pieces",
+      "reason": "rtld builds the ld.so.cache path ($out/etc/ld.so.cache, P1) and the system search dirs ($out/lib64/, + trusted dirs) by pieces: 32-byte .rodata chunks holding /nix/store/<hash> fragments and immediates (E4, design §2.8 [F-2]: 57 pieced windows in .rodata); the code that assembles them is longer, so .text, unwind info and the .rodata layout differ. Code semantics outside these strings: covered by checks.nn-glibc-runtime (ld.so --list-diagnostics, --help, program runs)"
+    },
+    {
+      "id": [
+        "elf.alloc:/usr/sbin/ldconfig:.text",
+        "elf.alloc:/usr/sbin/ldconfig:.rodata",
+        "elf.alloc:/usr/sbin/ldconfig:.eh_frame"
+      ],
+      "packages": "glibc.x86_64",
+      "effect": "P1+store-by-pieces",
+      "reason": "ldconfig (static) holds the cache/conf paths of P1 ($out/etc/ld.so.cache, $out/etc/ld.so.conf) and the system dirs in a fixed, space-padded field and pieced strings (E4, [F-2]: 57 windows); the static libc inside it has the same pieces as libc.a (dl-cache.o, dl-load.o)"
+    },
+    {
+      "id": [
+        "elf.alloc:/usr/lib64/libc.so.6:.text",
+        "elf.alloc:/usr/lib64/libc.so.6:.rodata",
+        "elf.alloc:/usr/lib64/libc.so.6:.eh_frame",
+        "elf.dynsym:/usr/lib64/libc.so.6:[+-]catopen@@GLIBC_2.2.5 FUNC GLOBAL DEFAULT .text *"
+      ],
+      "packages": "glibc.x86_64",
+      "effect": "store-by-pieces",
+      "reason": "libc.so.6 assembles default paths in code: catopen's NLSPATH default ($out/share/locale/%L/%N:...) is copied with inline vector stores (catopen 478 -> 606 bytes, the only exported symbol whose size changes), plus the static-dl paths of dl-load/dl-cache; all other functions are classified by displacement-normalised disassembly. With P2 also loadarchive.c (LOCALE_ARCHIVE env) changes code here"
+    },
+    {
+      "id": [
+        "elf.alloc:/usr/sbin/iconvconfig:.text",
+        "elf.alloc:/usr/sbin/iconvconfig:.rodata"
+      ],
+      "packages": "glibc.x86_64",
+      "effect": "store-by-pieces",
+      "reason": "iconvconfig (static) builds the default gconv dir/cache path ($out/lib64/gconv/gconv-modules.cache) by pieces, like libc.a(gconv_conf.o)"
+    },
+    {
+      "id": [
+        "elf.alloc:/usr/bin/locale:.text",
+        "elf.alloc:/usr/bin/locale:.rodata",
+        "elf.alloc:/usr/bin/localedef:.text",
+        "elf.alloc:/usr/bin/localedef:.rodata"
+      ],
+      "packages": "glibc-common.x86_64",
+      "effect": "store-by-pieces",
+      "reason": "E4: locale and localedef hold copies of the prefix truncated after '-glibc-2.39-142.el10_' with the tail built in code (locale -> $out/lib/locale/..., localedef -> $out/share/i18n/{locales,charmaps}); packages/glibc/default.nix acks them as opaqueRefs. With P2, locale.c/locarchive.c (LOCALE_ARCHIVE env) change code here too"
+    },
+    {
+      "id": [
+        "elf.alloc:/usr/lib64/libc.a(catgets.o):*",
+        "elf.relocs:/usr/lib64/libc.a(catgets.o):*",
+        "elf.section:/usr/lib64/libc.a(catgets.o):+.rodata.cst16",
+        "elf.section:/usr/lib64/libc.a(catgets.o):+.rodata.cst32",
+        "elf.symbol:/usr/lib64/libc.a(catgets.o):[+-]catopen FUNC GLOBAL DEFAULT .text *"
+      ],
+      "packages": "glibc-static.x86_64",
+      "effect": "store-by-pieces",
+      "reason": "catopen's NLSPATH default (see libc.so.6) as vector constants (.rodata.cst16/.cst32, new sections) and inline stores; relocations and unwind info follow the longer code"
+    },
+    {
+      "id": [
+        "elf.alloc:/usr/lib64/libc.a(dl-cache.o):*",
+        "elf.section:/usr/lib64/libc.a(dl-cache.o):+.rodata.str1.8"
+      ],
+      "packages": "glibc-static.x86_64",
+      "effect": "P1+store-by-pieces",
+      "reason": "P1: the static loader's cache path is $out/etc/ld.so.cache instead of /etc/ld.so.cache; the 56-byte prefix moves the string into another alignment class (.rodata.str1.8) and parts into code"
+    },
+    {
+      "id": [
+        "elf.alloc:/usr/lib64/libc.a(dl-load.o):*",
+        "elf.relocs:/usr/lib64/libc.a(dl-load.o):*",
+        "elf.section:/usr/lib64/libc.a(dl-load.o):+.rodata.cst32",
+        "elf.section:/usr/lib64/libc.a(dl-load.o):+.rodata.str1.32",
+        "elf.symbol:/usr/lib64/libc.a(dl-load.o):[+-]_dl_init_paths FUNC GLOBAL HIDDEN .text *",
+        "elf.symbol:/usr/lib64/libc.a(dl-load.o):[+-]_dl_map_object FUNC GLOBAL HIDDEN .text *"
+      ],
+      "packages": "glibc-static.x86_64",
+      "effect": "store-by-pieces",
+      "reason": "E4: dl-load.o (static dlopen) holds the system dirs ($out/lib64/ + trusted dirs) by pieces; _dl_init_paths/_dl_map_object inline the longer constants (function sizes change)"
+    },
+    {
+      "id": [
+        "elf.alloc:/usr/lib64/libc.a(tzfile.o):*",
+        "elf.relocs:/usr/lib64/libc.a(tzfile.o):*",
+        "elf.section:/usr/lib64/libc.a(tzfile.o):+.rodata.cst32",
+        "elf.symbol:/usr/lib64/libc.a(tzfile.o):[+-]__tzfile_read FUNC GLOBAL HIDDEN .text *"
+      ],
+      "packages": "glibc-static.x86_64",
+      "effect": "store-by-pieces",
+      "reason": "the default TZDIR ($out/share/zoneinfo, danglingOk; TZDIR from profiles) is concatenated with inline vector stores in __tzfile_read"
+    },
+    {
+      "id": [
+        "elf.alloc:/usr/lib64/libc.a(findlocale.o):.text",
+        "elf.alloc:/usr/lib64/libc.a(gconv_conf.o):.text",
+        "elf.relocs:/usr/lib64/libc.a(gconv_conf.o):*",
+        "elf.alloc:/usr/lib64/libc.a(sysconf.o):.text"
+      ],
+      "packages": "glibc-static.x86_64",
+      "effect": "store-by-pieces",
+      "reason": "default paths copied in code: findlocale ($out/lib/locale), gconv_conf ($out/lib64/gconv), sysconf ($out/libexec/getconf for _SC_* lookups); their string pools match after the map"
+    },
+    {
+      "id": [
+        "elf.alloc:/usr/lib64/libc.a(loadarchive.o):*",
+        "elf.relocs:/usr/lib64/libc.a(loadarchive.o):*",
+        "elf.section:/usr/lib64/libc.a(loadarchive.o):*",
+        "elf.symbol:/usr/lib64/libc.a(loadarchive.o):*"
+      ],
+      "packages": "glibc-static.x86_64",
+      "effect": "P2",
+      "optional": true,
+      "reason": "P2 (nix-locale-archive.patch): _nl_load_locale_from_archive reads LOCALE_ARCHIVE_2_27 / LOCALE_ARCHIVE from the environment and falls back to two host paths: new code and strings in loadarchive.o"
+    },
+    {
+      "id": [
+        "elf.alloc:/usr/lib64/libc.a(dl-support.o):*",
+        "elf.relocs:/usr/lib64/libc.a(dl-support.o):*"
+      ],
+      "packages": "glibc-static.x86_64",
+      "effect": "trusted-dirs",
+      "optional": true,
+      "reason": "user-defined-trusted-dirs (libgccForGlibc lib64 and lib) extend the static loader's system dirs table"
+    }
+  ]
+}

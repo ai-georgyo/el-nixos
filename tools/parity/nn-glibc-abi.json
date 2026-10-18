@@ -1,0 +1,13 @@
+{
+  "description": "nn-parity abi: tools/abi-compare.py (binutils readelf/nm) over our files at their FHS paths vs the 221 official RPMs, readelf/nm output passed through the path map (output store paths -> /usr). Target: 0 unexpected. Dynamic objects whose size changes only by a relocated path are classified by the tool (pathsized_dynsyms), not here.",
+  "allow": [
+    {
+      "id": "abi.dynsym:/usr/lib64/libc.so.6",
+      "packages": "glibc.x86_64",
+      "effect": "store-by-pieces",
+      "reason": "the only dynamic-symbol difference of the relocated libc.so.6 is catopen's size (478 -> 606 bytes: its NLSPATH default with the store prefix is copied by inline vector stores, see tools/parity/nn-glibc-content.json); names, versions, types, bindings, visibility and every other size are equal (ours/official pin exactly this one changed line)",
+      "ours": "^\\[\"catopen@@GLIBC_2\\.2\\.5 FUNC GLOBAL DEFAULT DEF 606\"\\]$",
+      "official": "^\\[\"catopen@@GLIBC_2\\.2\\.5 FUNC GLOBAL DEFAULT DEF 478\"\\]$"
+    }
+  ]
+}
