@@ -52,10 +52,51 @@ docs/                   design + research notes
 
 SRPM URL = `<mirror>/<repo>/source/tree/<path>` (try every mirror; the release
 dir moves to vault when the next minor ships). Only the newest EVR per name is
-kept. `lock/rocky-<rel>/rpms.json` (binary packages: name/arch/evr/sourcerpm/
-repo/path/sha256, and what each SRPM produces) and provides data needed for
-BuildRequires resolution live beside it; the generator owns their format and
-documents it in the file header / this doc.
+kept (real rpmvercmp, incl. `~`/`^`; ties go to the first repo in
+BaseOS, AppStream, CRB order). Keys are sorted.
+
+Beside it (the generator's docstring is the reference for both):
+
+- `rpms.json` — official binary RPMs, x86_64 + noarch (the Rocky 10 x86_64
+  repos are not multilib: no i686 at all), newest EVR per `name.arch`:
+  `{format, release, arches, mirrors, repodata: {<repo>/<tree>: {revision,
+  primary, timestamp}}, rpms: {"<name>.<arch>": {name, arch, epoch, version,
+  release, repo, path, sha256, size, srpm, sourcerpm}}, bySrpm: {<srpm>:
+  ["<name>.<arch>", ...]}}`. `srpm` is the SRPM name, `sourcerpm` the file
+  name. One entry per line. URL = `<mirror>/<repo>/x86_64/os/<path>`.
+- `deps.json.gz` — NOT read by Nix. Per `name.arch`: `evr, repo, srpm,
+  provides, requires, conflicts, obsoletes, recommends, suggests,
+  supplements, enhances` (dep strings like the BuildRequires above; rich deps
+  verbatim) and `files` (the file subset primary.xml carries). `rpmlib(...)`
+  and kernel symbol-version deps (`kernel(...)`, `ksym(...)`) are dropped.
+  gzip with mtime 0, so it is byte-reproducible.
+
+Sizes for 10.2: srpms.json 1.3 MB (2217 SRPMs), rpms.json 2.7 MB (6907
+binaries), deps.json.gz 0.9 MB (7.8 MB raw). `nix eval .#lock.release` takes
+~0.05 s; rpms.json is parsed only when `officialRpms` is touched.
+
+Regenerate with `nix run .#update-lock` from the repo root (downloads
+repomd.xml + primary.xml.gz for each repo's source and x86_64 trees, verifies
+them against repomd's sha256, caches them in `.cache/repodata/`).
+
+### Nix attrs (legacyPackages.x86_64-linux)
+
+- `lock`, `rpmsLock` — the parsed lockfiles.
+- `sources.<srpm>` — the SRPM as a FOD (`lib/fetch-srpm.nix`).
+- `officialRpms.<name>` / `officialRpms."<name>.<arch>"` — official binary
+  RPM as a FOD (`lib/fetch-rpm.nix`), for verification comparisons only.
+- `fetchSrpm name`, `fetchRpm "<name>.<arch>"` — the underlying functions.
+
+Store names map `^`/`~` (legal in RPM file names) to `_`.
+
+### BuildRequires resolution
+
+`nix run .#resolve-buildrequires -- <srpm> [--format md|json|text]
+[--recursive]` emulates mock rocky-10: transaction 1 installs the
+`chroot_setup_cmd` list (Rocky's comps has no buildsys-build group), and
+transaction 2 installs the SRPM's BuildRequires, both with
+`install_weak_deps=0`. It matched real dnf5 exactly for 110 of 110 sampled
+SRPMs; see `docs/research/glibc-buildroot-closure.md`.
 
 ## Build model
 

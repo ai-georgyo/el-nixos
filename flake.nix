@@ -11,10 +11,26 @@
       system = "x86_64-linux";
       bootPkgs = nixpkgs.legacyPackages.${system};
       rocky = import ./default.nix { inherit bootPkgs; };
+
+      # `nix run .#<tool> -- args`; run from the repository root (the tools
+      # read/write ./lock). The whole tools/ dir is copied so scripts can load
+      # their siblings.
+      pyApp = script: description: {
+        type = "app";
+        program = "${bootPkgs.writeShellScript script ''
+          exec ${bootPkgs.python3}/bin/python3 -I ${./tools}/${script}.py "$@"
+        ''}";
+        meta = { inherit description; };
+      };
     in
     {
       legacyPackages.${system} = rocky;
       packages.${system} = { };
       checks.${system} = { };
+
+      apps.${system} = {
+        update-lock = pyApp "update-lock" "Regenerate lock/rocky-<rel>/ from Rocky repodata";
+        resolve-buildrequires = pyApp "resolve-buildrequires" "Resolve an SRPM's BuildRequires to a mock-like buildroot closure";
+      };
     };
 }
