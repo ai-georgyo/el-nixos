@@ -12,7 +12,7 @@
 #  pass = 2  the real stage0 compiler, installed as an FHS tree ($out/usr/...):
 #            native x86_64-redhat-linux, multilib, C/C++/LTO, target
 #            libraries (libgcc_s, libstdc++, libgomp, ...) compiled against the
-#            stage0 glibc through --with-build-sysroot, so `gcc` inside the
+#            stage0 glibc (built in a namespace where it is /usr), so `gcc` inside the
 #            chroot behaves exactly like a distro compiler: headers from
 #            /usr/include, crt files and libc from /usr/lib64, PT_INTERP
 #            /lib64/ld-linux-x86-64.so.2, no RUNPATH.

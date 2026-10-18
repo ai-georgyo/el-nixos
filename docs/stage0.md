@@ -98,13 +98,29 @@ turn needs a 32+64-bit libc before the full gcc:
    --with-arch_32=x86-64 --with-tune=generic --enable-cet
    --with-linker-hash-style=gnu --enable-gnu-indirect-function
    --enable-host-pie --enable-host-bind-now --with-gcc-major-version-only …`),
-   `--prefix=/usr`, `--with-sysroot=/ --with-build-sysroot=<stage0 sysroot>`,
-   `--with-native-system-header-dir=/usr/include`. Target libraries (libgcc_s,
-   libstdc++, libgomp, libatomic, libquadmath, libitm) are compiled against the
-   stage0 glibc, have no RUNPATH and no store references (checked at build
-   time). Layout tweaks from gcc.spec: `libgcc_s.so` linker scripts, `cc`,
-   `/usr/lib/cpp`, LTO plugin in `/usr/lib/bfd-plugins`, fixincludes-edited
-   headers removed.
+   `--prefix=/usr`, **no sysroot** (like Rocky: `gcc -print-sysroot` is empty).
+   A native gcc build compiles *and runs* target test programs (libstdc++ /
+   libgomp configure), whose `PT_INTERP` is `/lib64/ld-linux-x86-64.so.2` — so
+   configure/make/install run through `fhsRun`, a bwrap namespace whose `/usr`
+   is the stage0 sysroot (glibc + kernel headers) with `/lib64`, `/lib`
+   symlinks: the gcc build sees a genuine FHS system; the nixpkgs host compiler
+   only uses store paths and is unaffected. (A first attempt with
+   `--with-build-sysroot` failed exactly there: "cannot run C compiled
+   programs".) Target libraries (libgcc_s, libstdc++, libgomp, libatomic,
+   libquadmath, libitm) are compiled against the stage0 glibc, have no RUNPATH,
+   their debug info is stripped (it names build paths; Rocky moves it to
+   gcc-debuginfo) and the build fails if any target object mentions
+   `/nix/store`. Layout tweaks from gcc.spec: `libgcc_s.so` linker scripts,
+   `cc`, `/usr/lib/cpp`, LTO plugin in `/usr/lib/bfd-plugins`,
+   fixincludes-edited headers removed, libssp deleted (done in root.nix),
+   libcc1 (host-side gdb plugin) not built.
+   `gcc --version` → `gcc (GCC) 14.3.1 20251022 (Red Hat 14.3.1-4)`, same
+   string as Rocky's gcc.
+
+   The stage0 glibc's debug info is stripped for the same reason (crt files,
+   libc_nonshared.a and libc.a are linked into every program), and its
+   installed scripts get FHS interpreters (`BASH_SHELL=/usr/bin/bash`,
+   `PERL=/usr/bin/perl`); the build fails on any `/nix/store` string.
 5. **kernel headers** — parameter `kernelHeaders` of `bootstrap/` (FHS tree
    with `usr/include`); default: nixpkgs `linuxHeaders` (plain
    `headers_install`, checked free of store references).
@@ -252,10 +268,17 @@ b. redhat-rpm-config + the srpm-macros packages it `Requires` (resolved from
    binary repodata): efi-srpm-macros, fonts-srpm-macros, forge-srpm-macros,
    go-srpm-macros, kernel-srpm-macros, lua-srpm-macros, ocaml-srpm-macros,
    openblas-srpm-macros, package-notes-srpm-macros, perl-srpm-macros,
-   pyproject-srpm-macros, python-srpm-macros, qt6-srpm-macros; pass A in
-   `buildrootRelease` → `buildrootFullA`; pass B (final, `srpm.*`) in
-   `buildrootFullA` → **`buildrootFull`**. `tests.macros` checks the
-   `rpm --eval` results and compiles with them.
+   pyproject-srpm-macros, python-srpm-macros, qt6-srpm-macros.
+   Pass A runs in **waves**, each installed before the next, because the macro
+   packages use each other's macros at build time: `[redhat-rpm-config]`
+   (provides `%rpmmacrodir`) → `[python-rpm-macros]` (redhat-rpm-config's
+   `%__os_install_post` expands `%{__os_install_post_python}` from
+   python-srpm-macros; only this one build gets it as `%{nil}`) →
+   `[forge-srpm-macros]` (`%forgemeta`, used by fonts/go) → `[the rest]`
+   ⇒ `buildrootFullA`. Pass B (final, `srpm.*`) rebuilds all of them in
+   `buildrootFullA` and installs them on top of `buildrootRelease` ⇒
+   **`buildrootFull`**. `tests.macros` checks the `rpm --eval` results and
+   compiles with them.
 c. `srpm.which`: arch-dependent C package with the full Rocky flags and
    debuginfo generation; `tests.whichRpms` inspects the RPMs.
 d. `rpms.which` (and every other `rpms.*`): `rpmTree` with
@@ -276,11 +299,103 @@ d. `rpms.which` (and every other `rpms.*`): `rpmTree` with
 | `%el_nixos_stage 0` | macros.stage0 | marker |
 | `--nodeps` for rpmbuild, `--nodeps --noscripts` for installs | lib/default.nix | nixpkgs tools are not in the rpmdb |
 | macro packages: `--nocheck` for forge-srpm-macros, pyproject-rpm-macros, python-rpm-macros | bootstrap/default.nix | their `%check` needs pytest/pyyaml/… |
+| pass A: `__os_install_post_python=%{nil}` for python-rpm-macros only | bootstrap/default.nix | chicken-and-egg with redhat-rpm-config; pass B builds it normally |
+| gcc built through `fhsRun` (sysroot mounted at `/usr`) | gcc.nix | target-library configure must run target programs |
+| libssp removed while assembling the root (not in gcc.nix) | root.nix | gcc.spec removes it; done there to avoid a 40-min gcc rebuild — move into gcc.nix on its next rebuild |
+| stage0 glibc/gcc target objects: debug info stripped | glibc.nix, gcc.nix | their DWARF names build-time store paths and would be linked into every program |
 | go-rpm-macros built with `--target noarch` | bootstrap/default.nix | `%ifarch golang_arches` builds the bundled golist with golang; for a non-go arch the spec ships just go-srpm-macros, whose content (written by `%writevars` in `%prep`) is identical |
 | rust-srpm-macros not installed | bootstrap/default.nix | comes from the 270 MB rust SRPM; nothing on the glibc path needs it |
 | no `%vendor`/`%packager` | buildSrpm | Rocky's build system sets them; we do not claim Rocky's identity (overridable) |
 | buildhost `el-nixos.localdomain`, buildtime = changelog date | buildSrpm | reproducibility |
 
-## Results
+## Results (real builds on nixbuild.net, nixpkgs 26f4107, 2026-10-18)
 
-(see below; filled from real builds)
+`flake.lock` was added, pinning nixpkgs (nixos-26.05) to the revision all of
+this was built with (`26f4107e47e3ad0ffd0db220469ba83b6f6d96e8`).
+
+| attr | store path | size | build time | CPUs |
+|---|---|---|---|---|
+| `binutils` | `/nix/store/n9knrf5xwmnihh4xvi2avglg6gnp2zj8-stage0-binutils-2.41-63.el10` | 138M | 1 min | 2 |
+| `gccPass1` | `/nix/store/4jcl31bw9kz46ljzz2n0waixpsw9p4yq-stage0-gcc-pass1-14.3.1-4.4.el10` | 140M | 13 min | 2 |
+| `glibc` | `/nix/store/0ysxpa6yig258a7hcg8x0a5vwdfphwd0-stage0-glibc-2.39-142.el10_2` | 61M | 6 min (11 min on 2 CPUs) | 4 |
+| `gcc` | `/nix/store/bxz0gx446vl8b1m106bqibngg88sv22c-stage0-gcc-14.3.1-4.4.el10` | 270M | buildPhase 6 min (nixbuild gave the retry more CPUs; the failed 2-CPU attempt ran 14 min) | ? |
+| `rpm` | `/nix/store/iaky4rzwlnsqgpzpqb3a739d8lbwf3qg-stage0-rpm-4.19.1.1-23.el10` | 15M | < 1 min | 2–4 |
+| `debugedit` | `/nix/store/4gjq83smqp95wnmvspny1fxwchxznj5q-stage0-debugedit-5.1-8.el10` | 428K | 11 s | 2 |
+| `kernelHeaders` | `/nix/store/hqy1zz8hllm324188b816g8bnji0ksyp-stage0-kernel-headers-6.18.7` | 9.3M | 3 s | 2 |
+| `buildroot` (base layer) | `/nix/store/c8cqyahsj7nixh93bpxbjalf326vnrd2-stage0-root` | 479M | seconds | |
+| `buildrootRelease` (layer) | `/nix/store/njpm5gab1l36r9yn5x9ispfy2svbad96-buildroot-stage0-release` | 1.2M | seconds | |
+| `buildrootFullA` (layer) | `/nix/store/2d4d34g8gknd6g19bsibacw04rjbdk8c-buildroot-stage0-full-a-3` | 672K | seconds | |
+| `buildrootFull` (layer) | `/nix/store/9ycgffhsrl70hqrd9hnb7r5w961y486j-buildroot-stage0-full` | 1.1M | seconds | |
+| `srpm.rocky-release` | `/nix/store/y57lqghn7qrpakcj3x35kdyspdrwl4vj-srpm-rocky-release-10.2-1.2.el10` | 312K | ~5 s | |
+| `srpm.redhat-rpm-config` | `/nix/store/0f5y1pr267ir74afzj9sxw49779qi28k-srpm-redhat-rpm-config-295-1.el10.rocky.0.2` | 256K | ~5 s | |
+| `srpm.which` | `/nix/store/mc75ikyzqf55mrrfzw9bhzvknl7bfkp6-srpm-which-2.21-44.el10_0` | 328K | < 1 min | |
+| `rpms.which` | `/nix/store/pf4b8p0zvxbzss2xzrnsravh7gjd8bcb-rpm-which` | 112K | seconds | |
+| `tests.toolchain` | `/nix/store/xsyjclzr0b76ibxhvqr9zs4bfy4arwxj-stage0-test-toolchain` | | | |
+| `tests.macros` | `/nix/store/9in24v7m4f1bq4x8lv72r9kwd0qzilg8-stage0-test-macros` | | | |
+| `tests.whichRpms` | `/nix/store/nvngnm6iy15cnzblig2mwh1pjj3va5xd-stage0-test-which-rpms` | | | |
+
+Every SRPM build output is a few hundred KB and references nothing
+(`allowedReferences = [ ]`); buildroot layers above the base are ~1 MB each.
+
+**Toolchain acceptance (`tests.toolchain`, also in stage0-full)** — all pass:
+`gcc -dumpmachine` = `x86_64-redhat-linux`; include search list
+`/usr/lib/gcc/x86_64-redhat-linux/14/include, /usr/local/include,
+…/include-fixed, /usr/include` (C++: `/usr/include/c++/14` first); every
+`-print-file-name=` answer under `/usr`; C, C++, shared library, `-m32`,
+`-static` and `-flto` programs build **and run**; PT_INTERP
+`/lib64/ld-linux-x86-64.so.2` (`/lib/ld-linux.so.2` for `-m32`), no
+RPATH/RUNPATH, no `/nix/store` string even in unstripped `-g` binaries;
+`/lib64/ld-linux-x86-64.so.2 --list` resolves libstdc++/libc from `/lib64`;
+`-fcf-protection` binaries carry IBT+SHSTK.
+
+**stage0-full `rpm --eval` (`tests.macros`)** — `%dist .el10`, `%rhel 10`,
+`%el10 1`, `%_target_platform x86_64-redhat-linux-gnu`, and
+
+```
+%optflags = -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall
+  -Wno-complain-wrong-lang -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3
+  -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong
+  -m64 -march=x86-64-v3 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection
+  -fcf-protection -mtls-dialect=gnu2 ...
+%build_ldflags = -Wl,-z,relro -Wl,--as-needed -Wl,-z,pack-relative-relocs -Wl,-z,now
+  -specs=/usr/lib/rpm/redhat/redhat-hardened-ld -specs=/usr/lib/rpm/redhat/redhat-hardened-ld-errors
+  -Wl,--build-id=sha1
+```
+
+i.e. Rocky 10's flags minus `-specs=/usr/lib/rpm/redhat/redhat-annobin-cc1`
+(stage0 hack). A test program built with them is PIE, BIND_NOW, IBT+SHSTK,
+"x86 ISA needed: x86-64-v3", no RUNPATH. Package notes are active inside
+rpmbuild (`%_package_note_flags` is only defined there).
+
+**`which` (`srpm.which`, `tests.whichRpms`)** vs the official
+`which-2.21-44.el10_0.x86_64.rpm`: identical Requires (incl.
+`GLIBC_ABI_DT_RELR`, max `GLIBC_2.34`), Provides and file list (only the
+`.build-id` link name differs); `/usr/bin/which` has the same section list
+(incl. `.gnu_debugdata` minidebuginfo and `.relr.dyn`), same dynamic flags
+(`NOW PIE`), same GNU property note and the same
+`FDO_PACKAGING_METADATA {"type":"rpm","name":"which","version":"2.21-44.el10_0",
+"architecture":"x86_64","osCpe":""}` note. which-debuginfo/-debugsource are
+produced (find-debuginfo + dwz + gdb-add-index). No `/nix/store` string in any
+payload, debuginfo included. `rpms.which` (rpmTree, `allowedReferences = [ ]`)
+builds; so do all 19 `rpms.*`.
+
+**Macro packages vs official RPMs**: redhat-rpm-config (42 files) and
+python-srpm-macros (8 files) are **byte-identical** to Rocky's (same Requires,
+Provides, file list, file digests and modes).
+
+## Known gaps / next steps
+
+* rust-srpm-macros (from the rust SRPM) is not installed in stage0-full.
+* Annobin: build Rocky's annobin SRPM in stage0 against the stage0 gcc's plugin
+  headers, then drop `%_annobin_gcc_plugin %{nil}`.
+* The glibc SRPM additionally BuildRequires gd/libpng/zlib, libselinux,
+  audit-libs, libcap, systemtap-sdt-devel, gdb, python3-devel,
+  libstdc++-static, glibc-static, libidn2, texinfo: those must be built from
+  their SRPMs with `buildStage0` and installed with `mkBuildroot` (or switched
+  off with bconds) before the glibc build itself.
+* Kernel headers: swap in Rocky's kernel-headers via `kernelHeaders`.
+* `mkBuildroot` cannot represent deletions of lower-layer files (fails
+  loudly); later stages installing with scriptlets may need a "flatten" mode.
+* Later stages: `rpm --root` installs with `installFlags = [ ]` (deps +
+  scriptlets) and no `--store`; chown to non-root owners recorded in RPMs will
+  hit EINVAL in the single-uid namespace and needs handling there.

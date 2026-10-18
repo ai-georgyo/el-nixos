@@ -18,9 +18,10 @@ for f in /inputs/build/RPMS/*/*.rpm; do
   d=x-$n; mkdir -p $d
   rpm2cpio "$f" | (cd $d && cpio -idm --quiet --no-absolute-filenames)
   case $n in
-    *-debuginfo|*-debugsource) echo "(debug package: payload store-path scan informational only)"
-      grep -rl /nix/store $d | head || true ;;
-    *) check "$n: payload has no /nix/store strings" '! grep -rIl /nix/store $d && ! grep -rl /nix/store $d' ;;
+    *-debuginfo|*-debugsource)
+      check "$n: payload has no /nix/store strings (debug info included)" '! grep -rl /nix/store $d'
+      continue ;;   # separated .debug files are not runnable ELFs
+    *) check "$n: payload has no /nix/store strings" '! grep -rl /nix/store $d' ;;
   esac
   while IFS= read -r -d '' e; do
     if head -c4 "$e" | grep -q ELF; then

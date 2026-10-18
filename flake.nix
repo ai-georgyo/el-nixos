@@ -15,6 +15,7 @@
     {
       legacyPackages.${system} = rocky;
       packages.${system} = { };
-      checks.${system} = { };
+      # stage0 acceptance tests (docs/stage0.md)
+      checks.${system} = rocky.stage0.tests;
     };
 }

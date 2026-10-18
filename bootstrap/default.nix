@@ -16,7 +16,7 @@ let
   binutils = import ./binutils.nix { inherit pkgs; srpm = srpm "binutils"; };
   gccPass1 = import ./gcc.nix { inherit pkgs binutils; srpm = srpm "gcc"; pass = 1; };
   glibc = import ./glibc.nix { inherit pkgs binutils gccPass1; srpm = srpm "glibc"; kernelHeaders = kh; };
-  # libc + kernel headers laid out as a root, for gcc's --with-build-sysroot
+  # libc + kernel headers laid out as a root; mounted as /usr while building gcc (fhsRun)
   sysroot = pkgs.runCommand "stage0-sysroot" { } ''
     mkdir -p $out/usr
     cp -a ${glibc}/usr/. $out/usr/
@@ -83,13 +83,36 @@ let
     qt6 = { names = [ "qt6-srpm-macros" ]; };
     # rust-srpm-macros comes from the 270 MB rust SRPM: not in stage0 (docs/stage0.md)
   };
-  buildMacros = br: lib.mapAttrs (n: v: buildSrpm ({
+  buildMacrosIn = br: set: lib.mapAttrs (n: v: buildSrpm ({
     srpm = n; buildroot = br; rpmbuildArgs = v.args or [ ];
-  } // lib.optionalAttrs (v ? target) { inherit (v) target; })) macroSrpms;
+  } // lib.optionalAttrs (v ? target) { inherit (v) target; })) set;
+  buildMacros = br: buildMacrosIn br macroSrpms;
   macroRpms = builds: lib.mapAttrsToList (n: v: { from = builds.${n}; inherit (v) names; }) macroSrpms;
 
-  macrosA = buildMacros buildrootRelease;
-  buildrootFullA = mkBuildroot { name = "stage0-full-a"; base = buildrootRelease; rpms = macroRpms macrosA; };
+  # Pass A in waves: the macro packages use each other's macros at build time
+  # (%rpmmacrodir from redhat-rpm-config, %forgemeta from forge-srpm-macros).
+  # redhat-rpm-config's %__os_install_post uses %{__os_install_post_python}
+  # (python-srpm-macros), so python-rpm-macros' own pass-A build gets it as
+  # %{nil} -- the only time it is ever missing.
+  wavesA = [ [ "redhat-rpm-config" ] [ "python-rpm-macros" ] [ "forge-srpm-macros" ]
+    (lib.subtractLists [ "redhat-rpm-config" "python-rpm-macros" "forge-srpm-macros" ] (builtins.attrNames macroSrpms)) ];
+  definesA = { python-rpm-macros = { __os_install_post_python = "%{nil}"; }; };
+  passA = lib.foldl' (acc: wave:
+    let
+      sub = lib.getAttrs wave macroSrpms;
+      builds = lib.mapAttrs (n: b: if definesA ? ${n} then buildSrpm ({
+        srpm = n; buildroot = acc.br; rpmbuildArgs = sub.${n}.args or [ ]; defines = definesA.${n};
+      }) else b) (buildMacrosIn acc.br sub);
+    in {
+      builds = acc.builds // builds;
+      br = mkBuildroot {
+        name = "stage0-full-a-${toString (builtins.length (builtins.attrNames acc.builds))}";
+        base = acc.br;
+        rpms = lib.mapAttrsToList (n: v: { from = builds.${n}; inherit (v) names; }) sub;
+      };
+    }) { builds = { }; br = buildrootRelease; } wavesA;
+  macrosA = passA.builds;
+  buildrootFullA = passA.br;
   macros = buildMacros buildrootFullA;
   buildrootFull = mkBuildroot { name = "stage0-full"; base = buildrootRelease; rpms = macroRpms macros; };
 
