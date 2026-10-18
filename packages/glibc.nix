@@ -1,7 +1,7 @@
 # glibc-2.39-142.el10_2: the Rocky glibc SRPM rebuilt with `rpmbuild --rebuild`
 # in a stage0 buildroot.  See docs/glibc.md.
 #
-#   build      buildSrpm result ($out/RPMS/{x86_64,noarch}, SRPMS, logs)
+#   build      buildSrpm result ($out/RPMS/{x86_64,noarch}, SRPMS; build.logs)
 #   rpms       <binary rpm name> -> rpmTree (allowedReferences = [ ]) for every
 #              subpackage Rocky ships (from rpmsLock.bySrpm.glibc) plus the
 #              three the spec builds but Rocky does not ship
@@ -89,14 +89,42 @@ let
   official = pkgs.linkFarm "glibc-official-rpms"
     (map (n: { name = "${n}.rpm"; path = officialRpms.${n}; }) compareNames);
 
+  # ABI cross-check with GNU binutils (tools/abi-compare.py; independent of
+  # rpm-parity's ELF reader): for all 221 shipped subpackages, our payload
+  # tree vs the official payload -- dynamic symbols with versions, version
+  # definitions/needs and dynamic tags of every ELF DSO/executable, member
+  # order and external symbols of every static archive / crt object, and
+  # every header byte for byte.  No allowlist: everything must match.
+  abiTool = lib.fileset.toSource { root = ../tools; fileset = ../tools/abi-compare.py; };
+  abiPairs = pkgs.writeText "glibc-abi-pairs" (lib.concatMapStrings (p:
+    "${p.name} ${rpms.${p.name}} ${officialRpms."${p.name}.${p.arch}"}\n") shipped);
+  abi = pkgs.runCommand "glibc-abi-${e.version}-${e.release}"
+    { nativeBuildInputs = [ pkgs.python3 pkgs.binutils-unwrapped pkgs.cpio ]; } ''
+      set -euo pipefail
+      args=()
+      while read -r name tree rpm; do
+        mkdir -p $TMPDIR/off/$name
+        (cd $TMPDIR/off/$name && RPM_CONFIGDIR=${stage0.rpm}/usr/lib/rpm ${stage0.rpm}/usr/bin/rpm2cpio $rpm \
+          | cpio -idm --quiet --no-absolute-filenames)
+        args+=(--pair $name $tree $TMPDIR/off/$name)
+      done < ${abiPairs}
+      python3 -I ${abiTool}/abi-compare.py "''${args[@]}" --out $out
+    '';
+
+  runtime = import ./glibc-runtime {
+    inherit pkgs stage0 officialRpms build;
+    kernelHeadersBuild = if kernelHeadersRpm != null && kernelHeadersRpm ? from then kernelHeadersRpm.from
+      else stage0.kernelHeadersBuild;
+  };
+
   sanity = runInBuildroot {
     name = "glibc-sanity-${e.version}-${e.release}";
     inherit buildroot;
-    binds = { "/inputs/build" = build; "/inputs/expected" = expected; "/inputs/official" = official; };
+    binds = { "/inputs/build" = build; "/inputs/logs" = build.logs; "/inputs/expected" = expected; "/inputs/official" = official; };
     script = builtins.readFile ./glibc-sanity.sh;
   };
 in
 {
-  inherit build rpms trees sanity buildroot root expected;
+  inherit build rpms trees sanity abi runtime buildroot root expected;
   subpackages = map (p: p.name) all;
 }
