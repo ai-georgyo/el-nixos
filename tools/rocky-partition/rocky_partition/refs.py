@@ -142,6 +142,12 @@ class Refs:
                 rep.info("pc-expanded", "%s/%s: prefix-derived pkg-config variables written out in full" % (y, rel),
                          output=y, file=rel)
                 data, dirty = nd, True
+        if kind == "text" and y != out and rel.endswith(".cmake"):
+            nd = self._cmake_expand(data)
+            if nd != data:
+                rep.info("cmake-expanded", "%s/%s: ${_IMPORT_PREFIX} (the absolute prefix) written out in full" % (y, rel),
+                         output=y, file=rel)
+                data, dirty = nd, True
         full = S.prefix_refs(data, self.rx)
         edits = []
         file_subs = ctx.subs_of(y, rel)
@@ -168,6 +174,8 @@ class Refs:
                 ack = output_rel_match(y, rel, plan.prefixRelativeOk) or (anc and rel_match(anc, plan.unionDirs))
                 if not ack and kind == "text" and rel.endswith(".pc") and self._unused_pc_var(data, start):
                     ack = "pkg-config variable defined as %s and not used in the file" % ("the prefix" if not anc else anc)
+                if not ack and kind == "text" and rel.endswith(".cmake") and self._unused_cmake_prefix(data, start):
+                    ack = "CMake export file: _IMPORT_PREFIX defined as the prefix, every use written out in full"
                 if not ack and doc:
                     ack = "documentation"
                 if y == out or in_rpath or y == ctx.debug_output:
@@ -383,6 +391,30 @@ class Refs:
             use = derived if m else alias
             out.append(self.PC_REF.sub(lambda r: expand(r.group(1)) if r.group(1) in use else r.group(0), ln))
         return b"\n".join(out)
+
+    def _cmake_set_re(self):
+        return re.compile(rb'set\(_IMPORT_PREFIX "' + re.escape(self.ctx.Pb) + rb'/?"\)')
+
+    def _cmake_expand(self, data):
+        """CMake export file (<Pkg>Targets.cmake, written by install(EXPORT))
+        of a non-prefix output: CMake writes `set(_IMPORT_PREFIX "<P>")` when
+        the install dirs are absolute and then names every file as
+        ${_IMPORT_PREFIX}/<rel>; the files themselves were split across
+        outputs (headers in -devel, libraries in -libs).  Writing the uses out
+        in full makes each one a literal reference the usual rules classify
+        and rewrite ($dev/include for the -devel export file, as for .pc
+        files, R2); the definition is then unused."""
+        if not self._cmake_set_re().search(data):
+            return data
+        return data.replace(b"${_IMPORT_PREFIX}", self.ctx.Pb)
+
+    def _unused_cmake_prefix(self, data, start):
+        """the reference is the `set(_IMPORT_PREFIX "<P>")` definition and no
+        ${_IMPORT_PREFIX} use is left"""
+        a = data.rfind(b"\n", 0, start) + 1
+        b = data.find(b"\n", start)
+        line = data[a:b if b >= 0 else len(data)]
+        return bool(self._cmake_set_re().search(line)) and b"${_IMPORT_PREFIX}" not in data
 
     def _unused_pc_var(self, data, start):
         """the reference is `name=<prefix>` in a pkg-config file and neither

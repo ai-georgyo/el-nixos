@@ -29,6 +29,7 @@ CODES = {
     "dangling": "reference to a path that exists in no output",
     "union-self": "text reference to a directory several outputs fill rewritten to the referrer's own part",
     "pc-expanded": "prefix-derived pkg-config variables of a non-prefix output written out in full",
+    "cmake-expanded": "${_IMPORT_PREFIX} uses of a CMake export file of a non-prefix output written out in full",
     "not-required": "text reference into an output the referrer does not Require (kept as $out/rel)",
     "foreign-store-path": "store path neither an own output nor allowed",
     "fhs-shebang": "#! interpreter in FHS form (patchShebangs, lateBind or fhsAllowlist must cover it)",

@@ -6,11 +6,19 @@
 #   mkRpmPackage stage { srpm, overrides ? <packages/<srpm>/default.nix> }
 #
 # `stage` is a mkStage fixpoint (lib/rocky/stage.nix); this file reads
-#   stage.name stage.stdenv stage.ccFor stage.baseTools stage.fhsBins
-#   stage.rpm stage.rpmBin stage.rpmLibDir stage.rpmConfig stage.toolShim
-#   stage.patchelf stage.python3 stage.bsdtar stage.libcFor stage.systemLibDirsFor
-#   stage.exceptions stage.resolveBuildDeps stage.fhsPath stage.overridesFor
-#   stage.purity
+#   name stdenv ccFor baseTools fhsBins rpmBin rpmLibDir rpmConfig toolShim
+#   patchelf runtimeLibcFor libcDevFor systemLibDirsFor exceptionsFor
+#   resolveBuildDeps fhsPath overridesFor purity (and purityChecker through it)
+#
+# Runtime vs build-only inputs: what an output may reference is its siblings,
+# the stage libc (runtimeLibcFor), Rocky-built host inputs (passthru
+# rockyRequisites, transitively) and stage.exceptionsFor srpm; that list is
+# both outputChecks.<o>.allowedRequisites and the partition plan's
+# allowedStorePaths, and its lib dirs are the plan's inputLibDirs.  Every
+# other input (nixpkgs/stage0 tools, hoisted stage0 trees) is build-only.
+# The view (/usr and the $out alias) holds host inputs + the libc's dev
+# only: tools are PATH-only, so no library is reachable through the view
+# without also being a cc-wrapper input (E2 library hazard).
 #
 # The derivation (all §11.1 items; the experiments' corrections applied):
 #   outputs       names.outputsFor (out first, sorted, debug, logs)
@@ -124,7 +132,21 @@ let
   };
 
   # ---- rpmbuild arguments ----------------------------------------------------
-  defineArgs = lib.concatLists (lib.mapAttrsToList (k: v: [ "--define" "${k} ${toString v}" ]) ov.defines);
+  # layout (§2.7): compile a directory macro as another output's path
+  # (`{ _datadir = "common"; }` -> --define "_datadir <$common>/share"); the
+  # partitioner maps header paths below any output
+  layoutRel = {
+    _bindir = "bin"; _sbindir = "sbin"; _libdir = "lib64"; _libexecdir = "libexec";
+    _datadir = "share"; _includedir = "include"; _infodir = "share/info";
+    _mandir = "share/man"; _docdir = "share/doc"; _defaultdocdir = "share/doc";
+    _datarootdir = "share"; _localedir = "share/locale";
+  };
+  layoutArgs = lib.concatLists (lib.mapAttrsToList (m: o:
+    if layoutRel ? ${m} then [ "--define" "${m} ${builtins.placeholder o}/${layoutRel.${m}}" ]
+    else throw "mkRpmPackage ${srpm}: layout.${m}: no standard directory known for this macro (lib/rocky/mk-rpm-package.nix layoutRel)")
+    ov.layout);
+  defineArgs = lib.concatLists (lib.mapAttrsToList (k: v: [ "--define" "${k} ${toString v}" ]) ov.defines)
+    ++ layoutArgs;
   bcondArgs = lib.concatMap (w: [ "--with" w ]) ov.bconds."with"
     ++ lib.concatMap (w: [ "--without" w ]) ov.bconds.without;
   substitutions = map (s: { inherit (s) from to count; }) ov.specSubstitutions;

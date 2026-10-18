@@ -194,7 +194,7 @@ samples), `runpath` (changes), `stubs`, `piecedRefs`, `nestedRefs`,
 | `late-referrer-missing` | error | an output reaches a lateBind output but is not in `lateReferrers` | add it |
 | `late-elf-ref` | error | ELF content in L* references a late output (outside RUNPATH) | — |
 | `replay-remap-incomplete` | warning | the replayed tree's prefix survives (e.g. in a compressed ELF section) | — |
-| info codes | info | `union-self`, `pc-expanded`, `integrity-file`, `integrity-rehashed`, `prefix-relative-out`, `nested-ref`, `pieced`, `runpath-changed`, `shared-file`, `setid-dropped`, `hardlink-split`, `build-id-dropped`, `other-absolute`, `fhs-shebang`, `fhs-literal`, `merge-unneeded`, `late-referrer-unused` | |
+| info codes | info | `union-self`, `pc-expanded`, `cmake-expanded`, `integrity-file`, `integrity-rehashed`, `prefix-relative-out`, `nested-ref`, `pieced`, `runpath-changed`, `shared-file`, `setid-dropped`, `hardlink-split`, `build-id-dropped`, `other-absolute`, `fhs-shebang`, `fhs-literal`, `merge-unneeded`, `late-referrer-unused` | |
 
 ## Reference classification (design §2.5, as implemented)
 
@@ -229,6 +229,11 @@ no anchor = dangling.
   (`Cflags: -I${prefix}/include`); the literal paths then follow the rules
   above (`$dev/lib64`, `$dev/include`), and the prefix variables are unused.
   `Libs: -L${libdir}` lines keep their variables.
+* CMake export files of a non-prefix output (`cmake-expanded`, `*.cmake`
+  holding `set(_IMPORT_PREFIX "<P>")`, as install(EXPORT) writes it for
+  absolute install dirs): every `${_IMPORT_PREFIX}` is written out as P, so
+  `${_IMPORT_PREFIX}/include` becomes a literal path the rules above rewrite
+  (`$dev/include`); the now unused definition is acked.
 * files below `share/doc`, `share/man`, `share/info`, `share/gtk-doc`,
   `share/help`: references are classified and recorded (edges) but never
   errors (prose mentions install dirs).

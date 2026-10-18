@@ -27,6 +27,10 @@
 #   * --enable-new-dtags (Rocky's ld defaults to DT_RPATH [NF-S2]) so the
 #     wrapper's -rpath entries become DT_RUNPATH;
 #   * self rpath $out/lib64 instead of $out/lib (lib64-rpath.sh, setup hook);
+#   * ld-wrapper-hook ld-rpath-devel.sh: when a -rpath dir the wrapper added
+#     holds libfoo.so as a link into another store path (Rocky's -devel
+#     output -> -libs output), that target dir is added too, so ordinary
+#     consumers of a split package (buildInputs = [ xz.dev ]) run (WP6);
 #   * dynamic-linker <out>/lib64/ld-linux-x86-64.so.2, -m32: <out>/lib/ld-linux.so.2;
 #     cc-wrapper-hook m32-libc.sh: -m32 takes crt files and libc.so from <libc>/lib
 #     (gcc never maps a -B dir to ../lib by itself);
@@ -165,6 +169,7 @@ let
           touch $out/nix-support/ld-set-dynamic-linker
           echo --enable-new-dtags >> $out/nix-support/libc-ldflags-before
           cat ${./lib64-rpath.sh} >> $out/nix-support/setup-hook
+          cat ${./ld-rpath-devel.sh} >> $out/nix-support/ld-wrapper-hook
           ${noPurity}
         '';
       };
