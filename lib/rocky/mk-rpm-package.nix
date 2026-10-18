@@ -314,12 +314,13 @@ let
       rc=$?
       set -e
       mkdir -p $logs
-      sed -E 's|/nix/store/[a-z0-9]{32}-|/nix/store/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-|g' \
-        $NIX_BUILD_TOP/build.log > $logs/build.log
+      # every store hash (also without /nix/store/: prep-hooks prints patch
+      # basenames) -> eeee..., so logs references nothing; rpm-tmp names fixed
+      norm() { sed -E -e 's/[0-9a-df-np-sv-z]{32}-/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-/g' -e 's/rpm-tmp\.[A-Za-z0-9]+/rpm-tmp.XXXXXX/g' "$@"; }
+      norm $NIX_BUILD_TOP/build.log > $logs/build.log
       for f in rocky-report.json view-collisions.txt plan.json; do
         if [ -f $NIX_BUILD_TOP/$f ]; then
-          sed -E 's|/nix/store/[a-z0-9]{32}-|/nix/store/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-|g' \
-            $NIX_BUILD_TOP/$f > $logs/$f
+          norm $NIX_BUILD_TOP/$f > $logs/$f
         fi
       done
       if [ $rc -ne 0 ]; then echo "mkRpmPackage: rocky-partition failed ($rc)" >&2; exit $rc; fi

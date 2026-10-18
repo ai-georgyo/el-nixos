@@ -220,4 +220,31 @@ integration owner of `lib/rocky/**`, `tools/rocky-partition/**`,
 
 ## Open
 
-OPEN_PLACEHOLDER
+* **glibc in S1 (WP7)**: see the results table. `packages/glibc/default.nix`
+  (WP7's draft) lacks the replay-proven entries of
+  `tools/rocky-partition/tests/glibc-overrides.nix` (danglingOk `libx32`,
+  `lib/gconv`, `lib/libmemusage.so`; prefixRelativeOk + opaqueRefs
+  `benchtests`, `sysroot_x86_64_el10_glibc`); WP7 owns that file.
+* **S1 after glibc¹**: `nn.stages.s1Glibc1` evaluates but was not built;
+  flipping `glibc1` needs glibc¹ verified (M1).
+* **The rest of the design's S1 list** (macro packages built from SRPMs, gmp,
+  mpfr, libmpc, isl, zstd, binutils¹, gcc¹ with no-sys-dirs): not added;
+  each needs fallback entries (lz4-devel, dejagnu, jansson-devel, …) or
+  overrides. The rpm config still uses stage0's macro RPM trees.
+* **kernel-headers** is an interim hoisted copy of stage0's Rocky
+  kernel-headers RPM (`passthru.interim = true`), not mkRpmPackage (WP8).
+* **FHS shebangs** `#!/usr/bin/sh` (brp-mangle-shebangs of `/bin/sh`) stay in
+  S1 outputs as `fhs-shebang` warnings (gzip 12, xz 4); `/usr/bin/sh` is not
+  in the runtime-FHS set, and on NixOS it does not exist. patchShebangs binds
+  them once a Rocky bash is a runtime input (S2/S3), or `fhsAllowlist`.
+* zlib-ng: `ZLIB-release.cmake` (compat_devel) names `$out/lib64/libz.a`
+  (compat_static) — `not-required` warning; the static CMake target of the
+  compat package does not resolve unless compat_static is installed next to
+  it (same as with RPMs that are not installed together).
+* `-devel` propagation is intra-SRPM only; cross-SRPM `-devel` Requires
+  (glibc-devel → kernel-headers) need a lock file of Requires (§5.6).
+* Phase E's NEEDED guard skips `noPatchelf` files; view-leak detection in DWARF
+  is directory-granular (handoff open items, unchanged).
+* No `nix build --rebuild` reproducibility run of the S1 packages.
+* The partitioner's hook writer ignores the unions table's provider/yieldsTo.
+
