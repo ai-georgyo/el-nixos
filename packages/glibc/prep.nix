@@ -5,6 +5,10 @@
 # point where mkRpmPackage's prep hook applies them (%__spec_prep_post, in
 # %{_builddir}/%{buildsubdir}).  Used by checks.nn-glibc-prep.
 #
+# $out is only report.txt, which is the same on every build (`nix build
+# --rebuild`); rpm's own log (random rpm-tmp.* names, stdout/stderr
+# interleaving) stays in /builddir and is shown only on failure.
+#
 #   keepTree = true: also copy the prepped, *unpatched* source tree to
 #   $out/tree (for rebasing the patches; ~250 MB, never used by a check).
 { bootPkgs, lib, stage0, patches, keepTree ? false }:
@@ -28,9 +32,9 @@ stage0.lib.runInBuildroot {
     echo "=== rpmbuild -rp ${baseNameOf srpm.name}"
     rpmbuild -rp /inputs/glibc.src.rpm --nodeps --target x86_64 \
       --define "_topdir $top" --define "dist ${stage0.lib.distOf "glibc"}" \
-      --define "_annotated_build 0" > /builddir/out/prep.log 2>&1 \
-      || { tail -n 60 /builddir/out/prep.log; exit 1; }
-    tail -n 3 /builddir/out/prep.log
+      --define "_annotated_build 0" > /builddir/prep.log 2>&1 \
+      || { tail -n 60 /builddir/prep.log; exit 1; }
+    tail -n 3 /builddir/prep.log
     src=$top/BUILD/glibc-${e.version}   # %{glibcsrcdir}
     cd "$src"
     test -f elf/rtld.c

@@ -3,9 +3,9 @@
 # reference graph Nix registered for the nixpkgs-faithful S5 split
 # (docs/research/nix-native/experiments/E4.md); the partitioner verifies it
 # (an incomplete list is a build error), so it is static and checked.
-#   common: langpacks whose LC_CTYPE is a symlink to common's C.utf8/LC_CTYPE
-#           (identical files grouped by the spec); the other langpacks ship
-#           their own LC_CTYPE and do not reference common
+#   common: langpacks with LC_* symlinks to common's C.utf8 (identical files
+#           grouped by the spec; mostly LC_CTYPE, also LC_NUMERIC and LC_NAME);
+#           the other langpacks ship their own files and do not reference common
 #   nss_db: nss_devel (libnss_db.so -> nss_db's libnss_db.so.2)
 #   utils, benchtests: nothing references them
 {

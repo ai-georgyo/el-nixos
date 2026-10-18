@@ -37,12 +37,21 @@ in
     # shell identifier: mkRpmPackage must pass it on rpmbuild's command line
     # (`env 'user-defined-trusted-dirs=...' rpmbuild`), never in the
     # derivation's structured `env` (stdenv's setup.sh `declare -x` aborts on
-    # it).  Fallback with the same effect: a configparms line (E5).
+    # it).  overrides.nix should assert that every non-identifier key here
+    # takes that route.  Fallback with the same effect, verified in E5 part 3
+    # (configparms in the source dir, where the prep hook runs; it wins over
+    # the environment): drop this entry and use
+    #   prepScript = ''
+    #     echo 'user-defined-trusted-dirs=<same value>' > configparms
+    #   '';
     "user-defined-trusted-dirs" =
       "${stage.libgccForGlibc}/lib64:${stage.libgccForGlibc}/lib";
   };
-  # S1: kernel headers and the stage0 -devel deps (gd, png, z, selinux, audit,
-  # cap, sdt.h) hoisted to store layout
+  # kernel headers and the -devel deps (gd, png, z, selinux, audit, cap,
+  # sdt.h) in store layout, in every stage.  S1: stage.glibcBuildDeps = the
+  # stage0 ones, hoisted.  What S3a's stage provides here (gd, libpng and
+  # libselinux are not Rocky-built before S3d, and S3 inputs must be S2/S3
+  # builds, §7.3) is mkStage's decision (WP6/WP11), not this file's.
   inputs.add = [ stage.pkgs.kernel-headers stage.glibcBuildDeps ];
   # --with-headers=%{_prefix}/include: resolved by the prefixView alias (E2);
   # only if E2 says otherwise:
@@ -84,7 +93,14 @@ in
     "x86_64-redhat-linux/sys-root/**"
   ];
   # S1: memusagestat (utils) and makedb (nss_db) NEED libs that are not
-  # Rocky-built yet (stage0 glibcBuildDeps); bound in S3 (lateBind)
+  # Rocky-built yet (stage0 glibcBuildDeps); bound in S3 (lateBind).
+  # S3 has neither this list nor fhsAllowlist on purpose: the raw utils,
+  # nss_db, common and benchtests outputs still carry these NEEDED and the
+  # FHS shebangs there, and are accepted because the output is in lateBind
+  # with that library (§2.6 step 4) or interpreter (assumed to be the same
+  # rule).  The soname <-> lateBind library mapping and the shebang side of
+  # the rule belong to WP6/WP11 (rocky-partition, lateBind); if they decide
+  # otherwise, these two conditions must cover S3's raw late outputs too.
   allowUnresolvedNeeded = lib.optionals (stage.name == "s1")
     [ "libgd.so.3" "libpng16.so.16" "libz.so.1" "libselinux.so.1" ];
   # active from S3; S1 allowlists the FHS shebangs instead (fhsAllowlist)
