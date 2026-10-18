@@ -158,7 +158,7 @@ let
     rockyRpmbuildArgs = defineArgs ++ bcondArgs;
     rockyRpmbuildEnv = lib.mapAttrs (_: toString) cmdEnv;
     rockySubstitutions = substitutions;
-    rockyNixPatches = map toString ov.nixPatches;
+    rockyNixPatches = map (p: "${p}") ov.nixPatches;   # "${}": paths copied with context
     rockyPrepScript = ov.prepScript;
     rockyConfigSite = lib.concatStringsSep " " configSites;
     rockyMacroDirs = macroDirs;
@@ -243,7 +243,11 @@ let
       rpmArgs+=("''${rockyRpmbuildArgs[@]}")
       # env names that are not shell identifiers (make variables): command line only
       envArgs=(-u SOURCE_DATE_EPOCH)
-      [ -z "$rockyFhsPath" ] || envArgs+=(PATH=/usr/bin)
+      # fhsPath: tools by their /usr/bin names, and the shell environment of a
+      # mock chroot (SHELL=/bin/bash, no CONFIG_SHELL): stdenv exports
+      # CONFIG_SHELL=<nixpkgs bash>, which autoconf writes into every
+      # `#! @SHELL@` script (gzip's z*, xz's xz*grep: Rocky has #!/usr/bin/sh)
+      [ -z "$rockyFhsPath" ] || envArgs+=(-u CONFIG_SHELL PATH=/usr/bin SHELL=/bin/bash)
       for k in "''${!rockyRpmbuildEnv[@]}"; do envArgs+=("$k=''${rockyRpmbuildEnv[$k]}"); done
       if [ -n "$rockyPrefixView" ]; then
         export ROCKY_PREFIX_VIEW=1
@@ -296,6 +300,27 @@ let
         fi
       done
       if [ $rc -ne 0 ]; then echo "mkRpmPackage: rocky-partition failed ($rc)" >&2; exit $rc; fi
+      # §5.6: a -devel output propagates the sibling outputs its subpackage
+      # Requires (unique provider, from the transient headers: the report's
+      # outputRequires), as nixpkgs' dev propagates lib: `buildInputs = [ xz.dev ]`
+      # then links and runs against xz.lib
+      python3 -I - "$NIX_ATTRS_JSON_FILE" "$out/nix-support/rocky-report.json" <<'EOF'
+      import json, os, sys
+      attrs = json.load(open(sys.argv[1]))
+      outs = attrs["outputs"]
+      rep = json.load(open(sys.argv[2]))
+      subs = attrs["rockyPlan"]["subpackages"]
+      devel = sorted({o for n, o in subs.items() if n.endswith("-devel")})
+      for o in devel:
+          req = [x for x in rep.get("outputRequires", {}).get(o, []) if x in outs and x not in (o, "debug", "logs")]
+          if not req:
+              continue
+          d = os.path.join(outs[o], "nix-support")
+          os.makedirs(d, exist_ok=True)
+          with open(os.path.join(d, "propagated-build-inputs"), "a") as f:
+              f.write("".join(" " + outs[x] for x in sorted(req)))
+          print("propagated-build-inputs: %s -> %s" % (o, " ".join(sorted(req))))
+      EOF
       # the moving/propagating hooks of nixpkgs' multiple-outputs.sh and
       # move-docs.sh would undo the partition (they run in fixupPhase)
       preFixupHooks=($(for h in "''${preFixupHooks[@]}"; do
