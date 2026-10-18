@@ -6,16 +6,30 @@
 #     `stage.allowedBuildDrvs` (a set keyed by drvPath) or is a lock FOD
 #     (fixed-output, hash of an SRPM in lock/rocky-<rel>/srpms.json);
 #   * every plain source (path value, or `path` context entry) lies under
-#     lib/rocky/allowed-sources.nix (+ `stage.extraAllowedSources`).
+#     lib/rocky/allowed-sources.nix (+ `stage.extraAllowedSources`);
+#   * no `.drv` file is in the context: a `drv.drvPath` string (context
+#     `allOutputs`) makes Nix build and expose the derivation's *whole build
+#     closure* (every .drv below it, all outputs), and an opaque .drv path
+#     (unsafeDiscardOutputDependency) exposes the .drv closure; neither is
+#     ever needed by a stage build, so both are violations even for allowed
+#     derivations.
 # The stage's stdenv, cc-wrapper and bintools-wrapper are not "allowed" by
 # name: they are built from nixpkgs sources around stage tools, so they are
 # *transparent* -- the check descends into their drvAttrs and applies the same
 # rules there (that is how a nixpkgs expand-response-params, runtimeShell,
 # coreutils or gnugrep inside a wrapper is found).  Transparent are the stage's
 # stdenv, stdenvNoCC, stdenv.cc, stdenv.cc.bintools and `stage.transparent`
-# (results memoised per drvPath), plus any derivation that looks like a
-# nixpkgs stdenv or wrapper (at most 2 such levels deep, not memoised: that
-# only happens on the way to an error).
+# (results memoised per drvPath; descended into even when also listed in
+# allowedBuildDrvs, e.g. S3a reusing the S2 wrapper), plus any derivation that
+# looks like a nixpkgs stdenv or wrapper (at most 2 such levels deep, not
+# memoised: that only happens on the way to an error).
+#
+# Sources are identified by store path, not by origin: a plain copy of a file
+# or directory under an allowed root (`"${./x}"`, `"${repo}/..."`) is
+# recognised, but a filtered or renamed copy (builtins.path with filter/name,
+# lib.fileset.toSource, lib.cleanSource) is a new store path that cannot be
+# traced back without IFD; list it in `stage.extraAllowedSources` (the
+# store-path string, e.g. `[ "${src}" ]`).
 #
 # Pure evaluation: builtins.getContext over drvAttrs; nothing is built, no IFD.
 #
@@ -23,8 +37,10 @@
 #   name, buildPure (check is a no-op unless true), allowedBuildDrvs,
 #   stdenv, stdenvNoCC, transparent (list of drvs), extraAllowedSources
 #   (paths or store-path strings), allowLockFods (default true),
-#   purityIgnoreAttrs (default: disallowedReferences/disallowedRequisites --
-#   things the build is checked *against*, at any depth incl. outputChecks),
+#   purityIgnoreAttrs (attribute names skipped at any depth, default none;
+#   note stdenv.mkDerivation already strips the context of
+#   (dis)allowedReferences/Requisites and outputChecks, while a raw
+#   builtins.derivation realises it, so it must be checked there),
 #   fetch (default: lib/sources.nix of the lock), purityChecker (see below).
 #
 # Sharing the memo: `forStage stage` builds the per-stage memo.  mkStage should
@@ -114,7 +130,7 @@ let
       stageName = stage.name or "?";
       allowed = stage.allowedBuildDrvs or { };
       allowLockFods = stage.allowLockFods or true;
-      ignored = stage.purityIgnoreAttrs or [ "disallowedReferences" "disallowedRequisites" ];
+      ignored = stage.purityIgnoreAttrs or [ ];
       extras = stage.extraAllowedSources or [ ];
       rootStrings = map toString (defaultRoots ++ extras);
       extraIndex = mkSourceIndex extras;
@@ -136,20 +152,28 @@ let
         let ctx = getContext s; in
         lib.concatMap (k:
           let c = ctx.${k}; in
-          if isDrvKey k || c ? outputs || c ? allOutputs then
-            if allowed ? ${k} then [ ]
-            else if memo ? ${k} then enter chain (drvName k) memo.${k}
+          if c ? allOutputs then vio "drv-closure" k chain
+          else if c ? outputs then
+            if memo ? ${k} then enter chain (drvName k) memo.${k}
+            else if allowed ? ${k} then [ ]
             else if allowLockFods && lockFodDrvs ? ${k} then [ ]
             else vio "derivation" k chain
+          else if isDrvKey k then vio "drv-file" k chain
           else if sourceOk k then [ ]
           else vio "source" k chain)
           (attrNames ctx);
 
       drvViolations = budget: chain: v:
-        let p = drvPathOf v; in
-        if p == null then [ ]
-        else if allowed ? ${p} then [ ]
+        let
+          ctx = getContext v.outPath;
+          ks = attrNames ctx;
+          p = head ks;
+        in
+        if ks == [ ] then [ ]
+        # not one derivation output (a hand-made "derivation"): check every entry
+        else if length ks > 1 || !(ctx.${p} ? outputs) then ctxViolations "${chain}.outPath" v.outPath
         else if memo ? ${p} then enter chain (drvName p) memo.${p}
+        else if allowed ? ${p} then [ ]
         else if allowLockFods && isLockFod v then [ ]
         else if budget > 0 && looksTransparent v then
           enter chain (drvName p) (walkAttrs (budget - 1) "" v.drvAttrs)
@@ -182,6 +206,9 @@ let
           shown = lib.take 25 firsts;
           what = v:
             if v.kind == "derivation" then "derivation ${drvName v.key} (${v.key})"
+            else if v.kind == "drv-closure" then
+              "drvPath of ${drvName v.key} (${v.key}): exposes its whole build closure"
+            else if v.kind == "drv-file" then "derivation file ${v.key} (exposes its .drv closure)"
             else if v.kind == "source" then "source ${v.key} (not a copy of an allowed source file)"
             else "path ${v.key} (not under an allowed source root)";
           line = v: "  - ${what v}\n      via ${label x}${v.chain}"
@@ -197,9 +224,13 @@ let
 
       assertBuildPure = x: if violations x == [ ] then x else throw (report x);
 
-      # guards drvPath only (see the header: cycle hazard)
+      # guards drvPath only (see the header: cycle hazard); one shared `ok`
+      # thunk, so the walk runs once however many output drvPaths are read
       check = drv:
-        let guard = p: builtins.seq (assertBuildPure drv) p; in
+        let
+          ok = assertBuildPure drv;
+          guard = p: builtins.seq ok p;
+        in
         drv // { drvPath = guard drv.drvPath; }
         // lib.genAttrs (drv.outputs or [ ]) (o: drv.${o} // { drvPath = guard drv.${o}.drvPath; });
     in
@@ -211,8 +242,14 @@ in
   inherit drvPathOf forStage allowedSourcesFor defaultRoots;
   allowedSources = defaultRoots;
 
-  # allowedBuildDrvs from a list of derivations (multi-output: any output)
-  drvSet = drvs: listToAttrs (map (d: lib.nameValuePair (drvPathOf d) (d.name or "")) drvs);
+  # allowedBuildDrvs from a list of derivations: the drvPath of each and of
+  # each of its outputs (they differ for lateBind results, design §11.3:
+  # `raw // { <o> = bound.<o>; }`)
+  drvSet = drvs: listToAttrs (lib.concatMap (d:
+    map (x: lib.nameValuePair (drvPathOf x) (d.name or ""))
+      (lib.filter (x: isAttrs x && x ? outPath && drvPathOf x != null)
+        ([ d ] ++ map (o: d.${o} or null) (d.outputs or [ ]))))
+    drvs);
 
   violations = stage: (checkerFor stage).violations;           # [ { kind key chain } ]
   report = stage: (checkerFor stage).report;                   # "" when pure

@@ -119,8 +119,24 @@ let
     in
     builtins.deepSeq (builtins.genList (i: (wrap (pkg i)).drvPath) n) "${mode} ${toString n} ok";
 
+  # one package with n extra outputs and 2000 context strings, every output's
+  # drvPath read (as hydraJobs.rpms would): the check must walk it once
+  #   nix eval --raw .#checks.x86_64-linux.nn-purity.e6.outputsCost --apply 'f: f "check" 200'
+  outputsCost = mode: n:
+    let
+      d = full.stdenv.mkDerivation {
+        name = "e6-multi";
+        outputs = [ "out" ] ++ builtins.genList (i: "o${toString i}") n;
+        dontUnpack = true;
+        installPhase = "touch $out";
+        x = builtins.genList (i: "${tools.file}/${toString i}") 2000;
+      };
+      c = if mode == "plain" then d else purity.check (S // { purityChecker = purity.forStage S; }) d;
+    in
+    builtins.deepSeq (map (o: c.${o}.drvPath) c.outputs) "${mode} ${toString n} ok";
+
   e6 = {
-    inherit tools stdenvNoCC naive full stages scale;
+    inherit tools stdenvNoCC naive full stages scale outputsCost;
     hello = { naive = hello naive; full = hello full; };
     # as mkRpmPackage would expose them: nix build fails on `naive` with the report
     checked = { naive = purity.check stages.naive (hello naive); full = purity.check S (hello full); };
@@ -142,6 +158,17 @@ let
   bad = pkg { nativeBuildInputs = [ hello' ]; };
   badMulti = pkg { outputs = [ "out" "dev" ]; nativeBuildInputs = [ hello' ]; installPhase = "touch $out $dev"; };
   shared = S // { purityChecker = purity.forStage S; };
+  # design §11.3 lateBind shape: an output replaced by another derivation's
+  bound = restage "glibc-bound" { out = bootPkgs.glibc.out; dev = bootPkgs.glibc.dev; } { };
+  lateBound = tools.glibc // { dev = bound.dev; };
+  withLate = S // { allowedBuildDrvs = S.allowedBuildDrvs // purity.drvSet [ lateBound ]; };
+  raw = attrs: builtins.derivation ({ name = "raw"; inherit system; builder = "${tools.bash}/bin/bash"; } // attrs);
+  # filtered / renamed repo copies: new store paths, need extraAllowedSources
+  repoCopies = {
+    path = builtins.path { path = repo + "/lib/rocky"; name = "rocky-src"; };
+    fileset = lib.fileset.toSource { root = repo + "/lib/rocky"; fileset = repo + "/lib/rocky/purity.nix"; };
+    clean = lib.cleanSource (repo + "/tools");
+  };
 
   tests = {
     # E6: nixpkgs wrappers over a non-nixpkgs stdenvNoCC
@@ -158,6 +185,20 @@ let
     nixpkgs-input = only "derivation" (drvPathOf hello') ".nativeBuildInputs[0]" (V bad);
     nixpkgs-in-string = only "derivation" (drvPathOf hello') ".buildPhase" (V (pkg { buildPhase = "${hello'}/bin/hello"; }));
     nixpkgs-drvpath-string = flagged hello' (V (pkg { x = hello'.drvPath; }));
+    # a drvPath string (allOutputs) exposes the build closure even of an allowed drv
+    allowed-drvpath-string = only "drv-closure" (drvPathOf tools.coreutils) ".x" (V (pkg { x = tools.coreutils.drvPath; }));
+    allowed-drv-file = only "drv-file" (drvPathOf tools.coreutils) ".x"
+      (V (pkg { x = builtins.unsafeDiscardOutputDependency tools.coreutils.drvPath; }));
+    # seeds are descended into even when listed in allowedBuildDrvs (S3a reusing S2's wrapper)
+    allowed-seeds-descended = keys (purity.violations (stages.naive // {
+      allowedBuildDrvs = stages.naive.allowedBuildDrvs // purity.drvSet [ naive.stdenv naive.cc naive.bintools stdenvNoCC ];
+    }) (hello naive)) == keys e6.violations.naive;
+    fake-drv-multi-context = flagged hello'
+      (V (pkg { nativeBuildInputs = [ { type = "derivation"; name = "fake"; outPath = "${tools.bash}${hello'}"; } ]; }));
+    fake-drv-source = only "source" "${outside}" ".x.outPath"
+      (V (pkg { x = { type = "derivation"; name = "fake"; outPath = "${outside}"; }; }));
+    drvset-latebind = purity.violations withLate (pkg { buildInputs = [ lateBound.dev lateBound.out ]; }) == [ ]
+      && flagged bound (V (pkg { buildInputs = [ lateBound.dev ]; }));
     nixpkgs-stdenv = lib.any (v: lib.hasPrefix ".stdenv > stdenv-linux.initialPath[" v.chain)
       (V (bootPkgs.stdenv.mkDerivation { name = "t"; dontUnpack = true; installPhase = "touch $out"; }));
     stage0-drv = flagged stage0.rpm (V (pkg { nativeBuildInputs = [ stage0.rpm ]; }));
@@ -166,7 +207,11 @@ let
     lock-fod-value = V (pkg { src = fetch.fetchSrpm "which"; }) == [ ];
     lock-fod-string = V (pkg { unpackPhase = "echo ${fetch.fetchSrpm "which"}"; }) == [ ];
     lock-fods-off = flagged (fetch.fetchSrpm "which") (purity.violations (S // { allowLockFods = false; }) (pkg { src = fetch.fetchSrpm "which"; }));
-    disallowed-ignored = V (pkg { disallowedRequisites = [ hello' ]; }) == [ ];
+    # mkDerivation strips the context of these (no input); a raw derivation realises it
+    disallowed-mkderivation = V (pkg { disallowedRequisites = [ hello' ]; disallowedReferences = [ hello' ]; }) == [ ];
+    disallowed-raw = only "derivation" (drvPathOf hello') ".disallowedRequisites[0]" (V (raw { disallowedRequisites = [ hello' ]; }));
+    ignore-attrs = purity.violations (S // { purityIgnoreAttrs = [ "disallowedRequisites" ]; })
+      (raw { disallowedRequisites = [ hello' ]; }) == [ ];
     structured-attrs = # mkDerivation keeps `env` and also exports it at the top level
       let vs = V (pkg { __structuredAttrs = true; env.FOO = "${hello'}"; outputChecks.out.disallowedRequisites = [ hello' ]; });
       in flagged hello' vs && lib.elem ".env.FOO" (map (v: v.chain) vs);
@@ -180,6 +225,9 @@ let
     repo-allowed = V (pkg { x = "${repo}/tools/rpm_purity.py"; y = "${repo + "/tools/rpm_purity.py"}"; z = repo + "/lib/chroot.sh"; }) == [ ];
     tofile-flagged = keys (V (pkg { x = "${builtins.toFile "x.sh" "true"}"; })) == [ "${builtins.toFile "x.sh" "true"}" ];
     extra-source = purity.violations (S // { extraAllowedSources = [ outside ]; }) (pkg { x = outside; y = "${outside}"; }) == [ ];
+    repo-filtered-copies = lib.all (c: only "source" "${c}" ".x" (V (pkg { x = "${c}"; }))) (lib.attrValues repoCopies)
+      && purity.violations (S // { extraAllowedSources = map (c: "${c}") (lib.attrValues repoCopies); })
+        (pkg { x = map (c: "${c}") (lib.attrValues repoCopies); }) == [ ];
     # check / assertBuildPure
     assert-identity = (purity.assertBuildPure S (hello full)).drvPath == (hello full).drvPath;
     assert-throws = throws (purity.assertBuildPure S bad);
