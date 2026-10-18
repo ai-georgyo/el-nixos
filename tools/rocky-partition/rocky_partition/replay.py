@@ -2,9 +2,9 @@
 
 The partition runs against the kept build tree ($tree/BUILDROOT, $tree/RPMS,
 $tree/prefix) with OLD (the tree's compile prefix) as the prefix; at the end
-every output is remapped OLD -> NEW (same length): raw bytes, store-by-pieces
-windows of OLD, symlink targets, and whole-file compressed members
-(re-encoded). Never used for shipped outputs: the bytes are a development
+every output is remapped OLD -> NEW (same length): path names (the debug
+tree mirrors the prefix), raw bytes, store-by-pieces windows of OLD, symlink
+targets, and whole-file compressed members (re-encoded). Never used for shipped outputs: the bytes are a development
 copy ([NF-S5] did the same)."""
 import os
 
@@ -39,6 +39,14 @@ def remap_outputs(ctx):
     hs = len(os.path.dirname(ctx.replay_old)) + 1
     rep = ctx.report
     n = 0
+    # path names first: debug trees mirror the prefix (lib/debug/<P>/..., src/debug)
+    ob, nb = os.path.basename(ctx.replay_old), os.path.basename(ctx.out[ctx.prefix_output])
+    for o in ctx.managed:
+        for d, dirs, files in os.walk(ctx.out[o], topdown=False):
+            for x in files + dirs:
+                if ob in x:
+                    os.rename(os.path.join(d, x), os.path.join(d, x.replace(ob, nb)))
+                    n += 1
     for o in ctx.managed:
         root = ctx.out[o]
         for d, dirs, files in os.walk(root):

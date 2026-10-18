@@ -45,6 +45,7 @@ class Ctx:
         self.hidden = collections.defaultdict(set)     # Y -> {store path}
         self.subref = collections.Counter()            # (sub, sub) reference counts (merge report)
         self.dropped = {}                              # rel -> Entry (dropped build-id links)
+        self.integrity = None                          # integrity.Integrity (FIPS integrity files)
 
     # ------------------------------------------------------------------ setup
     def setup_outputs(self, outputs):

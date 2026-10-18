@@ -35,6 +35,7 @@ SCHEMA = {
     "lateBind": (dict, {}),
     "lateReferrers": (dict, {}),
     "noPatchelf": (list, []),
+    "integrityOk": (list, []),
     "fhsAllowlist": (dict, {}),
     "strictFhs": (bool, False),
     "allowUnresolvedNeeded": (list, []),

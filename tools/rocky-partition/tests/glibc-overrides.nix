@@ -4,6 +4,11 @@
 #   danglingOk  libx32       ldd's RTLDLIST names the x32 loader, never built
 #               lib/gconv    32-bit libc (glibc32, merged into out) names its
 #                            gconv dir; Rocky ships no 32-bit gconv modules
+#               lib/libmemusage.so
+#                            memusage loads $utils/\$LIB/libmemusage.so: the
+#                            lib64 expansion is utils', the lib one (32-bit,
+#                            glibc32, unshipped) is out's and is not found
+#                            there: no 32-bit memusage
 #   prefixRelativeOk + opaqueRefs
 #               benchtests   glibc's test support (support/support_paths.c) is
 #                            linked in: bare $out, $out/bin, $out/sbin, ... in a
@@ -24,7 +29,7 @@
     "lib/locale" = "LOCPATH";
     "share/locale" = "TEXTDOMAINDIR/profile";
   };
-  danglingOk = [ "share/zoneinfo" "libx32" "lib/gconv" ];
+  danglingOk = [ "share/zoneinfo" "libx32" "lib/gconv" "lib/libmemusage.so" ];
   prefixRelativeOk = [ "benchtests" "sysroot_x86_64_el10_glibc" ];
   opaqueRefs = [ "benchtests" "sysroot_x86_64_el10_glibc" "common:bin/locale" "common:bin/localedef" ];
   noPatchelf = [ "lib64/ld-linux-x86-64.so.2" "lib/ld-linux.so.2" "lib64/lib*.so*" "lib/lib*.so*"

@@ -11,6 +11,7 @@ and the report. Needs rpm/rpmbuild, cc, patchelf on PATH. Exit 1 if any case
 fails."""
 import gzip
 import hashlib
+import hmac
 import json
 import os
 import shutil
@@ -329,6 +330,126 @@ def t_libs_self_cycle():
     c.no_errors()
 
 
+def t_nested_stubs():
+    """compiled-in references to a directory and to a file inside it (both
+    foo-common's): one stub for the directory serves both, in either order"""
+    c = Case("nestedstubs")
+    c.sub("foo", ["foo-common"]).sub("foo-common")
+    c.text("foo-common", "share/foo/data.txt", "data\n")
+    c.text("foo-common", "share/foo/sub/more.txt", "more\n")
+    # bin/afoo is scanned first and names only the file
+    c.cc("foo", "bin/afoo", '#include <stdio.h>\nint main(void) { puts("@P@/share/foo/data.txt"); return 0; }\n')
+    c.cc("foo", "bin/foo", '#include <stdio.h>\nint main(void) { puts("@P@/share/foo/data.txt");'
+         ' puts("@P@/share/foo"); puts("@P@/share/foo/sub/more.txt"); return 0; }\n')
+    c.run({"foo": "out", "foo-common": "common"}, expect_rc=0)
+    c.no_errors()
+    eq(os.readlink(c.p("out", "share/foo")), c.p("common", "share/foo"), "directory stub")
+    eq(c.report["stubs"], {"share/foo": "common"}, "one stub")
+    eq(c.read("out", "share/foo/data.txt"), "data\n", "file served through the directory stub")
+    c.has("stub", "info", "is served by the stub")
+
+
+def t_integrity():
+    """FIPS integrity data: phase E changes RUNPATHs; a verified fipscheck
+    companion is recomputed, an unverifiable one or an embedded HMAC is an
+    error (noPatchelf / integrityOk), and the replay remap rehashes too"""
+    key = b"orboDeJITITejsirpADONivirpUkvarP"
+
+    def mac(c, rel):
+        with open(c.path(rel), "rb") as f:
+            return hmac.new(key, f.read(), hashlib.sha256).hexdigest()
+
+    c = Case("integrity")
+    c.sub("foo", ["foo-libs"]).sub("foo-libs")
+    # every library is linked with RUNPATH $P/lib64; NEEDED is libc only, so phase E drops it
+    for n in ("foo", "bad", "emb"):
+        src = 'int %s_answer(void) { return 42; }\n' % n
+        if n == "emb":
+            src += ('static const unsigned char __attribute__((section(".rodata1"), used)) mac[32] = { 1 };\n'
+                    'const unsigned char *emb_mac(void) { return mac; }\n')
+        c.cc("foo-libs", "lib64/lib%s.so.1.0" % n, src, ["-Wl,-soname,lib%s.so.1" % n], shared=True, rpath="@P@/lib64")
+        c.link("foo-libs", "lib64/lib%s.so.1" % n, "lib%s.so.1.0" % n)
+    c.text("foo-libs", "lib64/fipscheck/libfoo.so.1.0.hmac", mac(c, "lib64/libfoo.so.1.0") + "\n")
+    c.text("foo-libs", "lib64/.libfoo.so.1.hmac", mac(c, "lib64/libfoo.so.1.0") + "\n")    # names the soname link
+    c.text("foo-libs", "lib64/.libbad.so.1.0.hmac", "[global]\nformat-version = 1\n[libbad.so.1]\nhmac = 00\n")
+    c.text("foo", "bin/x", "#!/bin/sh\n")
+    m = {"foo": "out", "foo-libs": "lib"}
+
+    def valid(c):
+        for rel in ("lib64/fipscheck/libfoo.so.1.0.hmac", "lib64/.libfoo.so.1.hmac"):
+            with open(c.p("lib", "lib64/libfoo.so.1.0"), "rb") as f:
+                want = hmac.new(key, f.read(), hashlib.sha256).hexdigest()
+            eq(c.read("lib", rel).strip(), want, rel + " matches the patched library")
+
+    c.run(m, expect_rc=1)
+    c.has("integrity-runpath", "error", "lib/lib64/libbad.so.1.0: RUNPATH must change")
+    c.has("integrity-runpath", "error", "embedded integrity HMAC (section .rodata1)")
+    c.has("integrity-rehashed", "info", "lib/lib64/fipscheck/libfoo.so.1.0.hmac")
+    eq(c.runpath("lib", "lib64/libfoo.so.1.0"), None, "RUNPATH of libfoo removed")
+    eq(c.runpath("lib", "lib64/libbad.so.1.0"), c.P + "/lib64", "libbad left as linked")
+    valid(c)
+    ok = {"noPatchelf": ["lib64/libbad.so.*"], "integrityOk": ["lib:lib64/libemb.so.*"]}
+    c.run(m, ok, expect_rc=0)
+    c.no_errors()
+    c.has("integrity-runpath", "info", "acked: integrityOk")
+    eq(c.runpath("lib", "lib64/libemb.so.1.0"), None, "libemb patched (acked)")
+    valid(c)
+    c.run(m, ok, replay=True, expect_rc=0)
+    c.no_errors()
+    valid(c)
+    c.has("integrity-replay", "warning", "lib/lib64/.libbad.so.1.0.hmac")
+
+
+def t_pc_derived():
+    """meson/cmake pkg-config files (`libdir=${prefix}/lib64`) in -devel:
+    the prefix-derived variables are written out and rewritten like the
+    autotools form (R2), the unused prefix variables are acked (R3)"""
+    c = Case("pcderived")
+    c.sub("foo").sub("foo-devel", ["foo"])
+    c.cc("foo", "lib64/libfoo.so.1.0", LIB_SRC, ["-Wl,-soname,libfoo.so.1"], shared=True)
+    c.link("foo", "lib64/libfoo.so.1", "libfoo.so.1.0")
+    c.text("foo", "share/foo/data.txt", "data\n")
+    c.link("foo-devel", "lib64/libfoo.so", "libfoo.so.1")
+    c.text("foo-devel", "include/foo/foo.h", "int foo_answer(void);\n")
+    c.text("foo-devel", "share/aclocal/foo.m4", "dnl m4\n")     # share: filled by out and dev
+    c.text("foo-devel", "lib64/pkgconfig/foo.pc",              # meson
+           "prefix=@P@\nincludedir=${prefix}/include\nlibdir=${prefix}/lib64\n\n"
+           "Name: foo\nVersion: 1\nLibs: -L${libdir} -lfoo\nCflags: -I${includedir}/foo\n")
+    c.text("foo-devel", "lib64/pkgconfig/foo-extra.pc",        # cmake / hand-written
+           "prefix=@P@\nexec_prefix=${prefix}\nlibdir=${exec_prefix}/lib64\ndatadir=${prefix}/share\n"
+           "pkgdatadir=${datadir}/foo\n\nName: foo-extra\nVersion: 1\nLibs: -L${libdir} -lfoo\n"
+           "Cflags: -I${prefix}/include/foo\n")
+    c.run({"foo": "out", "foo-devel": "dev"}, expect_rc=0)
+    c.no_errors()
+    dev, P = c.p("dev"), c.P
+    eq(c.read("dev", "lib64/pkgconfig/foo.pc"),
+       "prefix=%s\nincludedir=%s/include\nlibdir=%s/lib64\n\nName: foo\nVersion: 1\nLibs: -L${libdir} -lfoo\n"
+       "Cflags: -I${includedir}/foo\n" % (P, dev, dev), "foo.pc")
+    eq(c.read("dev", "lib64/pkgconfig/foo-extra.pc"),
+       "prefix=%s\nexec_prefix=%s\nlibdir=%s/lib64\ndatadir=%s/share\npkgdatadir=%s/share/foo\n\n"
+       "Name: foo-extra\nVersion: 1\nLibs: -L${libdir} -lfoo\nCflags: -I%s/include/foo\n" % (P, P, dev, P, P, dev),
+       "foo-extra.pc")
+    c.has("pc-expanded", "info", "dev/lib64/pkgconfig/foo.pc")
+    c.has("prefix-relative", "info", "defined as share and not used")
+
+
+def t_token_split():
+    """ld.so tokens: `$P/\\$LIB/libmem.so` whose lib64 expansion is utils'
+    and lib expansion out's (glibc memusage): rewritten to $utils, and the
+    lib expansion, not found there, is a dangling error (danglingOk)"""
+    c = Case("tokensplit")
+    c.sub("foo").sub("foo-utils", ["foo"])
+    c.text("foo", "lib/libmem.so", "32\n")
+    c.text("foo-utils", "lib64/libmem.so", "64\n")
+    c.text("foo-utils", "bin/mem", "#!/bin/sh\nmemso='@P@/\\$LIB/libmem.so'\n", mode=0o755)
+    m = {"foo": "out", "foo-utils": "utils"}
+    c.run(m, expect_rc=1)
+    c.has("dangling", "error", "its expansion lib/libmem.so is out's")
+    c.run(m, {"danglingOk": ["lib/libmem.so"]}, expect_rc=0)
+    c.no_errors()
+    eq(c.read("utils", "bin/mem"), "#!/bin/sh\nmemso='%s/\\$LIB/libmem.so'\n" % c.p("utils"), "rewritten to $utils")
+
+
 def t_search_path():
     """compiled-in path into an output nobody Requires: error; a
     runtimeSearchPaths entry instead makes it dangle + setup hook"""
@@ -362,7 +483,7 @@ def t_text_cycle():
 
 def t_dangling_foreign_union():
     c = Case("dangling")
-    c.sub("foo").sub("foo-libs").sub("foo-lang")
+    c.sub("foo", post="/nix/store/%s-evil/bin/x\n" % fhash("evil")).sub("foo-libs").sub("foo-lang")
     c.text("foo", "bin/tz", "TZDIR=@P@/share/zoneinfo\nX=/nix/store/%s-evil/bin/x\n" % fhash("evil"))
     c.text("foo", "share/locale/de/LC_MESSAGES/foo.mo", "x\n")
     c.text("foo-lang", "share/locale/fr/LC_MESSAGES/foo.mo", "x\n")
@@ -372,6 +493,7 @@ def t_dangling_foreign_union():
     c.run(m, {"allowedStorePaths": []}, expect_rc=1)
     c.has("dangling", "error", "share/zoneinfo")
     c.has("foreign-store-path", "error", "out/bin/tz")
+    c.has("foreign-store-path", "error", "out/nix-support/rpm/foo.json (rpm header data)")
     c.has("union-unacked", "error", "lib/lib64/libfoo.so.1 references share/locale")
     c.run(m, {"allowedStorePaths": ["/nix/store/%s-evil" % fhash("evil")], "danglingOk": ["share/zoneinfo"],
               "unionDirs": {"share/locale": "TEXTDOMAINDIR"}}, expect_rc=0)
@@ -487,7 +609,7 @@ def t_plan_errors():
     true("unknown plan keys: noSuchKey" in c.stderr, c.stderr)
 
 
-CASES = [t_split, t_libs_self_cycle, t_search_path, t_text_cycle, t_dangling_foreign_union, t_pieced,
+CASES = [t_split, t_libs_self_cycle, t_nested_stubs, t_integrity, t_pc_derived, t_token_split, t_search_path, t_text_cycle, t_dangling_foreign_union, t_pieced,
          t_prefix_relative, t_late, t_subpackages_unclaimed, t_replay, t_layout_and_docs, t_plan_errors]
 
 

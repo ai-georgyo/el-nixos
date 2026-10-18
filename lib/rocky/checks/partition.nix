@@ -4,7 +4,9 @@
 #   nn-partition-replay    the [NF-S3] relocated glibc build tree (kept with
 #                          tools/rocky-partition/tests/trees.nix) replayed into
 #                          the real 224 outputs (223 subpackage outputs, glibc32
-#                          merged into out, + debug): 0 errors, and Nix itself
+#                          merged into out, + debug): 0 errors, nothing of the
+#                          old prefix left (contents and path names), no
+#                          dangling symlink, and Nix itself
 #                          accepts the outputs (no reference cycle)
 { bootPkgs, lib, stage0, rpmsLock, self, ... }:
 let
@@ -54,14 +56,31 @@ in
     passthru = { inherit glibcMap; tree = glibcTree; };
     buildCommand = ''
       python3 -I ${tool}/rocky-partition --plan "$NIX_ATTRS_JSON_FILE" --replay ${glibcTree}/buildtree
-      python3 -I - "$out/nix-support/rocky-report.json" <<'EOF'
-      import json, sys
+      python3 -I - "$out/nix-support/rocky-report.json" "$NIX_ATTRS_JSON_FILE" ${glibcTree}/buildtree/prefix <<'EOF'
+      import json, os, sys
       r = json.load(open(sys.argv[1]))
+      outs = json.load(open(sys.argv[2]))["outputs"]
+      old = os.path.basename(open(sys.argv[3]).read().strip())
       s = r["summary"]
-      print("replay: %d outputs, %d subpackages, %d errors, %d warnings, cycles %s, replay leftovers %d"
+      # the remap covers path names too (the debug tree mirrors the prefix), so
+      # no name keeps the old prefix and no symlink (debug build-id links) dangles
+      names, dangling = [], []
+      for p in outs.values():
+          for d, dirs, files in os.walk(p):
+              for x in dirs + files:
+                  q = os.path.join(d, x)
+                  if old in x:
+                      names.append(q)
+                  if os.path.islink(q) and not os.path.exists(q):
+                      dangling.append(q)
+      print("replay: %d outputs, %d subpackages, %d errors, %d warnings, cycles %s, replay leftovers %d,"
+            " old-prefix names %d, dangling links %d"
             % (len(r["outputs"]), len(r["subpackages"]), s["errors"], s["warnings"], r["graph"]["sccs"],
-               len(r["replay"]["leftovers"])))
+               len(r["replay"]["leftovers"]), len(names), len(dangling)))
+      for q in (names + dangling)[:20]:
+          print("  " + q)
       assert len(r["outputs"]) == 224 and s["errors"] == 0 and not r["graph"]["sccs"], s
+      assert not names and not dangling and not r["replay"]["leftovers"]
       EOF
     '';
   };

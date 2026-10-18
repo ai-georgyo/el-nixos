@@ -5,7 +5,8 @@
 BUILDROOT into one Nix output per subpackage, fixes symlinks, rewrites text
 references, recomputes RUNPATH, creates forwarding stubs, registers hidden
 references, checks the output graph and writes metadata. ELF contents are
-never rewritten (only RUNPATH, through patchelf).
+never rewritten (only RUNPATH, through patchelf; FIPS integrity files of
+patched libraries are recomputed or the patch is refused, see Phase E below).
 
 ## Invocation
 
@@ -26,7 +27,7 @@ binary of the plan, `patchelf` of the plan (only when a RUNPATH changes), and
 | option | meaning |
 |---|---|
 | `--plan FILE` | the plan (below) |
-| `--replay TREE` | take `buildroot`, `rpmsDir` and the compile prefix from a kept build tree (`TREE/BUILDROOT`, `TREE/RPMS`, `TREE/prefix`); files are copied, never moved; at the end every output is remapped OLD -> NEW (same length: raw bytes, store-by-pieces windows, symlink targets, whole-file gzip/xz/bzip2/zstd members re-encoded). Development only (design §11.4) |
+| `--replay TREE` | take `buildroot`, `rpmsDir` and the compile prefix from a kept build tree (`TREE/BUILDROOT`, `TREE/RPMS`, `TREE/prefix`); files are copied, never moved; at the end every output is remapped OLD -> NEW (same length: path names (the debug tree mirrors the prefix: `lib/debug/<P>/...`), raw bytes, store-by-pieces windows, symlink targets, whole-file gzip/xz/bzip2/zstd members re-encoded; verified fipscheck `.hmac` files are recomputed afterwards). Development only (design §11.4): embedded integrity HMACs do not survive it (`integrity-replay`) |
 | `--remap OLD=NEW` | with `--replay`: OLD must be the tree's prefix, NEW the path of `prefixOutput` (default: exactly that) |
 | `--report FILE` | also write the report here (e.g. `$NIX_BUILD_TOP`, survives a failed build with `--keep-failed`) |
 | `--no-fail` | exit 0 even with errors (experiments; `failOnError = false` in the plan does the same) |
@@ -61,7 +62,7 @@ Unknown keys are an error (exit 2); every key but `subpackages` has a default.
 * **rel pattern** (`danglingOk`, `noPatchelf`, keys of `runtimeSearchPaths`,
   `unionDirs`, `searchPaths`, `forward.deny`): matches `rel` if equal, if
   `rel` lies below it, or by `fnmatch` (`*` also matches `/`, so `a/**` works).
-* **output pattern** (`opaqueRefs`, `prefixRelativeOk`): `"<output>"` or
+* **output pattern** (`opaqueRefs`, `prefixRelativeOk`, `integrityOk`): `"<output>"` or
   `"<output>:<rel glob>"`, both fnmatch (`"langpack_*"`, `"common:bin/locale*"`).
 * **@name@** in `systemLibDirs`, `inputLibDirs`, `allowedStorePaths`: replaced
   by the path of output `name` (`"@out@/lib64"`).
@@ -93,13 +94,14 @@ Unknown keys are an error (exit 2); every key but `subpackages` has a default.
 | `runtimeSearchPaths` | {rel pattern: VAR} | `{}` | D, F, I | a compiled-in default that dangles: references at/below rel are allowed to dangle (no stub, no error) and every output that has rel gets a setup hook for VAR (dir: `addToSearchPath VAR $o/rel`; file: `export VAR=${VAR:-$o/rel}`). Also acks union references |
 | `searchPaths` | {rel: VAR} | `{}` | I | extra setup-hook entries (generic table, `lib/rocky/unions.nix`) |
 | `unionDirs` | {rel pattern: reason} | `{}` | D | acks references to a directory several outputs fill (design case 3); the reason names the mechanism (search path, profile) |
-| `danglingOk` | [rel pattern] | `[]` | C, D | references / symlink targets allowed to exist nowhere (`share/zoneinfo`) |
+| `danglingOk` | [rel pattern] | `[]` | C, D | references / symlink targets allowed to exist nowhere (`share/zoneinfo`); also an ld.so token expansion not found in the output the reference points into (`lib/libmemusage.so`, see the classification below) |
 | `opaqueRefs` | [output pattern] | `[]` | G | acks store-by-pieces references to P in a non-prefix output (a behaviour test is expected). The reference is registered in `hidden-references` with or without ack |
 | `prefixRelativeOk` | [output pattern] | `[]` | D | acks references from a non-prefix output to the bare P, to a top-level dir several outputs fill (`$P/bin`), to a union, or to a path that exists nowhere, in matching files (test support, a cross sysroot, a copied build tree like krb5-tests, `*-config` scripts). Not in design §8.1: requested for `overrides.nix` |
 | `forward` | {deny: [rel pattern]} | `{}` | F | rels for which no forwarding stub may be created |
 | `lateBind` | {output: {interpreters: [name], libs: [srpm], sonames: [glob]}} | `{}` | E, H | outputs bound later (design §2.9, §11.3). `interpreters`: FHS shebangs of these basenames are expected (info); `libs`/`sonames`: unresolved DT_NEEDED of the output are left to the bind step (all of them if `sonames` is absent) |
 | `lateReferrers` | {late output: [output pattern]} | `{}` | H | the static L* list of the bind derivation: every sibling that reaches a late output (except debug/unmanaged) must match, else `late-referrer-missing` |
-| `noPatchelf` | [rel pattern] | `[]` | E | ELF files whose RUNPATH is never touched (ld.so, libc, a sysroot) |
+| `noPatchelf` | [rel pattern] | `[]` | E | ELF files whose RUNPATH is never touched (ld.so, libc, a sysroot; FIPS modules whose RUNPATH is set at link time) |
+| `integrityOk` | [output pattern] | `[]` | E | acks `integrity-runpath`: patch the RUNPATH of a matching file although its integrity data cannot follow (an embedded HMAC, an unverifiable companion), because the data is regenerated later or the self-check is known unused |
 | `fhsAllowlist` | {string: reason} | `{}` | D | allowed FHS shebangs (`"#!/usr/bin/bash"` or `"/usr/bin/bash"`) |
 | `strictFhs` | bool | `false` | D | FHS literals (`/usr/...`, `/bin/...` in text and loaded ELF sections) become errors |
 | `allowUnresolvedNeeded` | [soname glob] | `[]` | E | DT_NEEDED allowed to resolve nowhere (bootstrap stages) |
@@ -140,7 +142,7 @@ The complete glibc entries (design §11.5 plus what the replay found) are in
 
 | file | in | content |
 |---|---|---|
-| `nix-support/rpm/<subpkg>.json` | the subpackage's output | name/EVR/arch, files (header path with P written as `/usr`, rel, flags `cdmnsglra`, mode, type, user, group, caps, digest, linkto, size, setid, ghost, config), requires/provides/conflicts/obsoletes/recommends/suggests/supplements/enhances, scriptlets (body + prog), triggers, file triggers, sibling Requires |
+| `nix-support/rpm/<subpkg>.json` | the subpackage's output | name/EVR/arch, files (header path with P written as `/usr`, rel (exact: a debug file's rel `lib/debug/<P>/...` names P), flags `cdmnsglra`, mode, type, user, group, caps, digest, linkto, size, setid, ghost, config), requires/provides/conflicts/obsoletes/recommends/suggests/supplements/enhances, scriptlets (body + prog), triggers, file triggers, sibling Requires |
 | `nix-support/rpm-name` | every managed output with subpackages | its subpackage names, one per line |
 | `nix-support/setup-hook` | outputs owning a search-path rel | appended search-path lines |
 | `nix-support/hidden-references` | outputs with pieced/nested references | store paths Nix's scanner cannot see in that output (the file makes Nix register them) |
@@ -148,8 +150,12 @@ The complete glibc entries (design §11.5 plus what the replay found) are in
 | `nix-support/rocky-late.json` | prefixOutput | L, L*, referrers, binds (if `lateBind`) |
 | `nix-support/rocky-report.json` | prefixOutput | the decision log (below); other outputs' paths written as `$name`, foreign hashes shortened, so it references nothing |
 
-Metadata never contains store paths (Nix would see edges); `/etc`, `/var`
-files are materialised as `<o>/etc/...` (defaults), `%ghost` files are not.
+Metadata writes P as `/usr` everywhere except a debug file's `rel` (the
+debug output may reference the prefix output anyway). Other store paths in
+header data (scriptlets, triggers, dependencies) are checked like file
+contents (`foreign-store-path` against `allowedStorePaths`, listed in the
+`metadataStorePaths` section). `/etc`, `/var` files are materialised as
+`<o>/etc/...` (defaults), `%ghost` files are not.
 
 ## The report
 
@@ -158,8 +164,10 @@ outputRequires, summary{errors, warnings, info, byCode}, findings[], ...sections
 Each finding: `{severity, code, message, output?, file?, ref?, owner?, ...}`.
 Sections: `materialise`, `symlinks`, `rewrites` (counts per `Y->X` +
 samples), `runpath` (changes), `stubs`, `piecedRefs`, `nestedRefs`,
-`foreignStorePaths`, `fhsLiterals`, `hiddenReferences`, `setupHooks`, `graph`
-(edges with evidence file and count, `sccs`), `merges`, `late`, `replay`.
+`foreignStorePaths`, `metadataStorePaths`, `fhsLiterals`, `hiddenReferences`,
+`setupHooks`, `integrity` (companions, unverifiable, embedded, rehashed),
+`graph` (edges with evidence file and count, `sccs`), `merges`, `late`,
+`replay`.
 
 | code | severity | when | remedy |
 |---|---|---|---|
@@ -170,12 +178,15 @@ samples), `runpath` (changes), `stubs`, `piecedRefs`, `nestedRefs`,
 | `symlink-union` | error | target owned by several outputs, none of them the link's, none uniquely Required | merge / layout |
 | `prefix-relative` | error (info if acked) | non-prefix output names bare P, or P/<top dir several outputs fill> (case 5) | `mergeOutputs` (into prefixOutput) or `prefixRelativeOk` |
 | `union-unacked` | error | reference to a union dir (case 3) | `unionDirs` / `runtimeSearchPaths` |
-| `dangling` | error (info if acked) | reference to a path that exists nowhere (case 4; view leaks) | `danglingOk` / `runtimeSearchPaths` / fix the build |
+| `dangling` | error (info if acked) | reference to a path that exists nowhere (case 4; view leaks), or an ld.so token expansion owned by another output than the one the reference points into | `danglingOk` / `runtimeSearchPaths` / fix the build / `mergeOutputs` |
 | `not-required` | warning | text reference into an output the referrer does not Require (case 6): kept as `P/rel` | — |
-| `foreign-store-path` | error | store path not allowed (case 7) | `allowedStorePaths` / fix the build |
+| `foreign-store-path` | error | store path not allowed (case 7), in a file or in the rpm header data written to `nix-support/rpm/*.json` | `allowedStorePaths` / fix the build |
 | `binary-ref` | error (info with runtimeSearchPaths) | compiled-in `P/rel` of X ≠ prefix that no stub can serve (not Required, Y == X, cycle, `forward.deny`) | `layout`, `mergeOutputs`, `runtimeSearchPaths` |
 | `stub` | info | forwarding stub `$out/rel -> $X/rel` created | — |
 | `unresolved-needed` | error (info if allowed/late) | DT_NEEDED found nowhere | `allowUnresolvedNeeded` / `lateBind` / inputs |
+| `integrity-runpath` | error (info if acked) | the RUNPATH must change, but the file carries an embedded HMAC or has a companion `.hmac` that cannot be recomputed; the file is left as linked | `noPatchelf` (RUNPATH set at link time), `integrityOk` |
+| `integrity-orphan` | warning | a companion `.hmac` whose target is in no output | — |
+| `integrity-replay` | warning | `--replay` only: the remap changed a file whose integrity data cannot be recomputed | — (development copy) |
 | `ambiguous-needed` | warning | soname in several siblings, none uniquely Required | — |
 | `pieced-unacked` | error | store-by-pieces reference in a non-prefix output | `opaqueRefs` (+ behaviour test) |
 | `cycle` | error | reference cycle between outputs (with evidence and the suggested `mergeOutputs`) | `mergeOutputs` |
@@ -183,13 +194,16 @@ samples), `runpath` (changes), `stubs`, `piecedRefs`, `nestedRefs`,
 | `late-referrer-missing` | error | an output reaches a lateBind output but is not in `lateReferrers` | add it |
 | `late-elf-ref` | error | ELF content in L* references a late output (outside RUNPATH) | — |
 | `replay-remap-incomplete` | warning | the replayed tree's prefix survives (e.g. in a compressed ELF section) | — |
-| info codes | info | `union-self`, `prefix-relative-out`, `nested-ref`, `pieced`, `runpath-changed`, `shared-file`, `setid-dropped`, `hardlink-split`, `build-id-dropped`, `other-absolute`, `fhs-shebang`, `fhs-literal`, `merge-unneeded`, `late-referrer-unused` | |
+| info codes | info | `union-self`, `pc-expanded`, `integrity-file`, `integrity-rehashed`, `prefix-relative-out`, `nested-ref`, `pieced`, `runpath-changed`, `shared-file`, `setid-dropped`, `hardlink-split`, `build-id-dropped`, `other-absolute`, `fhs-shebang`, `fhs-literal`, `merge-unneeded`, `late-referrer-unused` | |
 
 ## Reference classification (design §2.5, as implemented)
 
 For every occurrence of `P` (followed by path characters, also ld.so's
-`$LIB`/`${PLATFORM}` tokens, whose expansions `lib64`/`lib` are classified)
-in a regular file of output Y, the referenced rel is resolved to an
+`$LIB`/`${PLATFORM}` tokens, whose expansions `lib64`/`lib` are classified:
+the native `lib64` expansion decides; an expansion owned by another output
+than the one the reference ends up pointing into is a `dangling` error,
+ack `danglingOk` with that expansion, e.g. glibc's 32-bit
+`lib/libmemusage.so`) in a regular file of output Y, the referenced rel is resolved to an
 **anchor**: rel itself if an output has it, else its deepest existing
 ancestor below a non-standard directory (`share/locale/%s/...` -> `share/locale`);
 no anchor = dangling.
@@ -205,8 +219,16 @@ no anchor = dangling.
   **Text in a non-prefix output Y that owns part of a `lib64`/`lib`/`include`
   union is rewritten to `$Y/...`** (`union-self`: a `-devel` `.pc` libdir
   points at the unversioned `.so` link).
-* bare P from a non-prefix output: `prefix-relative`, except a pkg-config
-  variable defined as P that no other line uses (also via `exec_prefix=${prefix}`).
+* bare P (or a top-level dir several outputs fill) from a non-prefix output:
+  `prefix-relative`, except a pkg-config variable defined as it that no
+  other line uses (also via `exec_prefix=${prefix}`).
+* pkg-config files of a non-prefix output (`pc-expanded`): variables derived
+  from P (`libdir=${prefix}/lib64`, `exec_prefix=${prefix}`,
+  `pkgdatadir=${datadir}/foo`, as meson and cmake write them) are written
+  out in full in their definitions, and `${prefix}`-aliases in other lines
+  (`Cflags: -I${prefix}/include`); the literal paths then follow the rules
+  above (`$dev/lib64`, `$dev/include`), and the prefix variables are unused.
+  `Libs: -L${libdir}` lines keep their variables.
 * files below `share/doc`, `share/man`, `share/info`, `share/gtk-doc`,
   `share/help`: references are classified and recorded (edges) but never
   errors (prose mentions install dirs).
@@ -216,3 +238,25 @@ no anchor = dangling.
 
 Store-by-pieces windows: 8-byte windows of P holding at least 6 bytes of its
 hash, in loaded sections of ELF files, outside full occurrences.
+
+## Phase E and FIPS integrity data
+
+patchelf changes the bytes of the file, which invalidates the FIPS
+self-check data Rocky ships for some libraries:
+
+* **companion files** (fipscheck format: one hex HMAC-SHA256 line, key
+  `orboDeJITITejsirpADONivirpUkvarP`): `<dir>/fipscheck/<name>.hmac`
+  (libxcrypt) and `<dir>/.<name>.hmac` (nettle); `<name>` may be a symlink
+  (`libcrypt.so.2.hmac`). A companion that verifies against its target
+  before Phase E is **recomputed** after the target changed
+  (`integrity-rehashed`), exactly what `fipshmac` did at the end of
+  `%install`. A companion in another format (gnutls' INI file) cannot be
+  verified: patching its target is refused (`integrity-runpath`).
+* **embedded HMACs**: ELF section `.rodata1` (openssl's `fips.so`,
+  `fips-hmacify.sh`) or `.note.fdo.integrity` (libgcrypt,
+  `gen-note-integrity.sh`): patching is refused (`integrity-runpath`).
+
+A refused file keeps the RUNPATH it was linked with; the remedy is to set
+the RUNPATH at link time (`LDFLAGS=-Wl,-rpath,...`) and list the file in
+`noPatchelf`, or `integrityOk` when the data is regenerated after the
+partition or known unused.

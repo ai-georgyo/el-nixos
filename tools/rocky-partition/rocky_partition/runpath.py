@@ -104,6 +104,8 @@ class Runpath:
             old_cmp = (old or "").replace(P, out_p) if ctx.replay_old else (old or "")
             if new_s == old_cmp:
                 continue                    # unchanged (an existing DT_RPATH is left as it is)
+            if ctx.integrity is not None and ctx.integrity.hold(y, rel, path, old, new_s):
+                continue                    # FIPS integrity data would break (error reported)
             self.patch(path, new_s, old)
             changes.append([y, rel, old, new_s])
             rep.info("runpath-changed", "%s/%s: %r -> %r" % (y, rel, old, new_s), output=y, file=rel)

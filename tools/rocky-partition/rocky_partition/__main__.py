@@ -15,6 +15,7 @@ import sys
 
 from . import headers
 from .graph import check_graph, late, merges, nix_edges
+from .integrity import Integrity
 from .materialise import materialise
 from .metadata import write_hidden, write_hooks, write_metadata, write_out_files
 from .model import Ctx
@@ -60,12 +61,15 @@ def run(a):
     subs = headers.read_all(plan.rpm, plan.rpmsDir, plan.rpmConfigDir)
     ctx.load_entries(subs)
     materialise(ctx, plan.buildroot, copy=plan.copy or bool(a.replay))
+    ctx.integrity = Integrity(ctx)
+    ctx.integrity.scan()                # FIPS integrity files (phase E must keep them valid)
     refs = Refs(ctx)
     refs.scan_all()                     # phases D, G
     Runpath(ctx, refs.elves).run()      # phase E
     refs.stubs()                        # phase F
     if ctx.replay_old:
         remap_outputs(ctx)
+    ctx.integrity.finish()              # recompute integrity files of changed targets
     write_metadata(ctx)                 # phase I
     write_hidden(ctx)
     write_hooks(ctx)

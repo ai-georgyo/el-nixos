@@ -13,17 +13,46 @@ import os
 import stat
 
 from . import headers as H
+from . import scan as S
+
+
+def _usr(obj, prefix, key=None):
+    """the compile prefix -> /usr (the rpm namespace) in every string except
+    "rel" (the path inside the output: a debug file's rel mirrors the prefix,
+    lib/debug/<P>/..., and must stay exact)"""
+    if isinstance(obj, str):
+        return obj if key == "rel" else obj.replace(prefix, "/usr")
+    if isinstance(obj, list):
+        return [_usr(x, prefix, key) for x in obj]
+    if isinstance(obj, dict):
+        return {k: _usr(v, prefix, k) for k, v in obj.items()}
+    return obj
 
 
 def _dump(path, doc, prefix=None):
-    """JSON; the compile prefix is written as /usr (the rpm namespace), so
-    metadata never references an output (Nix would see an edge)"""
+    """JSON; the compile prefix is written as /usr, so metadata references
+    no output (Nix would see an edge) except through a debug file's rel"""
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    text = json.dumps(doc, indent=1, sort_keys=True) + "\n"
-    if prefix:
-        text = text.replace(prefix, "/usr")
+    text = json.dumps(_usr(doc, prefix) if prefix else doc, indent=1, sort_keys=True) + "\n"
     with open(path, "w") as f:
         f.write(text)
+    return text
+
+
+def _check_store_paths(ctx, o, name, text):
+    """store paths in header data (scriptlets, triggers, dependencies) are
+    references of the output too: the foreign-store-path rule of phase D"""
+    own = {ctx.hash_of(p) for p in ctx.out.values()} | {ctx.hash_of(ctx.P)}
+    found = []
+    for m in S.store_re(sorted({ctx.store_dir, "/nix/store"})).finditer(text.encode()):
+        h = m.group(1).decode()
+        if h in own:
+            continue
+        found.append(h)
+        if ctx.allowed is not None and h not in ctx.allowed:
+            ctx.report.error("foreign-store-path", "%s/nix-support/rpm/%s (rpm header data) references %s, not an"
+                             " allowed store path" % (o, name, m.group(0).decode()), output=o, file="nix-support/rpm/" + name)
+    return found
 
 
 def write_metadata(ctx):
@@ -31,13 +60,18 @@ def write_metadata(ctx):
     for e in ctx.entries:
         by_sub[e.sub].append(e)
     names = collections.defaultdict(set)
+    foreign = collections.defaultdict(list)
+    # replay: a debug rel names the tree's prefix, renamed by the remap
+    old_rel, new_rel = ctx.P.lstrip("/"), ctx.out[ctx.prefix_output].lstrip("/")
+    if old_rel == new_rel:
+        old_rel = None
     for s, o in ctx.sub_output.items():
         names[o].add(s)
         rec = ctx.subs[s]
         files = []
         for e in by_sub[s]:
             files.append({
-                "path": e.hpath, "rel": e.rel, "namespace": e.ns,
+                "path": e.hpath, "rel": e.rel.replace(old_rel, new_rel) if old_rel else e.rel, "namespace": e.ns,
                 "flags": H.fflags(e.flags), "mode": "%o" % e.mode,
                 "type": e.kind, "user": e.user, "group": e.group, "caps": e.caps or None,
                 "digest": e.digest or None, "linkto": e.linkto or None, "size": e.size,
@@ -51,7 +85,11 @@ def write_metadata(ctx):
         doc["output"] = o
         doc["files"] = files
         doc["siblingRequires"] = sorted(ctx.sub_requires.get(s, ()))
-        _dump(os.path.join(ctx.out[o], "nix-support", "rpm", s + ".json"), doc, ctx.P)
+        text = _dump(os.path.join(ctx.out[o], "nix-support", "rpm", s + ".json"), doc, ctx.P)
+        for h in _check_store_paths(ctx, o, s + ".json", text):
+            foreign[h[:8] + "..."].append("%s:nix-support/rpm/%s.json" % (o, s))
+    if foreign:
+        ctx.report.section("metadataStorePaths", {h: sorted(set(v))[:10] for h, v in sorted(foreign.items())})
     for o in ctx.managed:
         d = os.path.join(ctx.out[o], "nix-support")
         os.makedirs(d, exist_ok=True)

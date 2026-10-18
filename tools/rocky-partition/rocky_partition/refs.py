@@ -35,6 +35,7 @@ class Refs:
         self.hash_start = len(os.path.dirname(ctx.P)) + 1
         self.own = {ctx.hash_of(ctx.P)} | {ctx.hash_of(p) for p in ctx.out.values()}
         self.pending = []                       # binary refs for phase F
+        self.split = []                         # ld.so token expansions of the last classify() owned elsewhere
         self.elves = {}                         # (output, rel) -> Elf (dynamic, for phase E)
         self.rewrites = collections.Counter()   # (Y, X) -> n
         self.rewrite_samples = []
@@ -47,12 +48,19 @@ class Refs:
     def classify(self, y, rel):
         """-> (case, owner(s), anchor); case: out | other | union | shared-self | dangling | bare
         (bare: the prefix itself, or a standard top-level dir several outputs fill)"""
+        self.split = []
         if rel is not None and S.TOKEN_RE.search(rel):
             # ld.so dynamic string tokens: classify the expansions ($LIB -> lib64 first)
-            res = [self._classify(y, norm_rel(S.TOKEN_RE.sub(v, rel)))
-                   for v in ("lib64", "lib")] if "LIB" in rel else [self._classify(y, norm_rel(S.TOKEN_RE.sub("x86_64", rel)))]
+            exp = [norm_rel(S.TOKEN_RE.sub(v, rel)) for v in ("lib64", "lib")] if "LIB" in rel \
+                else [norm_rel(S.TOKEN_RE.sub("x86_64", rel))]
+            res = [self._classify(y, e) for e in exp]
             first = res[0]
             if all(r[:2] == first[:2] or r[0] == "dangling" for r in res[1:]):
+                return first
+            if first[0] in ("out", "other", "shared-self"):
+                # the native expansion decides; the others are not found under
+                # its owner (scan_file reports them as dangling)
+                self.split = [(e, r) for e, r in zip(exp[1:], res[1:]) if r[:2] != first[:2] and r[0] != "dangling"]
                 return first
             return "union", set().union(*[r[1] if isinstance(r[1], set) else {r[1]} for r in res if r[1]]), first[2]
         return self._classify(y, rel)
@@ -104,7 +112,16 @@ class Refs:
         ef = E.parse(data) if kind == "elf" else None
         if ef is not None and ef.dynamic and ef.needed and ef.etype in (E.ET_EXEC, E.ET_DYN):
             self.elves[(y, rel)] = ef
+        if ef is not None and ctx.integrity is not None:
+            ctx.integrity.note_elf(y, rel, path, ef)
         spans = ef.rpath_spans if ef is not None else []
+        dirty = False
+        if kind == "text" and y != out and rel.endswith(".pc"):
+            nd = self._pc_expand(data)
+            if nd != data:
+                rep.info("pc-expanded", "%s/%s: prefix-derived pkg-config variables written out in full" % (y, rel),
+                         output=y, file=rel)
+                data, dirty = nd, True
         full = S.prefix_refs(data, self.rx)
         edits = []
         file_subs = ctx.subs_of(y, rel)
@@ -116,6 +133,8 @@ class Refs:
             case, x, anc = self.classify(y, r)
             where = dict(output=y, file=rel, ref=ctx.P + tail)
             in_rpath = any(a <= start < b for a, b in spans)
+            if self.split and not in_rpath:
+                self._token_split(y, rel, tail, case, x, kind, doc, where)
             self._subref(file_subs, x if case in ("out", "other", "shared-self") else None, anc)
             if case == "out":
                 ctx.add_edge(y, out, "%s: %s" % (rel, tail))
@@ -127,8 +146,8 @@ class Refs:
                 what = ("the bare prefix" if not anc else
                         "$%s/%s, a top-level directory several outputs fill" % (out, anc))
                 ack = output_rel_match(y, rel, plan.prefixRelativeOk) or (anc and rel_match(anc, plan.unionDirs))
-                if not ack and not anc and kind == "text" and rel.endswith(".pc") and self._unused_pc_var(data, start):
-                    ack = "pkg-config variable defined as the prefix and not used in the file"
+                if not ack and kind == "text" and rel.endswith(".pc") and self._unused_pc_var(data, start):
+                    ack = "pkg-config variable defined as %s and not used in the file" % ("the prefix" if not anc else anc)
                 if not ack and doc:
                     ack = "documentation"
                 if y == out or in_rpath or y == ctx.debug_output:
@@ -182,7 +201,7 @@ class Refs:
                     if y == ctx.debug_output:
                         continue
                     self.pending.append((y, x, anc, r, rel, kind))
-        if edits:
+        if edits or dirty:
             for a, b, new in sorted(edits, reverse=True):
                 data = data[:a] + new + data[b:]
             os.chmod(path, os.stat(path).st_mode | 0o200)
@@ -252,6 +271,27 @@ class Refs:
                         rep.error("foreign-store-path", "%s/%s (inside %s) references %s, not an allowed store path"
                                   % (y, rel, where, m.group(0).decode()), output=y, file=rel)
 
+    def _token_split(self, y, rel, tail, case, x, kind, doc, where):
+        """an ld.so token path ($LIB) whose expansions are owned by different
+        outputs: the reference points into one output E (the native
+        expansion's owner if the text is rewritten, else the prefix output,
+        where a stub may forward); an expansion not owned by E is not found
+        at run time"""
+        ctx, plan = self.ctx, self.ctx.plan
+        out = ctx.prefix_output
+        e_out = x if case != "out" and kind == "text" and (x == y or ctx.requires(y, x)) else out
+        for e, r in self.split:
+            owners = r[1] if isinstance(r[1], set) else {r[1]}
+            if e_out in owners:
+                continue
+            msg = ("%s/%s: $%s%s points into %s, but its expansion %s is %s's: not found there at run time"
+                   % (y, rel, e_out, tail, e_out, e, ", ".join(sorted(owners))))
+            if rel_match(e, plan.danglingOk) or doc or y == ctx.debug_output or output_rel_match(y, rel, plan.prefixRelativeOk):
+                ctx.report.info("dangling", msg + " (acked)", **where)
+            else:
+                ctx.report.error("dangling", msg + "; danglingOk [\"%s\"] if that expansion is not needed, or"
+                                 " mergeOutputs" % e, **where)
+
     @staticmethod
     def _self_dir(anc):
         """library and header dirs: where a -devel output keeps its own build
@@ -267,6 +307,55 @@ class Refs:
         self.rewrites[(y, y)] += 1
         ctx.report.info("union-self", "%s/%s: $%s%s -> $%s%s (%s is filled by several outputs, %s among them)"
                         % (y, rel, ctx.prefix_output, tail, y, tail, anc, y), **where)
+
+    PC_DEF = re.compile(rb"\s*([A-Za-z_][A-Za-z0-9_.]*)\s*=\s*(.*?)\s*$")
+    PC_REF = re.compile(rb"\$\{([A-Za-z_][A-Za-z0-9_.]*)\}")
+
+    def _pc_expand(self, data):
+        """pkg-config file of a non-prefix output: write the prefix-derived
+        variables out in full (meson/cmake style `libdir=${prefix}/lib64`
+        -> `libdir=<P>/lib64`), so every path is a literal reference that
+        the usual rules classify and rewrite ($dev/lib64 for a -devel
+        file, R2). Definitions take every prefix-derived variable, other
+        lines (Libs:, Cflags:) only aliases of the prefix itself; the
+        prefix variables are then unused (R3)."""
+        P = self.ctx.Pb
+        lines = data.split(b"\n")
+        defs = {}
+        for ln in lines:
+            m = self.PC_DEF.match(ln)
+            if m:
+                defs.setdefault(m.group(1), m.group(2))
+        memo = {}
+
+        def expand(name, seen=()):
+            if name in memo:
+                return memo[name]
+            if name not in defs or name in seen:
+                return None
+            v, ok = defs[name], True
+
+            def one(m):
+                nonlocal ok
+                e = expand(m.group(1), seen + (name,))
+                if e is None:
+                    ok = False
+                    return m.group(0)
+                return e
+            v = self.PC_REF.sub(one, v)
+            memo[name] = v if ok else None
+            return memo[name]
+
+        derived = {n for n in defs if (expand(n) or b"") == P or (expand(n) or b"").startswith(P + b"/")}
+        if not derived:
+            return data
+        alias = {n for n in derived if expand(n) == P}
+        out = []
+        for ln in lines:
+            m = self.PC_DEF.match(ln)
+            use = derived if m else alias
+            out.append(self.PC_REF.sub(lambda r: expand(r.group(1)) if r.group(1) in use else r.group(0), ln))
+        return b"\n".join(out)
 
     def _unused_pc_var(self, data, start):
         """the reference is `name=<prefix>` in a pkg-config file and neither
@@ -317,13 +406,20 @@ class Refs:
         out = ctx.prefix_output
         made = {}
         deny = plan.forward.get("deny", [])
-        for y, x, anc, r, rel, kind in sorted(self.pending, key=lambda t: (ctx.order[t[0]], t[4], t[2])):
+        # shallow anchors first: a stub for share/foo serves share/foo/data.txt
+        # too, whichever order the referrers name them in
+        for y, x, anc, r, rel, kind in sorted(self.pending, key=lambda t: (t[2].count("/"), t[2], ctx.order[t[0]], t[4])):
             where = dict(output=y, file=rel, ref=ctx.P + "/" + r, owner=x)
             if rel_match(r, plan.runtimeSearchPaths) or rel_match(anc, plan.runtimeSearchPaths):
                 rep.info("binary-ref", "%s/%s: $%s/%s dangles; %s's setup hook serves it (runtimeSearchPaths)"
                          % (y, rel, out, r, x), **where)
                 continue
             if anc in made:
+                continue
+            up = next((a for a in made if anc.startswith(a + "/")), None)
+            if up is not None and made[up] == x:
+                rep.info("stub", "$%s/%s is served by the stub $%s/%s -> $%s/%s (for %s/%s)"
+                         % (out, anc, out, up, x, up, y, rel), output=out, file=anc, owner=x)
                 continue
             remedies = ("remedies: layout (compile that macro dir as %s's path), mergeOutputs [%s, %s],"
                         " or runtimeSearchPaths" % (x, out, x))

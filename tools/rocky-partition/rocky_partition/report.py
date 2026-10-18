@@ -28,6 +28,7 @@ CODES = {
     "union-unacked": "reference to a directory/file owned by several outputs without an unionDirs/runtimeSearchPaths ack",
     "dangling": "reference to a path that exists in no output",
     "union-self": "text reference to a directory several outputs fill rewritten to the referrer's own part",
+    "pc-expanded": "prefix-derived pkg-config variables of a non-prefix output written out in full",
     "not-required": "text reference into an output the referrer does not Require (kept as $out/rel)",
     "foreign-store-path": "store path neither an own output nor allowed",
     "fhs-shebang": "#! interpreter in FHS form (patchShebangs, lateBind or fhsAllowlist must cover it)",
@@ -36,6 +37,10 @@ CODES = {
     "unresolved-needed": "DT_NEEDED soname found nowhere",
     "ambiguous-needed": "DT_NEEDED soname provided by several sibling outputs",
     "runpath-changed": "RUNPATH recomputed",
+    "integrity-file": "FIPS integrity data found (a companion .hmac file, or an HMAC embedded in the ELF file)",
+    "integrity-orphan": "a companion .hmac file whose target is in no output",
+    "integrity-runpath": "RUNPATH must change but the file's integrity data cannot follow (left as linked)",
+    "integrity-rehashed": "a verified companion .hmac file recomputed for its changed target",
     # phase F
     "binary-ref": "compiled-in reference into a non-prefix output that no stub/search path serves",
     "stub": "forwarding stub created",
@@ -52,6 +57,7 @@ CODES = {
     "late-elf-ref": "ELF content of L* references a lateBind output",
     # replay
     "replay-remap-incomplete": "the old prefix survives in an output after --remap",
+    "integrity-replay": "the replay remap changed a file whose integrity data cannot be recomputed",
 }
 
 

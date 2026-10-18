@@ -2,7 +2,7 @@
 #   glibc  the [NF-S3] build (stage0 toolchain through the nixpkgs wrappers,
 #          glibc.site, P1 as a sed) -> checks.nn-partition-replay
 #   e3.*   experiment E3 (docs/research/nix-native/experiments/E3.md): xz,
-#          expat, libxcrypt, ncurses, krb5, built with nixpkgs' cc and
+#          expat, libxcrypt, ncurses, krb5, pixman (meson), built with nixpkgs' cc and
 #          nixpkgs build dependencies (the partition rules are the subject,
 #          not the toolchain)
 { pkgs, stage0 }:
@@ -73,6 +73,20 @@ in
       cc = pkgs.gcc14;   # ncurses 6.4 C++ binding vs gcc 15 (NCURSES_BOOL)
       tools = with pkgs; [ pkg-config gpgv2 ];
       buildInputs = [ pkgs.gpm ];
+    };
+    # meson: `libdir=${prefix}/lib64` in the -devel .pc (rule R12); meson is not part of
+    # stage0, so its macros.meson (Rocky 10, the parts the spec uses) with nixpkgs' meson
+    pixman = {
+      tools = with pkgs; [ meson ninja pkg-config gpgv2 ];
+      extraMacros = ''
+        %__meson meson
+        %__meson_wrap_mode nodownload
+        %__meson_auto_features enabled
+        %meson %{set_build_flags}; %{__meson} setup --buildtype=plain --prefix=%{_prefix} --libdir=%{_libdir} --libexecdir=%{_libexecdir} --bindir=%{_bindir} --sbindir=%{_sbindir} --includedir=%{_includedir} --datadir=%{_datadir} --mandir=%{_mandir} --infodir=%{_infodir} --localedir=%{_datadir}/locale --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --sharedstatedir=%{_sharedstatedir} --wrap-mode=%{__meson_wrap_mode} --auto-features=%{__meson_auto_features} %{_vpath_srcdir} %{_vpath_builddir}
+        %meson_build %{__meson} compile -C %{_vpath_builddir} -j %{_smp_build_ncpus} --verbose
+        %meson_install DESTDIR=%{buildroot} %{__meson} install -C %{_vpath_builddir} --no-rebuild
+        %meson_test %{__meson} test -C %{_vpath_builddir} --num-processes %{_smp_build_ncpus} --print-errorlogs
+      '';
     };
     krb5 = {
       tools = with pkgs; [ autoconf automake libtool pkg-config flex bison gpgv2 git
