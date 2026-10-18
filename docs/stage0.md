@@ -313,7 +313,9 @@ d. `rpms.which` (and every other `rpms.*`): `rpmTree` with
 | gcc: `--disable-bootstrap`, no profiledbootstrap/LTO-bootstrap, no fortran/go/d/ada/m2, no sanitizers, no offloading | gcc.nix | build time; enough for C/C++ packages incl. glibc (glibc's spec needs `gcc -m32` and C++) |
 | binutils: no gold, static libbfd/libopcodes (`--disable-shared`), no jansson/debuginfod | binutils.nix | host libs must not be looked up in `/usr/lib64` by the nixpkgs loader |
 | rpm: no plugins/python/selinux/audit/dbus/fapolicyd/imaevm/fsverity, `ENABLE_NLS=OFF` | rpm.nix | not needed to build packages |
-| kernel headers from nixpkgs (6.18) | kernel-headers.nix | parameter; to be replaced by Rocky kernel-headers |
+| kernel headers from nixpkgs (6.18) for the stage0 *toolchain* and the base root | kernel-headers.nix | the toolchain does not ship; package builds that need Rocky's headers use a root without them plus the Rocky kernel-headers RPM (glibc does: [glibc.md](glibc.md), [kernel-headers.md](kernel-headers.md)) |
+| rpm links nixpkgs' libmagic (file 5.47; Rocky: 5.45) | rpm.nix | FILECLASS strings only (gzip "original size" suffix, ld.so "dynamically linked"); allowed in `tools/parity/stage0.json` |
+| makeinfo 7.1 from Rocky's texinfo SRPM, Unicode::Collate hidden (`texinfo71`) | texinfo.nix | only in package roots that ship info pages (glibc); nixpkgs' 7.2 and Unicode::Collate change the info output |
 | `%_annobin_gcc_plugin %{nil}` | macros.stage0 | no annobin plugin for the stage0 gcc yet (empties `-specs=…redhat-annobin-cc1`); `%_annotated_build` stays defined so `--remove-section .gnu.build.attributes` is still passed to find-debuginfo (harmless) |
 | `%_binary_payload w19.zstdio` | macros.stage0 | same value as redhat-rpm-config, for packages built before it is installed |
 | `%el_nixos_stage 0` | macros.stage0 | marker |
