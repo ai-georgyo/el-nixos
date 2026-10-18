@@ -1,0 +1,9 @@
+# E2 (appended to the build's copy of redhat/macros, see reloc.nix): re-alias
+# %buildroot/usr before the brp scripts / find-debuginfo run (multi-line, so
+# not a --define).
+%__spec_install_post \
+    bash %{_e2_realias} "$RPM_BUILD_ROOT" "%{_prefix}"\
+    %{?__debug_package:%{__debug_install_post}}\
+    %{__arch_install_post}\
+    %{__os_install_post}\
+%{nil}

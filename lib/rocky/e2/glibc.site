@@ -1,0 +1,7 @@
+# packages/glibc.nix: what sysdeps/{gnu,unix/sysv/linux/x86_64/64}/configure do for
+# prefix=/usr, done for the store prefix.
+case "$prefix" in /nix/store/*)
+  case "${host_alias:-${build_alias:-x86_64}}" in
+    x86_64*) libc_cv_slibdir=$prefix/lib64; libc_cv_rtlddir=$prefix/lib64; libc_cv_complocaledir=$prefix/lib/locale ;;
+  esac ;;
+esac
