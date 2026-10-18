@@ -26,6 +26,18 @@ and OUTDIR/report.json.
    view -- nix-support/view-inputs -- has it: a compiled-in reference into
    the view) | dangling (nowhere); bare "$P".  And references to other store
    paths (inputs leaking into outputs), by name.
+4. NEEDED resolution: every DT_NEEDED soname of every ELF file (lib/debug
+   excluded) is looked up where the dynamic loader would look outside the
+   build: DT_RUNPATH (else DT_RPATH, $ORIGIN expanded) and the directory of
+   the program interpreter (for a library: of every interpreter the tree's
+   programs use).  A soname found nowhere is UNRESOLVED-NEEDED -- typically a
+   library linked from the view (-L%{_libdir} = the $out alias, or ld's
+   built-in SEARCH_DIR("=/usr/lib64")): it links, and runs inside the shim,
+   whose /usr/lib64 the stage0 ld.so searches, but not outside, and no
+   "$P/rel" string names it (item 3 cannot see it).  The interpreter-dir
+   rule approximates the loader's default path (exact for a relocated glibc,
+   whose slibdir is its own lib64; stage0's FHS ld.so would search
+   /usr/lib64, which a Nix host does not have).
 
 Python 3 stdlib only (+ the `zstd` binary for zstd-compressed sections, if
 any); run with python3 -I.
@@ -418,6 +430,73 @@ def scan_refs(tree, view_inputs):
     return {"refs": refs, "bare": sorted(bare)[:MAX_LIST], "bare_count": len(bare), "others": others}
 
 
+# --------------------------------------------------------------------------- NEEDED resolution
+def dyn_info(data):
+    """(interp, [needed], [search dirs]) of an ELF file with a dynamic section, else None"""
+    try:
+        e = Elf(data)
+        secs = {n: (t, b) for n, t, b in e.sections()}
+    except (ValueError, struct.error, IndexError, zlib.error):
+        return None
+    dyn = secs.get(".dynamic")
+    dynstr = secs.get(".dynstr")
+    if not dyn or dyn[0] != 6 or not dyn[1] or not dynstr:  # SHT_DYNAMIC with contents
+        return None
+    strs = dynstr[1]
+    fmt, step = ("<qQ", 16) if e.is64 else ("<iI", 8)
+    needed, rpath, runpath = [], None, None
+    for o in range(0, len(dyn[1]) - step + 1, step):
+        tag, val = struct.unpack_from(fmt, dyn[1], o)
+        if tag == 0:
+            break
+        if tag in (1, 15, 29):  # DT_NEEDED DT_RPATH DT_RUNPATH
+            v = strs[val:strs.find(b"\0", val)].decode("latin1")
+            if tag == 1:
+                needed.append(v)
+            elif tag == 15:
+                rpath = v
+            else:
+                runpath = v
+    interp = secs.get(".interp", (0, b""))[1].rstrip(b"\0").decode("latin1") or None
+    path = runpath if runpath is not None else rpath
+    return interp, needed, [d for d in (path or "").split(":") if d]
+
+
+def scan_needed(tree):
+    """{'unresolved': {soname: [files]}, 'pairs': [(file, soname)], 'checked': n}"""
+    tree = os.path.realpath(tree)
+    infos = []
+    for dp, dns, fns in os.walk(tree):
+        rd = os.path.relpath(dp, tree)
+        if rd in ("nix-support", "lib/debug") or rd.startswith(("nix-support/", "lib/debug/")):
+            dns[:] = []
+            continue
+        for n in fns:
+            p = os.path.join(dp, n)
+            if os.path.islink(p) or not os.path.isfile(p):
+                continue
+            with open(p, "rb") as f:
+                if f.read(4) != b"\x7fELF":
+                    continue
+                f.seek(0)
+                info = dyn_info(f.read())
+            if info and info[1]:
+                infos.append((os.path.normpath(os.path.join(rd, n)), info))
+    interp_dirs = sorted(set(os.path.dirname(i[0]) for _, i in infos if i[0]))
+    unresolved, pairs = {}, []
+    for rel, (interp, needed, dirs) in infos:
+        origin = os.path.dirname(os.path.join(tree, rel))
+        search = [d.replace("$ORIGIN", origin).replace("${ORIGIN}", origin) for d in dirs]
+        search += [os.path.dirname(interp)] if interp else interp_dirs
+        for so in needed:
+            if not any(os.path.exists(os.path.join(d, so)) for d in search):
+                pairs.append((rel, so))
+                lst = unresolved.setdefault(so, [])
+                if len(lst) < MAX_LIST:
+                    lst.append(rel)
+    return {"unresolved": unresolved, "pairs": pairs, "checked": len(infos)}
+
+
 # --------------------------------------------------------------------------- main
 def compare(a, b):
     ha, hb = hash_of(a), hash_of(b)
@@ -492,6 +571,11 @@ def main():
                 lines.append(f"   {r['status']:16} $P/{rel}   <- {', '.join(r['files'][:4])}")
         for nm, fl in sorted(s["others"].items()):
             lines.append(f"   other store path  {nm}   <- {', '.join(fl[:4])}{' ...' if len(fl) > 4 else ''}")
+        nd = scan_needed(t)
+        rep["scans"][t]["needed"] = nd
+        lines.append(f"   NEEDED: {nd['checked']} dynamic ELF files; unresolved (file, soname) pairs: {len(nd['pairs'])}")
+        for so, fl in sorted(nd["unresolved"].items()):
+            lines.append(f"   UNRESOLVED-NEEDED {so}   <- {', '.join(fl[:4])}{' ...' if len(fl) > 4 else ''}")
     ref = trees[0]
     sa = rep["scans"][ref]
     for t in trees[1:]:
@@ -528,6 +612,12 @@ def main():
             lines.append(f"     + {sb['refs'][r]['status']} $P/{r}  <- {', '.join(sb['refs'][r]['files'][:3])}")
         for r in gone[:30]:
             lines.append(f"     - $P/{r}")
+        hn = lambda pairs, h: set((f.replace(h, E.decode()), so) for f, so in pairs)
+        nd_new = sorted(hn(sb["needed"]["pairs"], hash_of(t).decode()) - hn(sa["needed"]["pairs"], hash_of(ref).decode()))
+        c["new_unresolved_needed"] = nd_new
+        lines.append(f"   unresolved NEEDED new in B: {len(nd_new)}")
+        for f, so in nd_new[:40]:
+            lines.append(f"     + UNRESOLVED-NEEDED {so}  <- {f}")
         oth_new = sorted(set(sb["others"]) - set(sa["others"]))
         oth_gone = sorted(set(sa["others"]) - set(sb["others"]))
         lines.append(f"   other store paths new in B: {oth_new}; gone in B: {oth_gone}")

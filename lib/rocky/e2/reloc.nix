@@ -8,7 +8,10 @@
 # compare byte-for-byte modulo the own store hash.  Base:
 # docs/research/nix-native/spikes-nixpkgs-faithful/glibc-reloc.nix.
 # The output is the whole payload under $out (no partition; that is WP5) +
-# nix-support/{build.log,rpm-files/,outside-prefix.txt,view-*}.
+# nix-support/{build-summary.txt,rpm-files/,outside-prefix.txt,view-*,
+# run-outside.txt}.  The full rpmbuild log goes to the builder's stderr
+# (`nix log`), not into $out: parallel make and rpm-tmp.* names make it
+# differ between two runs of the same build.
 { pkgs, stage0, toolShim, ccw, rpmConfig }:
 { srpm
 , variant                 # "view" | "noview"
@@ -16,12 +19,18 @@
 , buildInputs ? [ ]       # library inputs: cc-wrapper flags in both variants
 , tools ? [ ]             # extra nativeBuildInputs (PATH, setup hooks)
 , specSubstitutions ? [ ] # [ { from; to; } ] exactly once each (noview only)
+, commonSubstitutions ? [ ] # the same, in both variants (relocation fixes unrelated to the view)
 , configSite ? [ ]
 , env ? { }
 , postPrep ? null         # shell run in the unpacked source (%__spec_prep_post)
 , bigParallel ? false
   # a local spec instead of the locked SRPM (positive control): { dir; version; release; dist; }
 , local ? null
+, aliasDirs ? null        # ROCKY_PREFIX_VIEW_DIRS (view variant): input dirs shown at $out
+, outsideRun ? null       # shell run after the payload is in $out, outside the shim;
+                          # stdout -> nix-support/run-outside.txt
+, defines ? [ ]          # extra [ "macro value" ] for rpmbuild --define
+, extraMacros ? [ ]       # extra rpm macro package trees (<tree>/usr/lib/rpm) for /usr/lib/rpm
 }:
 let
   inherit (pkgs) lib;
@@ -43,7 +52,7 @@ let
     n=$(grep -cF -- ${lib.escapeShellArg s.from} $top/SPECS/${srpm}.spec || true)
     [ "$n" = 1 ] || { echo "specSubstitution ${lib.escapeShellArg s.from}: $n matches (want 1)" >&2; exit 1; }
     substituteInPlace $top/SPECS/${srpm}.spec --replace-fail ${lib.escapeShellArg s.from} ${lib.escapeShellArg s.to}
-  '') (lib.optionals (!view) specSubstitutions);
+  '') (lib.optionals (!view) specSubstitutions ++ commonSubstitutions);
 in
 assert lib.elem variant [ "view" "noview" ];
 pkgs.stdenvNoCC.mkDerivation ({
@@ -94,17 +103,20 @@ pkgs.stdenvNoCC.mkDerivation ({
       ${lib.optionalString (postPrep != null) ''--define "__spec_prep_post cd %{_builddir}/%{buildsubdir} \&\& sh ${pkgs.writeText "post-prep.sh" postPrep}; %{___build_post}"''}
       # hard-coded /usr, /etc in %install fold into the prefix (BUILDROOT/usr -> prefix)
       --define '__spec_install_pre %{___build_pre}; rm -rf "%{buildroot}"; mkdir -p "%{buildroot}%{_prefix}"; ln -s "%{_prefix_rel}" "%{buildroot}/usr"'
-    )
+    )${lib.concatMapStrings (d: "
+    defs+=(--define ${lib.escapeShellArg d})") defines}
     # rpm config: redhat/macros + macros.e2 (multi-line __spec_install_post).  Not
     # macros.d (platform/x86_64-linux/macros, read later, redefines it) and not
     # --load (dropped when --target re-reads the configuration).
     cp -r ${rpmConfig} $TMPDIR/rpm-config; chmod -R u+w $TMPDIR/rpm-config
-    cat ${./macros.e2} >> $TMPDIR/rpm-config/redhat/macros
+    ${lib.concatMapStrings (t: "cp -r ${t}/usr/lib/rpm/. $TMPDIR/rpm-config/; chmod -R u+w $TMPDIR/rpm-config
+") extraMacros}    cat ${./macros.e2} >> $TMPDIR/rpm-config/redhat/macros
     export RPM_CONFIG_DIR=$TMPDIR/rpm-config
     export ROCKY_PREFIX_VIEW=${if view then "1" else "0"}
+    ${lib.optionalString (aliasDirs != null) "export ROCKY_PREFIX_VIEW_DIRS=${lib.escapeShellArg aliasDirs}"}
     echo "=== rpmbuild -bb ${srpm} (relocated to $P, variant ${variant})"
     set +e
-    ${toolShim} -- rpmbuild -bb --nodeps --nocheck --noclean --target x86_64 \
+    ROCKY_VIEW_COLLISIONS=$TMPDIR/view-collisions.txt ${toolShim} -- rpmbuild -bb --nodeps --nocheck --noclean --target x86_64 \
       "''${defs[@]}" $top/SPECS/${srpm}.spec > $TMPDIR/build.log 2>&1
     rc=$?
     set -e
@@ -112,10 +124,16 @@ pkgs.stdenvNoCC.mkDerivation ({
       grep -v '^+ ' $TMPDIR/build.log | grep -E -B 25 -m 3 'configure: error|Error [0-9]|No such file|cannot find' || true
       echo ...; tail -n 60 $TMPDIR/build.log; exit 1
     fi
+    cat $TMPDIR/build.log >&2
     # nothing may have been written to the prefix itself (view: the shim checks it too)
     if [ -e $out ] && [ -n "$(ls -A $out)" ]; then echo "\$out not empty after rpmbuild" >&2; exit 1; fi
     mkdir -p $out/nix-support
-    sed -E 's|/nix/store/[a-z0-9]{32}-|/nix/store/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-|g' $TMPDIR/build.log > $out/nix-support/build.log
+    # deterministic excerpt: the lines E2 cites, store hashes and rpm-tmp names
+    # normalised, sorted
+    sed -E -e 's|/nix/store/[a-z0-9]{32}-|/nix/store/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-|g' \
+        -e 's|rpm-tmp\.[A-Za-z0-9]+|rpm-tmp.XXXXXX|g' $TMPDIR/build.log \
+      | grep -E -e '--with-headers|checking for symlinks|^Wrote: |^(found|missing) |^compiled-with-dep |^(libdir|builtin) ' \
+      | LC_ALL=C sort -u > $out/nix-support/build-summary.txt || true
     BR=$(ls -d $top/BUILDROOT/*)
     # payload -> $out (the prefix); non-prefix FHS leftovers listed
     cp -a $BR$P/. $out/
@@ -128,8 +146,13 @@ pkgs.stdenvNoCC.mkDerivation ({
         rpm -qp --nosignature --qf "[%{FILEFLAGS:fflags}\t%{FILEMODES:perms}\t%{FILELINKTOS}\t%{FILENAMES}\n]" "$f" > "$2/$n.txt"
       done' _ $top $TMPDIR/rpm-files
     cp -r $TMPDIR/rpm-files $out/nix-support/rpm-files
+    ${lib.optionalString (outsideRun != null) ''
+      ( cd $TMPDIR; set +e; ${outsideRun}
+      ) > $out/nix-support/run-outside.txt 2>&1
+      cat $out/nix-support/run-outside.txt
+    ''}
     # what the shim showed
     printf '%s\n' ${lib.escapeShellArgs (if view then map toString viewInputs else [ ])} > $out/nix-support/view-inputs
-    cp $NIX_BUILD_TOP/rocky-view-collisions.txt $out/nix-support/view-collisions.txt
+    cp $TMPDIR/view-collisions.txt $out/nix-support/view-collisions.txt
   '';
 } // env)

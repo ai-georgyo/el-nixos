@@ -21,7 +21,7 @@ let
         echo '#!${bash}/bin/bash'
         sed -e 's|@bash@|${bash}/bin/bash|g' \
             -e 's|@bwrap@|${bubblewrap}/bin/bwrap|g' \
-            -e 's|@env@|${coreutils}/bin/env|g' \
+            -e 's|@coreutils@|${coreutils}|g' \
             -e 's|@python3@|${python3}/bin/python3|g' \
             -e 's|@mkview@|${../mkview.py}|g' \
             ${../tool-shim.sh}

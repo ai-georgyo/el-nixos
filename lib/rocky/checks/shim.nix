@@ -10,6 +10,9 @@
 #   - $out alias: the view is at $out (read-only) during the command, gone
 #     after; $out is empty after, then filled by the builder as usual
 #   - fresh tmpfs root and /tmp, SIGPIPE at its default
+#   - a view per call: nested and concurrent calls leave the caller's /usr
+#     and collision report alone, nothing is left in the build top; PWD=/
+#     works (and does not bind the sandbox root); ROCKY_PREFIX_VIEW_DIRS
 { bootPkgs, stage0, self, ... }:
 let
   pkgs = bootPkgs;
@@ -42,6 +45,7 @@ in
     ok() { echo "ok: $*"; }
     export PATH="${rpm}/usr/bin:$PATH"
     report=$TMPDIR/report.txt; : > $report
+    export ROCKY_VIEW_COLLISIONS=$NIX_BUILD_TOP/rocky-view-collisions.txt
     log() { echo "$*" | tee -a $report; }
 
     # --- tools through the view; rpm config at /usr/lib/rpm
@@ -113,6 +117,30 @@ in
      $shim -- test -f /usr/include/declared2.h -a ! -e /usr/include/declared1.h) || fail "rockyViewInputs from NIX_ATTRS_JSON_FILE"
     ok "rockyViewInputs from \$NIX_ATTRS_JSON_FILE"
 
+    # --- one view per call: nested / concurrent calls, the caller's report
+    n=$($shim -- bash -c '
+      a=$(ls /usr/bin | wc -l)
+      "$0" -- true
+      rockyViewInputs=${declared2} ROCKY_VIEW_COLLISIONS=$TMPDIR/inner.txt "$0" -- test ! -e /usr/include/declared1.h
+      b=$(ls /usr/bin | wc -l)
+      test -f /usr/include/declared1.h
+      echo "$a $b"' $shim)
+    log "nested: /usr/bin entries before/after inner calls: $n"
+    set -- $n; [ "$1" -gt 0 ] && [ "$1" = "$2" ] || fail "nested call changed the outer /usr/bin ($n)"
+    grep -qP '^file\tinclude/common.h\t' $ROCKY_VIEW_COLLISIONS || fail "inner call overwrote the caller's collision report"
+    [ -f $TMPDIR/inner.txt ] && ! grep -q common.h $TMPDIR/inner.txt || fail "inner report missing or wrong"
+    (unset ROCKY_VIEW_COLLISIONS; rockyViewInputs=${declared2} $shim -- true)
+    grep -qP '^file\tinclude/common.h\t' $NIX_BUILD_TOP/rocky-view-collisions.txt || fail "report written without ROCKY_VIEW_COLLISIONS"
+    $shim -- sleep 1 & p1=$!; $shim -- sh -c 'sleep 0.3; test -f /usr/include/declared1.h' & p2=$!
+    $shim -- true; wait $p1 || fail "concurrent call 1"; wait $p2 || fail "concurrent call 2"
+    left=$(find $NIX_BUILD_TOP -maxdepth 1 -name 'rocky-view.*')
+    [ -z "$left" ] || fail "per-call views left behind: $left"
+    ok "a view per call: nested, concurrent, report kept, nothing left behind"
+    # PWD=/ (binding / would undo the tmpfs root)
+    [ "$(cd / && $shim -- sh -c 'echo "$(pwd): $(ls / | tr "\n" " ")"')" = "/: bin build dev etc nix proc sbin tmp usr " ] \
+      || fail "PWD=/: $(cd / && $shim -- ls / 2>&1 | tr '\n' ' ')"
+    ok "PWD=/"
+
     # --- $out self-prefix alias
     test ! -e $out || fail "\$out exists before"
     $shim -- test ! -e $out/include || fail "alias without ROCKY_PREFIX_VIEW"
@@ -135,6 +163,15 @@ in
     touch $out/stray
     if ROCKY_PREFIX_VIEW=1 $shim -- true 2>/dev/null; then fail "non-empty \$out accepted"; fi
     rm $out/stray
+    # ROCKY_PREFIX_VIEW_DIRS: the alias shows only these input dirs (+ bin)
+    ROCKY_PREFIX_VIEW=1 ROCKY_PREFIX_VIEW_DIRS="include share" $shim -- sh -c '
+      test -f "$out/include/declared1.h" && test -f "$out/share/declared2/data" && test -x "$out/bin/true" &&
+      test ! -e "$out/lib64" && test ! -e "$out/lib" && test -f /usr/lib64/pkgconfig/declared2.pc' \
+      || fail "ROCKY_PREFIX_VIEW_DIRS"
+    # nested inside the alias: ROCKY_PREFIX_VIEW is unset inside, so the inner
+    # call does not try to alias the (read-only, non-empty) $out again
+    ROCKY_PREFIX_VIEW=1 $shim -- sh -c '"$0" -- test -f "$out/include/declared1.h"' $shim || fail "nested call inside the alias"
+    [ -z "$(ls -A $out)" ] || fail "\$out not empty after nested alias calls"
     # --no-prefix-view overrides the env
     ROCKY_PREFIX_VIEW=1 $shim --no-prefix-view -- test ! -e $out/include || fail "--no-prefix-view"
     # exit status passes through

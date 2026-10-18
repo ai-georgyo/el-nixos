@@ -5,7 +5,9 @@ Usage:
   mkview.py VIEW [--inputs "P1 P2 ..."] [--path PATH] [--collisions FILE]
             [--mountpoint REL]...
 
-VIEW is (re)created empty, then (docs/nix-native-design.md §1.5):
+VIEW must not exist or be empty (the shim passes a fresh mktemp -d per call;
+nothing is ever removed here, so a view a running namespace uses stays
+intact); then (docs/nix-native-design.md §1.5):
 
   VIEW/bin/   a symlink to every executable entry of every PATH directory,
               first wins (PATH order = the shell's lookup order; shadowed
@@ -42,7 +44,6 @@ Python 3 stdlib only; run with python3 -I.
 import argparse
 import json
 import os
-import shutil
 import sys
 
 INPUT_DIRS = ("include", "lib", "lib64", "libexec", "share")
@@ -159,9 +160,10 @@ def main():
     a = ap.parse_args()
 
     view = os.path.abspath(a.view)
-    if os.path.lexists(view):
-        shutil.rmtree(view)
-    os.makedirs(view)
+    if os.path.lexists(view) and (not os.path.isdir(view) or os.listdir(view)):
+        print(f"mkview: {view} exists and is not an empty directory", file=sys.stderr)
+        return 2
+    os.makedirs(view, exist_ok=True)
     collisions = []
     path_tools(view, a.path if a.path is not None else os.environ.get("PATH", ""), collisions)
     inputs = view_inputs(a.inputs)
