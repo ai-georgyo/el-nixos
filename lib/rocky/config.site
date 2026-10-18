@@ -20,3 +20,7 @@ case "$prefix" in /nix/store/*)
   test "$runstatedir"    = '${localstatedir}/run' && runstatedir=/run
   ;;
 esac
+# autoconf >= 2.70 refuses a site script whose exit status is not 0 ("failed
+# to load site script"); the last `test ... && ...` above is false whenever
+# runstatedir was set explicitly (E2, E3: which, xz, expat, libxcrypt, krb5)
+true

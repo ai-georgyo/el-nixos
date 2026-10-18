@@ -78,6 +78,9 @@ let
     outputGlob = simple "an output name or a glob over output names" isOutputGlob;
     # an output-relative path: no leading or trailing `/`, no `.`/`..`/empty component
     relPath = simple "an output-relative path (lib/locale)" isRelPath;
+    # "<output glob>" or "<output glob>:<rel glob>" (PLAN.md output pattern)
+    outputPattern = simple "an output pattern (\"<output glob>[:<rel glob>]\")"
+      (v: builtins.isString v && v != "" && !(lib.hasPrefix ":" v) && !(lib.hasPrefix "/" v));
     # an output-relative glob (lib64/lib*.so*)
     relGlob = simple "an output-relative glob" (v: builtins.isString v && v != "" && !(lib.hasPrefix "/" v));
 
@@ -159,6 +162,10 @@ let
       deny = field (listOf relGlob) [ ];
     }) { deny = [ ]; };
     noPatchelf = field (listOf relGlob) [ ];
+    # rocky-partition keys beyond §8.1 (tools/rocky-partition/PLAN.md)
+    prefixRelativeOk = field (listOf outputPattern) [ ];
+    integrityOk = field (listOf outputPattern) [ ];
+    systemLibDirs = field (nullOr (listOf nonEmptyStr)) null;
     allowUnresolvedNeeded = field (listOf str) [ ];
     fhsAllowlist = field (attrsOf str) { };
     lateBind = field (attrsOf (record "{ interpreters; libs; }" {
@@ -194,6 +201,13 @@ let
     ++ lib.concatLists (lib.mapAttrsToList (k: _:
       lib.optional (builtins.match "[A-Za-z_][A-Za-z0-9_]*" k == null)
         "`defines.${k}`: not a macro name") v.defines)
+    # env: identifier keys go into the derivation's structured `env`; other
+    # keys (make variables like glibc's user-defined-trusted-dirs) only onto
+    # rpmbuild's command line as `env 'k=v'` (mkRpmPackage), so they must be
+    # valid `env` assignments
+    ++ lib.concatLists (lib.mapAttrsToList (k: _:
+      lib.optional (builtins.match "[A-Za-z_][A-Za-z0-9_.+-]*" k == null)
+        "`env.${k}`: not a variable name (letters, digits, _ . + -, not starting with a digit)") v.env)
     ++ lib.concatLists (lib.mapAttrsToList (k: _:
       lib.optional (builtins.match "_?[A-Za-z][A-Za-z0-9_]*" k == null)
         "`layout.${k}`: not a macro name") v.layout);

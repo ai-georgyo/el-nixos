@@ -41,8 +41,28 @@ class Refs:
         self.rewrite_samples = []
         self.fhs = collections.defaultdict(lambda: [0, []])
         self.foreign = collections.defaultdict(set)
+        self.rpath_foreign = {}                 # (output, rel) -> hashes in RUNPATH, decided after phase E
         self.pieces = []
         self.nested = []
+
+    def check_rpath_foreign(self):
+        """case 7 for RUNPATH entries, after phase E: a foreign store path
+        still in the final RUNPATH/RPATH must be allowed"""
+        ctx, rep = self.ctx, self.ctx.report
+        for (y, rel), hs in sorted(self.rpath_foreign.items()):
+            with open(ctx.path_of(y, rel), "rb") as f:
+                ef = E.parse(f.read())
+            final = ((ef.runpath if ef.runpath is not None else ef.rpath) or "") if ef is not None else ""
+            for m in self.srx.finditer(final.encode()):
+                h = m.group(1).decode()
+                if h in self.own:
+                    continue
+                self.foreign[h].add("%s:%s" % (y, rel))
+                if ctx.allowed is not None and h not in ctx.allowed:
+                    rep.error("foreign-store-path", "%s/%s: RUNPATH entry %s is not an allowed store path"
+                              % (y, rel, m.group(0).decode()), output=y, file=rel)
+        if self.foreign:
+            rep.section("foreignStorePaths", {h[:8] + "...": sorted(v)[:10] for h, v in sorted(self.foreign.items())})
 
     # -------------------------------------------------------------- classify
     def classify(self, y, rel):
@@ -211,6 +231,13 @@ class Refs:
         for m in self.srx.finditer(data):
             h = m.group(1).decode()
             if h in self.own:
+                continue
+            if (y, rel) in self.elves and any(a <= m.start() < b for a, b in spans) \
+                    and y != ctx.debug_output and not rel_match(rel, plan.noPatchelf):
+                # a RUNPATH entry: phase E recomputes it (drops e.g. the cc's
+                # -L dirs the ld-wrapper turned into -rpath); checked on the
+                # final RUNPATH by check_rpath_foreign()
+                self.rpath_foreign.setdefault((y, rel), set()).add(h)
                 continue
             self.foreign[h].add("%s:%s" % (y, rel))
             if ctx.allowed is not None and h not in ctx.allowed:

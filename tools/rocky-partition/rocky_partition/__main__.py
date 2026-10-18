@@ -66,6 +66,7 @@ def run(a):
     refs = Refs(ctx)
     refs.scan_all()                     # phases D, G
     Runpath(ctx, refs.elves).run()      # phase E
+    refs.check_rpath_foreign()          # case 7 on the final RUNPATHs
     refs.stubs()                        # phase F
     if ctx.replay_old:
         remap_outputs(ctx)
