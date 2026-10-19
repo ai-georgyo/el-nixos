@@ -26,8 +26,9 @@ All with `nix build -L --cores 8 --max-jobs 2` in the local sandbox.
 | `rockyBoot.s1.gzip` | out debug logs | 0 errors, 0 warnings (12 `#!/usr/bin/sh` scripts as `fhs-shebang` info: S1 fhsAllowlist) | built; closure = out + stage0 libc tree. `gzip`/`gzip -d` (ELF) round trip from the store. **gunzip, zcat, zgrep and the other z\* scripts are `#!/usr/bin/sh` scripts and do not run where `/usr/bin/sh` is missing** (NixOS, the test sandbox: `bad interpreter`, rc 126; asserted in nn-s1-smoke). The first version of this table said "gzip/gunzip round trip from the store": that was wrong (review finding 1) |
 | `rockyBoot.s1.glibc` (packages/glibc/default.nix = WP7 draft) | 225 (223 + debug + logs) | rpmbuild completes; partition **235 errors**: 229 `prefix-relative` (benchtests), 6 `dangling` (ldd → libx32, libc.so.6/libc.a → lib/gconv, memusage → lib/libmemusage.so) | fails; exactly the entries the replay found (tools/rocky-partition/tests/glibc-overrides.nix), missing from WP7's draft |
 | same + those entries (ad-hoc expression, not committed: draft // danglingOk `libx32 lib/gconv lib/libmemusage.so`, prefixRelativeOk + opaqueRefs `benchtests sysroot_x86_64_el10_glibc`) | 225 | **0 errors**, 3 warnings | **built, all outputChecks passed**; out/common/utils/dev closure = own outputs + `libgccForGlibc`; `ld.so --list-diagnostics`: prefix and rtld in `$out`, system dirs `$out/lib64/`, `<libgccForGlibc>/lib64/`, `<libgccForGlibc>/lib/` (the `env 'user-defined-trusted-dirs=…'` route works); `getconf GNU_LIBC_VERSION` and `iconv` from `common` run with no RUNPATH; memusagestat NEEDs libgd/libpng/libz with no RUNPATH (build-only glibcBuildDeps never leak) |
+| same ad-hoc glibc, re-run after the review fixes (allowedReferences, shebang gate) | 225 | 0 errors, 3 warnings; `--check-shebangs`: 0 unbound, 10 allowed (ldd, sotruss, tzselect, memusage, xtrace, glibc-bench-compare `#!/usr/bin/bash`; mtrace `#!/usr/bin/sh`; 3 benchtests `#!/usr/bin/python3`, all by the WP7 draft's S1 fhsAllowlist) | **built**, outputChecks (now with allowedReferences) pass; out/common/utils/dev closure = glibc outputs + libgccForGlibc |
 | `checks.nn-s1-smoke` | | | **passes** (21 eval + 28 build assertions after the review fixes; below) |
-| `nix build --rebuild` which, xz, gzip, zlib-ng (after review fix 5) | | | REBUILD_RESULT |
+| `nix build --rebuild` which, xz, gzip, zlib-ng (after review fix 5) | | | passes: `nix build --rebuild` of all four exits 0, every output (`logs` included) bit-identical |
 
 First runs that failed and what fixed them (all in this branch): which —
 `foreign-store-path` for the gcc copy in RUNPATH (deviation 7); gzip/xz —
@@ -52,6 +53,9 @@ its RUNPATH.
 
 Component self-tests after the integration changes: nn-partition-selftest
 (18 cases incl. 2 new: cmake_export, rpath_foreign), nn-names, nn-rpm-config,
+nn-purity, nn-shim, nn-cc-toolchain, nn-order: all pass. After the review fixes:
+nn-partition-selftest (20 cases, + cmake_unrequired, shebang_gate),
+nn-partition-replay (224 outputs, 0 errors), nn-names, nn-rpm-config,
 nn-purity, nn-shim, nn-cc-toolchain, nn-order: all pass.
 
 After the review fixes, nn-s1-smoke also covers: zlib-ng and gzip reports
