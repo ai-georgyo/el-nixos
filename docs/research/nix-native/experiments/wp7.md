@@ -1,5 +1,11 @@
 # WP7: rockyBoot.s1.glibc (milestone M1)
 
+> **Superseded in part by [m1.md](m1.md):** the M1 integration changed the
+> glibc derivation (`NIX_LDFLAGS_BEFORE = --disable-new-dtags`, P2's
+> `__libc_secure_getenv`) after WP9's parity checks ran on this build; the
+> final `out` is `/nix/store/8c0k35fqk8v4yr57yx15h64abiy2azk8-glibc-2.39-142.el10_2`.
+> The numbers below are WP7's build (`xl44f3c0…`).
+
 Branch `nn/wp7`, built on `nn/wp8` (4604871, which is on `nn/wp6` abca219).
 Design: `docs/nix-native-design.md` §0.4.1, §4, §11.5, §12 WP7.
 
