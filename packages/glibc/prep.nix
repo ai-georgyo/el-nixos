@@ -66,7 +66,7 @@ stage0.lib.runInBuildroot {
       want elf/ldconfig.c 'define LD_SO_CONF PREFIX "/etc/ld.so.conf"'
       want elf/Makefile "PREFIX-FLAGS := -D'PREFIX=\"\$(prefix)\"'"
       want elf/rtld.c '"/etc/ld-nix.so.preload"'
-      want locale/loadarchive.c 'secure_getenv ("LOCALE_ARCHIVE_2_27")'
+      want locale/loadarchive.c '__libc_secure_getenv ("LOCALE_ARCHIVE_2_27")'
       want locale/programs/locale.c 'secure_getenv ("LOCALE_ARCHIVE")'
       want locale/programs/locarchive.c 'secure_getenv ("LOCALE_ARCHIVE_2_27")'
       # nothing compiled into ld.so/ldconfig may still name the host cache

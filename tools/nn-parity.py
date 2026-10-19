@@ -127,9 +127,10 @@ def usrmerge(p):
 
 
 # usrmerge spellings inside text: a path token starting with /lib64, /lib,
-# /libx32, /bin, /sbin (not preceded by a path character)
-USRMERGE_TEXT = re.compile(r"(?<![\w./@+-])/(lib64|libx32|lib|bin|sbin)(?=[/\s\"'():;,]|$)", re.M)
-USRMERGE_DATA = re.compile(rb"(?<![\w./@+-])/(lib64|libx32|lib|bin|sbin)(?=[/\s\"'():;,\0]|$)")
+# /libx32, /bin, /sbin (not preceded by a path character, nor by the '>' of
+# a map label: "<libgcc>/lib64/" is the label's own dir, not FHS /lib64)
+USRMERGE_TEXT = re.compile(r"(?<![\w./@+>-])/(lib64|libx32|lib|bin|sbin)(?=[/\s\"'():;,]|$)", re.M)
+USRMERGE_DATA = re.compile(rb"(?<![\w./@+>-])/(lib64|libx32|lib|bin|sbin)(?=[/\s\"'():;,\0]|$)")
 
 
 def usrmerge_text(s):
@@ -1453,6 +1454,7 @@ def selftest():
     assert order == ["a", "b"] and items["a"] == [" x /usr/lib64/libc.so.6 (ADDR)"], items
     assert items["b"] == ["/usr/lib64/ld.so", "\t/usr/lib64/l.so (ADDR)"], items
     assert usrmerge_text("/lib: x /lib64/a /usr/lib64 a/lib/b") == "/usr/lib: x /usr/lib64/a /usr/lib64 a/lib/b"
+    assert usrmerge_text('d="<libgcc>/lib64/" <libgcc>/lib x') == 'd="<libgcc>/lib64/" <libgcc>/lib x'
     print("nn-parity selftest (unit): PASS")
     return 0
 

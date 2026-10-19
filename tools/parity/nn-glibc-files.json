@@ -1,0 +1,11 @@
+{
+  "description": "nn-parity files: per shipped RPM, the relocated glibc's file set, types, modes, symlinks and partitioner metadata (nix-support/rpm/*.json: Requires/Provides from the transient headers) vs the 221 official RPMs (checks.nn-glibc-files). Generic relocation effects are in nn-default.json; every rule here names its cause in 'effect'.",
+  "allow": [
+    {
+      "id": "meta.requires:+libc.so.6(GLIBC_2.17)(64bit)",
+      "packages": "glibc-common.x86_64",
+      "effect": "P2",
+      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): locale and localedef call secure_getenv (GLIBC_2.17) for $LOCALE_ARCHIVE_2_27 / $LOCALE_ARCHIVE, so rpm's ELF dependency generator adds this version Requires to glibc-common's transient header; glibc-common already requires libc.so.6 with later versions from the same glibc, so the dependency closure is unchanged"
+    }
+  ]
+}

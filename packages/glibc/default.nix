@@ -33,6 +33,18 @@ in
     # derivation attributes, read by the cc/ld wrappers
     NIX_NO_SELF_RPATH = "1";
     NIX_DONT_SET_RPATH = "1";
+    # the S1 ld wrapper puts --enable-new-dtags before every link (so its
+    # store -rpath entries become DT_RUNPATH, lib/rocky/cc/wrap.nix); glibc
+    # gets no store rpath at all (NIX_DONT_SET_RPATH), and with new dtags ld
+    # writes `-z now` as DT_FLAGS/DF_BIND_NOW instead of Rocky's DT_BIND_NOW
+    # and the gconv modules' -rpath '$ORIGIN' as DT_RUNPATH instead of
+    # DT_RPATH (RUNPATH yields to LD_LIBRARY_PATH): 705 abi.dynamic and 279
+    # content differences in checks.nn-glibc-{abi,content} (M1, m1.md).
+    # NIX_LDFLAGS_BEFORE follows the wrapper's own flags and precedes the
+    # link's arguments, so this restores Rocky's ld default and still lets
+    # glibc's own -Wl,--enable-new-dtags (rt/Makefile, librt.so.1) win; as
+    # NIX_LDFLAGS_AFTER it overrode that one too (librt lost its DT_FLAGS)
+    NIX_LDFLAGS_BEFORE = "--disable-new-dtags";
     # glibc dlopens libgcc_s.so.1 (pthread_cancel, backtrace) from its system
     # dirs only; a make variable from the environment (E5: reaches every
     # sub-make through rpmbuild and the spec's `env ... make -r`).  NOT a

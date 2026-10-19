@@ -52,6 +52,29 @@ Rocky SRPM:
   common files are byte-identical. See
   [docs/kernel-headers.md](docs/kernel-headers.md).
 
+### Nix-native packages (milestone M1 of the current direction)
+
+The same SRPMs are also built as **relocated, composable Nix store paths**:
+one derivation per SRPM, one Nix output per RPM subpackage, rpmbuild as the
+spec engine, nothing under `/usr` (design:
+[docs/nix-native-design.md](docs/nix-native-design.md); guide:
+[docs/nix-native.md](docs/nix-native.md)). **M1 is reached:**
+`rockyBoot.s1.glibc` (225 outputs: `out`, `dev`, `common`, `langpack_de`, …)
+is built by the stage0 gcc through the S1 toolchain; its closure is its own
+outputs plus one RUNPATH-free `libgcc_s` copy, and
+`checks.nn-glibc-{files,abi,content,closure,runtime}` pass against the 221
+official RPMs (every remaining difference is a named allowlist rule: the
+three Nix-side glibc patches, store-by-pieces code, the stage0 annobin gap,
+locale aliases). Stage S1 also has which, xz, zlib-ng, gzip and the kernel
+headers. Attributes: `rockyBoot.s1.<srpm>`, `rockyBoot.s1.rpm."<rpm-name>"`,
+`hydraJobs.nixNative`; machinery under `legacyPackages.x86_64-linux.nn`.
+
+```sh
+nix build -L '.#rockyBoot.s1.glibc^*'                     # all 225 outputs
+nix build -L '.#rockyBoot.s1.rpm."glibc-devel"'           # by RPM name (= glibc.dev)
+nix build -L .#checks.x86_64-linux.nn-glibc-runtime       # behaviour without /usr vs the official RPMs
+```
+
 ## Quick start
 
 ```sh
@@ -119,6 +142,10 @@ packages/               per-SRPM recipes: glibc.nix (+ glibc-sanity.sh, glibc-ru
 tools/                  update-lock.py, resolve-buildrequires.py, rpm-parity.py, rpm_purity.py, abi-compare.py,
                         build-jobs.sh, parity/*.json (allowlists)
 docs/                   DESIGN.md (contract), stage0.md, glibc.md, kernel-headers.md, parity.md, research/
+lib/rocky/               Nix-native machinery (mkRpmPackage, mkStage, cc-wrapper, tool shim, rpm config,
+                        purity, late binding; parts/ -> nn.<name>, checks/ -> checks.nn-*)
+bootstrap/nn/           Nix-native stages (s1.nix), libgcc-for-glibc.nix
+tools/rocky-partition/  the in-build partitioner (one output per subpackage); tools/nn-parity.py: relocated parity
 ```
 
 ## Documentation
@@ -133,6 +160,9 @@ docs/                   DESIGN.md (contract), stage0.md, glibc.md, kernel-header
   build.
 * [docs/parity.md](docs/parity.md): the parity/purity checker and the
   allowlist format.
+* [docs/nix-native.md](docs/nix-native.md) and
+  [docs/nix-native-design.md](docs/nix-native-design.md): the relocated,
+  Nix-native packages (current direction).
 
 ## Next steps toward BaseOS
 

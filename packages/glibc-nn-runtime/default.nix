@@ -240,8 +240,10 @@ let
         a "P2: LOCALE_ARCHIVE (no LOCPATH) finds de_DE.UTF-8" 'setlocale=de_DE.UTF-8' <(sed -n '/^### r.locale.archive/,/^###/p' $R/relocated.txt)
         a "LOCPATH wins over LOCALE_ARCHIVE" 'setlocale=de_DE.UTF-8' <(sed -n '/^### r.locale.locpath-wins/,/^###/p' $R/relocated.txt)
         a "neither: no locale data by default (dangling complocaledir)" 'setlocale=\(null\)' <(sed -n '/^### r.locale.none/,/^###/p' $R/relocated.txt)
-        n "P3: /etc/ld.so.preload ignored" 'ld\.so\.preload' <(sed -n '/^### p3.ld.so.preload/,/^###/p' $R/p3.txt)
-        a "P3: /etc/ld-nix.so.preload read" 'ld-nix\.so\.preload' $R/p3.txt
+        # (the section headers name the files themselves: match the bodies only)
+        a "P3: program runs with an /etc/ld.so.preload present" '^glibc 2\.39 stable' <(sed -n '/^### p3.ld.so.preload/,/^###/p' $R/p3.txt | grep -v '^###')
+        n "P3: /etc/ld.so.preload ignored" 'ld\.so\.preload' <(sed -n '/^### p3.ld.so.preload/,/^###/p' $R/p3.txt | grep -v '^###')
+        a "P3: /etc/ld-nix.so.preload read" 'from /etc/ld-nix\.so\.preload cannot be preloaded' <(sed -n '/^### p3.ld-nix.so.preload/,/^###/p' $R/p3.txt | grep -v '^###')
         a "LOCPATH mode reaches zu_ZA" '^### loc\.zu_ZA' $R/locales.txt
         cnt() { grep -c '^### loc\.' "$1" || true; }
         [ "$(cnt $R/locales.txt)" -ge 500 ] || { fails+=("LOCPATH locale count"); echo "ASSERT FAILED: LOCPATH locale count"; }

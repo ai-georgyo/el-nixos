@@ -6,14 +6,16 @@ as the spec engine. The design contract is
 [`nix-native-design.md`](nix-native-design.md) (revision 2); this guide
 says how to use and extend what it describes.
 
-**Status (after the foundation merge, c700802).** The machinery exists and is
-tested piece by piece: lock data, rpm configuration, tool shim, cc-wrapper,
-partitioner, names/overrides/unions, purity check (design §12 status table).
-`mkRpmPackage`/`mkStage` (WP6), the relocated glibc (WP7), kernel-headers
-(WP8), parity/runtime checks (WP9), attributes (WP10) and late binding (WP11)
-are **not written yet**. Sections that depend on them are marked **TODO
-(WP6)** etc.; their content is the design's plan, not a description of
-working code.
+**Status (milestone M1, branch nn/m1).** `mkRpmPackage`/`mkStage` (WP6),
+stage S1 with which, xz, zlib-ng, gzip, kernel-headers (WP8) and the
+relocated glibc (WP7), the parity and runtime checks against the official
+RPMs (WP9), the attributes below (WP10) and late binding (WP11, wired into
+`mkRpmPackage`, inactive in S1) exist and are built. **M1 =
+`rockyBoot.s1.glibc`**: 225 outputs, built by the stage0 gcc, closure = its
+own outputs + `libgccForGlibc`, verified by `checks.nn-glibc-{files,abi,content,closure,runtime,smoke}`
+(results in §7 and `research/nix-native/experiments/m1.md`). Not done yet:
+the rest of S1 (macro packages, gmp … gcc¹), S2, S3 (`rocky.*`, M2),
+profiles (§6), `keepBuildTree` (§5).
 
 ## 1. What a relocated package looks like
 
@@ -48,32 +50,43 @@ working code.
 
 ## 2. Attributes
 
-**TODO (WP6, WP10).** Planned shape (design §2.12, §11.2):
-
 | attribute | meaning |
 |---|---|
-| `rockyBoot.<stage>.<srpm>` | the multi-output derivation of `<srpm>` in bootstrap stage `s1`, `s2` (`legacyPackages.x86_64-linux.rockyBoot`; `default.nix` already exposes `rockyBoot = nn.rockyBoot or { }`, today empty) |
-| `rockyBoot.<stage>.<srpm>.<output>` | one output, e.g. `rockyBoot.s1.glibc.dev`, `.common`, `.langpack_de` |
-| `rockyBoot.<stage>.rpm."<rpm-name>"` | alias by RPM name, e.g. `rockyBoot.s1.rpm."glibc-devel"` = `rockyBoot.s1.glibc.dev` (shipped subpackages only) |
-| `rocky.<srpm>`, `rocky.rpm."<rpm-name>"` | the final stage S3, same shape (M2 and later) |
-| `<pkg>.raw` | the rpmbuild derivation when late binding wraps it (§5.6) |
-| `passthru.rpmOutputs` | `{ "<rpm-name>" = "<output>"; }` for shipped subpackages |
+| `rockyBoot.s1.<srpm>` | the multi-output derivation of `<srpm>` in bootstrap stage S1 (`legacyPackages.x86_64-linux.rockyBoot.s1`): `glibc`, `kernel-headers` (the kernel SRPM headers-only, a mkStage variant), `which`, `xz`, `zlib-ng`, `gzip` |
+| `rockyBoot.s1.<srpm>.<output>` | one output, e.g. `rockyBoot.s1.glibc.dev`, `.common`, `.langpack_de` |
+| `rockyBoot.s1.rpm."<rpm-name>"` | alias by RPM name, e.g. `rockyBoot.s1.rpm."glibc-devel"` = `rockyBoot.s1.glibc.dev` (shipped subpackages only; 234 names in S1). `rpm` is reserved: the rpm SRPM, once built, is `rockyBoot.<stage>.rpm.rpm` |
+| `rocky.<srpm>`, `rocky.rpm."<rpm-name>"` | the final stage S3, same shape (M2 and later; not yet) |
+| `<pkg>.raw`, `<pkg>.bound`, `<pkg>.lateBound` | where a stage binds late outputs (§5.6): the rpmbuild derivation, the bind derivation, the bound output names |
+| `passthru.rpmOutputs` | `{ "<rpm-name>" = "<output>"; }` for every subpackage (`shippedRpmOutputs`: shipped only) |
 | `passthru.unshipped` | subpackages the spec builds but Rocky does not publish (glibc's `glibc32`, `sysroot-x86_64-el10-glibc`, `compat-libpthread-nonshared`); they are real outputs without an `rpm.*` alias |
-| `passthru.rockyStage`, `passthru.srpm`, `passthru.overrides` | stage name, lock name, validated overrides |
-| `hydraJobs.nixNative.x86_64-linux` | = `rockyBoot`, for `tools/build-jobs.sh` |
+| `passthru.rockyStage`, `passthru.srpm`, `passthru.pname`, `passthru.overrides` | stage name, lock name, variant name, validated overrides |
+| `passthru.rockyRequisites`, `rockyOutputsByName`, `rockyCompanions`, `rockyPlan`, `rockyDeps` | closure bound for consumers, outputs by name, `-devel` companions, the partition plan, the resolved build inputs |
+| `nn.stages.s1` | the stage object: `pkgs`, `rpm`, `resolveBuildDeps`, `glibcBuildDeps`, `libgccForGlibc`, `ccGlibc1` (the S1 toolchain over the relocated glibc + kernel headers), `glibc1Libc`, … ; `nn.stages.s1Glibc1` = S1 with every package after glibc linked against it (evaluated, not built) |
+| `hydraJobs.nixNative.x86_64-linux.<stage>.<srpm>` | `rockyBoot` without the `rpm` aliases (they name the same derivations), for `tools/build-jobs.sh` |
 
-The machinery is reachable today as `legacyPackages.x86_64-linux.nn.<name>`
+```sh
+nix build -L .#rockyBoot.s1.glibc.dev                  # one output
+nix build -L '.#rockyBoot.s1.glibc^*'                  # all 225
+nix build -L '.#rockyBoot.s1.rpm."glibc-langpack-de"'  # by RPM name
+```
+
+The machinery is reachable as `legacyPackages.x86_64-linux.nn.<name>`
 (plug-in layout of `lib/rocky/default.nix`: `lib/rocky/parts/<name>.nix` →
 `nn.<name>`, `lib/rocky/checks/<name>.nix` → `checks.x86_64-linux.nn-*`):
 
 | attribute | what it is |
 |---|---|
+| `nn.mkRpmPackage stage { srpm; pname ? srpm; overrides ? … }` | one derivation per SRPM (`lib/rocky/mk-rpm-package.nix`) |
+| `nn.mkStage { … }` | a bootstrap stage as a lazy fixpoint (`lib/rocky/stage.nix`, parameters in its header) |
+| `nn.stages`, `nn.rockyBoot` | the stage objects and their packages |
+| `nn.lateBind` | `wrap raw { binds; referrers; … }`, `fromOverrides`, `mk` (§5.6) |
+| `nn.nnChecks` | `glibc { glibc; … }` parity/runtime check builder, `selftest`, `dev.replay` |
 | `nn.cc` | S1 cc-wrapper: `wrap { libc }`, `libcAdapter`, `stage0Libc`, `stage0`, `storescan`, `e1.*` |
 | `nn.toolShim` | the bwrap shim (`${nn.toolShim} [--no-prefix-view] -- cmd…`), `mk`, `mkview`, `e2.*` |
 | `nn.rpmConfig` | rpm configuration + relocation macros + `nix/` helper scripts (`instantiate`), `configSite` |
 | `nn.partitionTool` | `tools/rocky-partition` as a source path; `trees.*` test build trees |
 | `nn.libgccForGlibc` | RUNPATH-free copy of the stage0 `libgcc_s.so.1` (64 + 32-bit) |
-| `nn.lockgen` | `rpmspec -q` per SRPM for `subpackages.json` |
+| `nn.lockgen` | `rpmspec -q` per SRPM for `subpackages.json` (`nix run .#lock-subpackages`) |
 | `nn.names`, `nn.overrides`, `nn.unions` | output names, override schema, search-path table |
 | `nn.purity` | eval-time build-purity assertion |
 
@@ -142,11 +155,11 @@ Typical needs, from the experiments (design §2.7, §2.5.1):
 | Nix-side patches (glibc P1–P3) | `nixPatches`, `prepScript` |
 | a make variable with a non-identifier name | `env."<name>"` (passed as `env 'name=value' rpmbuild`, never in the structured derivation env) |
 
-**Pending (WP6):** the override fields `prefixRelativeOk` (acks for
-`*-config` scripts, test trees, a cross sysroot) and `integrityOk` exist as
-partitioner plan keys (`tools/rocky-partition/PLAN.md`) but not yet in
-`overrides.nix`; the `opaqueRefs` entry format is not settled (PLAN.md's
-`"<output>:<rel glob>"` vs the glibc draft's `"<output>/<rel>"`).
+Fields added by WP6–WP8 (all in the README): `prefixRelativeOk`,
+`integrityOk`, `systemLibDirs`, `builtSubpackages` (a variant that builds
+part of a spec: kernel-headers), `runtimeLibc`, `inputs.addBuildOnly`
+(glibc's kernel-headers: host input, never a runtime input),
+`inputs.buildRequires`. `opaqueRefs` uses PLAN.md's `"<output>[:<rel glob>]"`.
 
 ## 5. How splitting works
 
@@ -174,11 +187,22 @@ One derivation per SRPM does everything (design §0.1, §2):
    in `$out/nix-support/rocky-report.json`.
 5. **Fixup**: `patchShebangs --host` binds FHS shebangs to runtime inputs; no
    strip (rpm did it), no nixpkgs output moving.
-6. **Late binding** (**TODO (WP11)**): outputs whose interpreters or
-   libraries are built later (glibc's `common`, `utils`, `nss_db`,
-   `benchtests`) get a cheap bind derivation that rewrites shebangs, symlinks,
-   text and RUNPATH of those outputs and of the sibling outputs that
-   reference them (`lateReferrers`).
+6. **Late binding** (`nn.lateBind`, design §2.9, §11.3): outputs whose
+   interpreters or libraries are built later (glibc's `common`, `utils`,
+   `nss_db`, `benchtests`) get a cheap bind derivation that copies those
+   outputs and the sibling outputs that reference them (`lateReferrers`:
+   138 langpacks, `nss_devel`), rewrites raw hashes in symlinks and text,
+   binds shebangs (patchShebangs against the interpreters) and RUNPATH
+   (the libs that resolve an unresolved `DT_NEEDED`), and refuses ELF
+   contents that reference a raw late output. `mkRpmPackage` returns
+   `lateBind.wrap raw` when the package declares `lateBind` **and** the
+   stage binds it (`mkStage { lateBindFor = srpm: …; lateBindPkgs;
+   interpreterPkgs; }`, from S3); the result keeps `.raw`, and each output
+   carries its own `rockyRequisites` (a consumer of `glibc.out` never sees
+   the bind derivation). S1 does not bind (no Rocky bash/perl/python3/gd
+   yet): `rockyBoot.s1.glibc` is the raw build and names its FHS shebangs
+   and unresolved `NEEDED` as S1 exceptions. `checks.nn-glibc-late-bind`
+   binds the real S1 glibc to test stand-ins.
 
 Reading a failure: the partitioner exits 1 and prints each finding with its
 code; the table of codes and remedies is in `tools/rocky-partition/PLAN.md`
@@ -194,8 +218,8 @@ python3 -I tools/rocky-partition/rocky-partition --plan plan.json --replay TREE 
 ```
 
 (`TREE/BUILDROOT`, `TREE/RPMS`, `TREE/prefix`; development copies only.)
-**TODO (WP6):** the `keepBuildTree` attribute that produces such a tree from
-`mkRpmPackage`; today the trees come from
+**TODO:** the `keepBuildTree` attribute that produces such a tree from
+`mkRpmPackage` is not written; today the trees come from
 `tools/rocky-partition/tests/{reloc-tree,trees}.nix`.
 
 ## 6. Search paths and profiles
@@ -238,7 +262,7 @@ Checks that exist (`nix build -L --cores 8 --max-jobs 2
 | `nn-cc-toolchain` | the S1 wrapper: C, C++, shared, `-m32`, `-static`, `-flto`; store loader, DT_RUNPATH only, `$out/lib64` self-rpath, no store path in DWARF, no `-frandom-seed` |
 | `nn-shim` | the tool shim: rpmbuild in the view, only declared inputs visible, overlay dirs read-only, `$out` alias and emptiness, nested and concurrent calls |
 | `nn-rpm-config` | 75 macros with exact values, macro load order (negative control), fold-usr/check-files/prep-hooks/instantiate unit tests, two relocated rpmbuilds |
-| `nn-partition-selftest` | 12 synthetic trees (split, cycles, search paths, dangling/foreign/union, pieced, prefix-relative, late binding, replay, layout, plan errors, FIPS) |
+| `nn-partition-selftest` | 20 synthetic cases (split, cycles, search paths, dangling/foreign/union, pieced, prefix-relative, late binding, replay, layout, plan errors, FIPS, cmake export files, the shebang gate) |
 | `nn-partition-replay` | the relocated glibc tree replayed into 224 outputs: 0 errors, no cycles, no old prefix left (~20 min, big-parallel) |
 | `nn-glibc-prep` | glibc P1–P3 apply with `--fuzz=0` after Rocky's `%prep` and have their effects |
 | `nn-libgcc-for-glibc` | `libgccForGlibc` references nothing, no RUNPATH, right ELF classes |
@@ -246,14 +270,29 @@ Checks that exist (`nix build -L --cores 8 --max-jobs 2
 | `nn-purity` | 42 eval-time tests of the build-purity assertion (E6) |
 | `nn-names` | output names, override schema, unions table and hook/profile scripts |
 
-Planned (**TODO (WP9)**, design §7.5, §7.6): `checks.nn-glibc-{files,abi,content,closure,runtime}`:
-relocated parity against the official RPMs (file sets with `/usr/x` ↔
-`<o>/x`, ABI with a path map, content after store-path normalisation, the
-closure rule) and behaviour in a `/usr`-free sandbox (loader diagnostics,
-static/`-m32` programs, 885 locales, 1180 charsets, NSS, `pthread_cancel`).
-Planned (**TODO (WP6)**): output closure enforcement by
-`outputChecks.<o>.allowedRequisites` and the purity assertion wired into
-`mkStage`.
+Stage and package checks (WP6–WP11):
+
+| check | covers |
+|---|---|
+| `nn-s1-smoke` | which, xz, zlib-ng, gzip: outputs = `subpackages.json`, 0 partition errors, closures = own outputs + the stage0 libc tree, programs run from the store without `/usr`, `find_package(ZLIB CONFIG)`, purity violations only from declared bootstrap parts |
+| `nn-kernel-headers` | the kernel SRPM headers-only through mkRpmPackage vs the official kernel-headers RPM (file list, bytes, NEVR, deps) |
+| `nn-glibc-smoke` | M1 acceptance: 225 outputs, outputChecks, closures = siblings + `libgccForGlibc`, nested store-path scan (0 foreign paths in 14 738 files), programs from the S1 toolchain in a `/usr`-free sandbox (dynamic, `-static`, `-m32`, C++, `pthread_cancel`, locales via LOCPATH / LOCALE_ARCHIVE), ld.so diagnostics, P1/P2/P3 |
+| `nn-glibc-files` | per shipped RPM: file set, types, modes, symlinks, flags, owners, Requires/Provides vs the 221 official RPMs |
+| `nn-glibc-abi` | `abi-compare.py` through the path map: 709 DSOs, 3541 archive members, 480 headers |
+| `nn-glibc-content` | bytes / text after the path map / ELF loaded sections classified (displacement-normalised disassembly, string pools, layout) for 7724 files |
+| `nn-glibc-closure` | every output's closure ⊆ siblings + `libgccForGlibc` |
+| `nn-glibc-runtime` | official RPM roots vs a `/usr`-free root of the relocated outputs: ~1460 report items, 503 LOCPATH locales, 884 archive locales, 1180 iconv charsets, NSS, getconf, tz, programs (dynamic, static, static-pie, `-m32`), plus assertions for P1, P2, P3, trusted dirs, LOCPATH-wins |
+| `nn-glibc-late-bind` | mkRpmPackage's late binding on the real glibc with test stand-ins: bound closures without raw late outputs, langpack symlinks into the bound common, ldd through the bound shebang, memusagestat's RUNPATH |
+| `nn-late-bind`, `nn-late-bind-unit` | the bind derivation on synthetic trees |
+| `nn-parity-selftest` | every `nn-parity.py` comparator on a synthetic package, faithful and broken |
+
+Every difference the parity checks accept is a rule in
+`tools/parity/nn-default.json` or `tools/parity/nn-glibc-<check>.json`
+with its `effect` (P1, P2, P3, trusted-dirs, store-by-pieces, stage0
+annobin, locale-search-path, libc-catalogs, locale-alias, late-bind,
+transient-payload) and reason; each check also has a `.report` attribute
+that always builds (`$out/report.txt`). Results at M1:
+`research/nix-native/experiments/m1.md`.
 
 ## 8. Known differences from Rocky
 
@@ -270,6 +309,10 @@ Deliberate, named differences (design §0.4, §4.3):
   open decision), then the compiled-in path.
 * **P3** `ld-preload.patch`: the preload file is `/etc/ld-nix.so.preload`, not
   `/etc/ld.so.preload`.
+* P2 calls glibc's internal `__libc_secure_getenv` inside libc (nixpkgs'
+  public `secure_getenv` added an interposable PLT slot to libc.so.6);
+  `locale` and `localedef` call `secure_getenv` and so need
+  `GLIBC_2.17`.
 * The loader also trusts the `libgccForGlibc` directories
   (`user-defined-trusted-dirs`), so `pthread_cancel` and `backtrace` find
   `libgcc_s.so.1` without `/lib64` (a stage0-built copy in S1, the named
@@ -280,6 +323,11 @@ Consequences of relocation:
 * **Dangling `TZDIR`**: glibc's compiled-in default
   `<glibc>/share/zoneinfo` does not exist (tzdata is another SRPM). Set
   `TZDIR` (profiles, NixOS); `/etc/localtime` is still read from `/etc`.
+* **Locale aliases**: libc reads `<glibc>/share/locale/locale.alias`
+  (compiled in), but the file belongs to `common`; alias names
+  (`no_NO.ISO-8859-1` → `nb_NO.ISO-8859-1`, `norwegian`, …) resolve only
+  where a profile composes `share/locale` (the only archive name affected is
+  `no_NO.ISO-8859-1`).
 * **Untranslated libc messages**: glibc's own message catalogs live in
   `<glibc>/share/locale` only when composed; without a profile or
   `TEXTDOMAINDIR`, libc's messages are English (as in nixpkgs).
@@ -304,17 +352,25 @@ Consequences of relocation:
 
 ## 9. Adding a package (developer checklist)
 
-**TODO (WP6).** Expected flow once `mkRpmPackage` exists:
-
 1. Make sure the SRPM has a `subpackages.json` entry and `builddeps.json`
    inputs (§3).
-2. Build `rockyBoot.<stage>.<srpm>` with no override.
-3. Read the partitioner's findings; fix with the smallest override (§4), each
+2. Add it to the stage's `packages` (`bootstrap/nn/s1.nix`). Evaluation
+   fails, listing every name, for BuildRequires the stage neither builds nor
+   has in its `fallback` set, and for BuildRequires the lock could not
+   resolve: map each (stage package, fallback entry with a reason, or the
+   package's `inputs.drop`).
+3. Build `rockyBoot.<stage>.<srpm>` with no override. Read the partitioner's
+   findings (`$out/nix-support/rocky-report.json`, also in the `logs`
+   output) and the shebang gate; fix with the smallest override (§4), each
    entry with a comment saying why.
 4. Check the spec for path edits that use the package name or
    `$RPM_BUILD_ROOT/usr` (krb5, gnutls hazards, design §1.5 item 4).
-5. Run the package's checks; for libraries in FIPS mode, check the
-   integrity data (design §2.6).
+5. Check the closure (`nix path-info -r`), `nix build --rebuild`, run the
+   program from the store in a sandbox without `/usr`; for libraries in FIPS
+   mode, check the integrity data (design §2.6). Parity against the
+   official RPMs: `nn.nnChecks.glibc { glibc = <pkg>; srpm = "<srpm>"; }`
+   is written for glibc but takes any multi-output package with
+   `passthru.rpmOutputs` (allowlists `tools/parity/nn-<srpm>-<check>.json`).
 
 ## 10. Further reading
 
@@ -323,7 +379,7 @@ Consequences of relocation:
 * [`research/nix-native/foundation-handoff.md`](research/nix-native/foundation-handoff.md)
   — component interfaces and open requests.
 * [`research/nix-native/experiments/`](research/nix-native/experiments/) —
-  E1–E6, lock, rpmconfig, names records.
+  E1–E6, lock, rpmconfig, names, wp6–wp8 and m1 (milestone M1) records.
 * `tools/rocky-partition/PLAN.md` — partition plan schema and error codes.
 * [`packages/README-overrides.md`](../packages/README-overrides.md) — override
   fields.

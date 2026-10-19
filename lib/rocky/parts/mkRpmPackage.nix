@@ -7,5 +7,6 @@ import ../mk-rpm-package.nix {
   overridesLib = self.overrides;
   unions = self.unions;
   partitionTool = self.partitionTool;
+  lateBind = self.lateBind;
   srpmLib = import ../../srpm.nix { pkgs = bootPkgs; inherit lock; };
 }

@@ -16,6 +16,7 @@
 #   name stdenv ccFor baseTools fhsBins rpmBin rpmLibDir rpmConfig toolShim
 #   patchelf runtimeLibcFor libcDevFor systemLibDirsFor exceptionsFor
 #   resolveBuildDeps fhsPath overridesFor purity (and purityChecker through it)
+#   lateBindFor lateBindPkgs interpreterPkgs stdenvNoCC python3 (late binding)
 #
 # Runtime vs build-only inputs (§7.1): the runtime inputs are the OUTPUTS
 # actually used -- the stage libc's out (runtimeLibcFor) and the Rocky host
@@ -68,6 +69,13 @@
 #                 debug/logs + the runtime-input outputs used + stage
 #                 exceptions; allowedRequisites = that + the used outputs'
 #                 rockyRequisites; debug may reference siblings; logs nothing
+#   late binding  stage.lateBindFor srpm and overrides.lateBind != { }: the
+#                 result is nn.lateBind.wrap of the raw derivation (§11.1:
+#                 bound copies of the late outputs + their lateReferrers,
+#                 interpreters/libs resolved by lateBind.fromOverrides from
+#                 the stage; per-output rockyRequisites); else the raw one
+#                 (S1: inactive, the late outputs ship raw with the package's
+#                 named exceptions)
 #   logs          rocky-report.json, plan.json, view collisions (store hashes
 #                 normalised; deterministic).  The raw rpmbuild log is not an
 #                 output (parallel make interleaving, timestamps, -jN): it is
@@ -76,7 +84,7 @@
 # Override `env` keys that are not shell identifiers (glibc's
 # user-defined-trusted-dirs) never enter the structured `env` (setup.sh's
 # `declare -x` aborts on them, E5): they are passed as `env 'k=v' rpmbuild`.
-{ lib, names, overridesLib, unions, partitionTool, srpmLib, lock }:
+{ lib, names, overridesLib, unions, partitionTool, srpmLib, lock, lateBind }:
 stage:
 { srpm
 , pname ? srpm
@@ -450,5 +458,53 @@ let
       inherit rockyPlan;
     };
   };
+
+  checked = stage.purity.check stage raw;
+
+  # ---- late binding (§2.9, §11.1, §11.3) -----------------------------------
+  # stage.pkgs.<srpm> = lateBind.wrap raw when the package declares lateBind
+  # AND the stage binds it (stage.lateBindFor srpm: the interpreters and libs
+  # exist as Rocky builds, S3); else the raw derivation.  In a stage that
+  # does not bind (S1), the raw late outputs are shipped as they are and
+  # the package names its FHS shebangs / unresolved NEEDED as bootstrap
+  # exceptions (glibc: fhsAllowlist, allowUnresolvedNeeded).
+  # Names resolve through lateBind.fromOverrides: libs are SRPM names in
+  # stage.pkgs // stage.lateBindPkgs, interpreters shebang basenames in
+  # stage.interpreterPkgs (else the stage package of that SRPM).
+  bindActive = ov.lateBind != { } && (stage.lateBindFor or (_: false)) srpm;
+  lb = lateBind.mk {
+    inherit (stage) stdenvNoCC patchelf python3;
+    inherit partitionTool;
+  };
+  bindSpec = lb.fromOverrides {
+    pkgs = stage.pkgs // (stage.lateBindPkgs or { });
+    interpreterPkgs = stage.interpreterPkgs or { };
+  } ov;
+  bindDeps = lib.concatMap (b: b.interpreters ++ b.libs) (lib.attrValues bindSpec.binds);
+  rawKey = p: builtins.unsafeDiscardStringContext (toString p);
+  bound = lb.wrap checked {
+    inherit (bindSpec) binds referrers;
+    # strict NEEDED resolution in the late outputs with libs (late-bind.py)
+    systemLibDirs = map (d: builtins.replaceStrings [ "@out@" ] [ "${raw.out}" ] d) rockyPlan.systemLibDirs;
+    checkBound = stage.purity.check stage;
+    # per output: what a consumer's closure may contain because of it.  An
+    # output outside L* keeps raw's bound minus the raw L* outputs (it never
+    # references them); a bound output adds the bound L* outputs and the
+    # binding packages' closures.  Per output, so a consumer of glibc.out
+    # (gd, built before glibc's bound utils, which bind gd) never sees the
+    # bind derivation (an evaluation cycle otherwise)
+    passthruFor = result: o:
+      let
+        rawLstar = map (x: rawKey raw.${x}) bound.lateBound;
+        base = lib.filter (p: !(lib.elem (rawKey p) rawLstar)) raw.rockyRequisites;
+        isBound = lib.elem o bound.lateBound;
+      in {
+        rockyOutputs = map (x: result.${x}) managed;
+        rockyOutputsByName = lib.genAttrs managed (x: result.${x});
+        rockyRequisites = if !isBound then base else stage.uniqPaths
+          (base ++ map (x: result.${x}) (lib.filter (x: lib.elem x managed) bound.lateBound)
+           ++ lib.concatMap (d: d.rockyRequisites or [ d ]) bindDeps);
+      };
+  };
 in
-stage.purity.check stage raw
+if bindActive then bound else checked

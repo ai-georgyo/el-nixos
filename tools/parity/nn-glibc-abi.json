@@ -1,5 +1,5 @@
 {
-  "description": "nn-parity abi: tools/abi-compare.py (binutils readelf/nm) over our files at their FHS paths vs the 221 official RPMs, readelf/nm output passed through the path map (output store paths -> /usr). Target: 0 unexpected. Dynamic objects whose size changes only by a relocated path are classified by the tool (pathsized_dynsyms), not here.",
+  "description": "nn-parity abi: tools/abi-compare.py (binutils readelf/nm) over our files at their FHS paths vs the 221 official RPMs, readelf/nm output passed through the path map (output store paths -> /usr). Target: 0 unexpected. Dynamic objects whose size changes only by a relocated path are classified by the tool (pathsized_dynsyms), not here. Rules name their effect: store-by-pieces (design §2.8), P2 (the locale-archive patch, §4.3).",
   "allow": [
     {
       "id": "abi.dynsym:/usr/lib64/libc.so.6",
@@ -8,6 +8,35 @@
       "reason": "the only dynamic-symbol difference of the relocated libc.so.6 is catopen's size (478 -> 606 bytes: its NLSPATH default with the store prefix is copied by inline vector stores, see tools/parity/nn-glibc-content.json); names, versions, types, bindings, visibility and every other size are equal (ours/official pin exactly this one changed line)",
       "ours": "^\\[\"catopen@@GLIBC_2\\.2\\.5 FUNC GLOBAL DEFAULT DEF 606\"\\]$",
       "official": "^\\[\"catopen@@GLIBC_2\\.2\\.5 FUNC GLOBAL DEFAULT DEF 478\"\\]$"
+    },
+    {
+      "id": [
+        "abi.dynsym:/usr/bin/locale",
+        "abi.dynsym:/usr/bin/localedef"
+      ],
+      "packages": "glibc-common.x86_64",
+      "effect": "P2",
+      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): locale.c and locarchive.c read $LOCALE_ARCHIVE_2_27 / $LOCALE_ARCHIVE with secure_getenv, as nixpkgs: one new undefined dynamic symbol (ours/official pin exactly it)",
+      "ours": "^\\[\"secure_getenv@GLIBC_2\\.17 FUNC GLOBAL DEFAULT UND 0\"\\]$",
+      "official": "^\\[\\]$"
+    },
+    {
+      "id": [
+        "abi.versions:/usr/bin/locale",
+        "abi.versions:/usr/bin/localedef"
+      ],
+      "packages": "glibc-common.x86_64",
+      "effect": "P2",
+      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): the secure_getenv@GLIBC_2.17 reference adds a GLIBC_2.17 version need, so the .gnu.version table gains one entry and its version indices shift (the dynamic symbols themselves are compared by abi.dynsym)",
+      "ours": "GLIBC_2\\.17"
+    },
+    {
+      "id": "abi.symbols:/usr/lib64/libc.a",
+      "packages": "glibc-static.x86_64",
+      "effect": "P2",
+      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): loadarchive.o reads the two environment variables through glibc's internal hidden alias __libc_secure_getenv (an undefined reference resolved inside libc.a; ours/official pin exactly it)",
+      "ours": "^\\[\"loadarchive\\.o __libc_secure_getenv U\"\\]$",
+      "official": "^\\[\\]$"
     }
   ]
 }

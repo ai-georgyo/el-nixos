@@ -1922,6 +1922,22 @@ The cross-package requests addressed to WP6/WP7/WP9/WP11 are collected in
 `docs/research/nix-native/foundation-handoff.md`; the design-level ones are
 folded into the sections above.
 
+**Status at M1 (branch `nn/m1`; records `experiments/wp6.md`, `wp7.md`,
+`wp8.md`, `m1.md`):**
+
+| WP | status | where |
+|---|---|---|
+| WP6 | done (`checks.nn-s1-smoke`): which, xz, zlib-ng, gzip in S1 | `nn.mkRpmPackage`, `nn.mkStage`, `bootstrap/nn/s1.nix` |
+| WP7 | done: `rockyBoot.s1.glibc` (225 outputs, closure = siblings + `libgccForGlibc`), `checks.nn-glibc-smoke` | `packages/glibc/default.nix` |
+| WP8 | done (`checks.nn-kernel-headers`): kernel SRPM headers-only as a mkStage variant; headers at **`$out/include`** (the names rule makes the prefix subpackage `out`; supersedes `$dev/include` in the table above) | `packages/kernel-headers/` |
+| WP9 | done: `checks.nn-glibc-{files,abi,content,closure,runtime}` pass on the real M1 build | `tools/nn-parity.py`, `tools/parity/nn-glibc-*.json`, `packages/glibc-nn-runtime` |
+| WP10 | done: `rockyBoot.s1.<srpm>`, `rockyBoot.s1.rpm.<rpm-name>`, `hydraJobs.nixNative`, `docs/nix-native.md` | `lib/rocky/parts/rockyBoot.nix`, `flake.nix` |
+| WP11 | done (`checks.nn-late-bind`, `nn-late-bind-unit`); wired into mkRpmPackage (`mkStage { lateBindFor; lateBindPkgs; interpreterPkgs; }`), inactive in S1, tested on the real glibc (`checks.nn-glibc-late-bind`) | `nn.lateBind` |
+
+Not done for M2: the rest of S1 (macro packages, gmp … gcc¹), S2, S3a;
+profiles (`mkProfile`); `keepBuildTree`; `tools/layout-suggest.py`,
+`tools/spec-hazards.py`.
+
 ---------------------------------------------------------------------------
 
 ## 13. Risks
@@ -1949,6 +1965,27 @@ folded into the sections above.
 ---------------------------------------------------------------------------
 
 ## 14. Changelog
+
+**M1 integration notes (branch `nn/m1`, `experiments/m1.md`), measured on
+the real `rockyBoot.s1.glibc`:**
+
+* §5.1: the S1 ld wrapper's `--enable-new-dtags` changes Rocky's dynamic
+  sections where no store rpath is wanted (`DT_BIND_NOW` → `DT_FLAGS`,
+  gconv modules' `$ORIGIN` DT_RPATH → DT_RUNPATH); glibc's override restores
+  the ld default with `NIX_LDFLAGS_BEFORE = --disable-new-dtags` (before the
+  link's own arguments, so glibc's explicit new dtags for librt still win).
+* §4.3: P2 inside libc calls `__libc_secure_getenv` (nixpkgs' public call
+  added an interposable PLT slot to libc.so.6); the only deviation from
+  nixpkgs' patch text.
+* §4.1/§4.2: libc's locale aliases (`$out/share/locale/locale.alias`,
+  compiled in) are in glibc-common; one archive name (`no_NO.ISO-8859-1`)
+  depends on them: named parity difference `locale-alias`, composed by
+  profiles like the libc catalogs (§0.4 #6).
+* §11.1: late binding is applied only where the stage binds
+  (`lateBindFor`); per-output `rockyRequisites` avoid an evaluation cycle
+  between a bound package and the packages it binds to.
+* §12: WP8's headers are at `$out/include`; §5.5: macro packages bring
+  whole trees (redhat/ scripts, fileattrs), not only `macros.d` (WP8).
 
 **Revision 2 (2026-10-18), after the foundation work packages (merge
 c700802; hand-off `docs/research/nix-native/foundation-handoff.md`).**

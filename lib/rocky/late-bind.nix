@@ -38,6 +38,12 @@
 #                rest is left to the loader (reported)
 #     skip       raw outputs that are neither bound nor checked (debug may
 #                reference siblings and is not rebound, design §7.1 / R7)
+#     passthruFor result o   extra attributes of output attribute `o` (and of
+#                the top level, o = raw's outputName); `result` = { <o> = the
+#                final output attribute }.  mkRpmPackage puts the per-output
+#                rockyRequisites / rockyOutputsByName of the bound package here
+#     checkBound d   applied to the bind derivation (mkRpmPackage: the stage's
+#                purity check)
 #   -> raw // { <o> = bound <o> for o in L*; raw; bound; lateBound = L*; late = L; }
 #      Every output attribute (also those of untouched outputs, e.g.
 #      result.dev.common) points at the bound outputs; `all` and `outputs`
@@ -62,7 +68,8 @@ let
       globRegex = g: builtins.replaceStrings [ "." "+" "*" "?" "[!" ] [ "\\." "\\+" ".*" "." "[^" ] g;
       isGlob = g: builtins.match ".*[][*?].*" g != null;
 
-      wrap = raw: { binds, referrers ? { }, systemLibDirs ? [ ], skip ? [ "debug" "logs" ] }:
+      wrap = raw: { binds, referrers ? { }, systemLibDirs ? [ ], skip ? [ "debug" "logs" ]
+                  , passthruFor ? (_result: _o: { }), checkBound ? (d: d) }:
         if binds == { } then raw else
         let
           outs = raw.outputs or [ "out" ];
@@ -109,7 +116,7 @@ let
           # L* has none, `out` is an extra output holding only the bind summary
           extraOut = !(lib.elem "out" lstar);
 
-          bound = stdenvNoCC.mkDerivation {
+          bound = checkBound (stdenvNoCC.mkDerivation {
             inherit (raw) name;
             outputs = lib.optional extraOut "out" ++ lstar;
             __structuredAttrs = true;
@@ -134,7 +141,7 @@ let
               python3 -I ${tool} verify --plan "$NIX_ATTRS_JSON_FILE" --state "$TMPDIR/state.json"
             '';
             passthru = { inherit raw late lstar; };
-          };
+          });
 
           # one attrset per output, all sharing the overlay (as mkDerivation's outputs do)
           pick = o: base:
@@ -146,8 +153,9 @@ let
             lateBound = lstar;
             inherit late;
           };
-          outputOf = o: pick o raw.${o} // overlay;
-          top = pick (raw.outputName or "out") raw // overlay;
+          outputOf = o: pick o raw.${o} // overlay // passthruFor byName o;
+          byName = lib.genAttrs outs outputOf;
+          top = pick (raw.outputName or "out") raw // overlay // passthruFor byName (raw.outputName or "out");
         in
         if errors != [ ] then
           throw ("lateBind.wrap ${raw.name}:\n  " + lib.concatStringsSep "\n  " errors)

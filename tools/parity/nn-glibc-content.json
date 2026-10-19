@@ -142,6 +142,33 @@
       "effect": "trusted-dirs",
       "optional": true,
       "reason": "user-defined-trusted-dirs (libgccForGlibc lib64 and lib) extend the static loader's system dirs table"
+    },
+    {
+      "id": [
+        "elf.alloc:/usr/bin/locale:.dynstr",
+        "elf.alloc:/usr/bin/locale:.dynsym",
+        "elf.alloc:/usr/bin/locale:.gnu.version",
+        "elf.alloc:/usr/bin/locale:.gnu.version_r",
+        "elf.alloc:/usr/bin/locale:.got",
+        "elf.alloc:/usr/bin/locale:.plt",
+        "elf.alloc:/usr/bin/locale:.plt.sec",
+        "elf.alloc:/usr/bin/locale:.rela.plt",
+        "elf.alloc:/usr/bin/localedef:.dynstr",
+        "elf.alloc:/usr/bin/localedef:.dynsym",
+        "elf.alloc:/usr/bin/localedef:.gnu.version",
+        "elf.alloc:/usr/bin/localedef:.gnu.version_r",
+        "elf.alloc:/usr/bin/localedef:.got",
+        "elf.alloc:/usr/bin/localedef:.plt",
+        "elf.alloc:/usr/bin/localedef:.plt.sec",
+        "elf.alloc:/usr/bin/localedef:.rela.plt",
+        "elf.dynsym:/usr/bin/locale:+secure_getenv@GLIBC_2.17 FUNC GLOBAL DEFAULT UND 0",
+        "elf.dynsym:/usr/bin/localedef:+secure_getenv@GLIBC_2.17 FUNC GLOBAL DEFAULT UND 0",
+        "elf.verneed:/usr/bin/locale:+libc.so.6:GLIBC_2.17",
+        "elf.verneed:/usr/bin/localedef:+libc.so.6:GLIBC_2.17"
+      ],
+      "packages": "glibc-common.x86_64",
+      "effect": "P2",
+      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): locale.c and locarchive.c call secure_getenv (as nixpkgs): one more undefined dynamic symbol, version need GLIBC_2.17, PLT/GOT slot and JUMP_SLOT relocation, so these dynamic-linking sections grow by one entry each (their code and data are classified by the rules above)"
     }
   ]
 }

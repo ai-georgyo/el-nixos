@@ -6,7 +6,16 @@ $prefix/lib/locale/locale-archive.  The archive (glibc-all-langpacks) is a
 separate output, so the compiled-in path is not where it lives
 (runtimeSearchPaths: LOCALE_ARCHIVE).
 Rebased from nixpkgs 26f4107e47e3 pkgs/development/libraries/glibc/nix-locale-archive.patch
-onto Rocky glibc-2.39-142.el10_2 after %prep; same changes, no others.
+onto Rocky glibc-2.39-142.el10_2 after %prep; same changes, with one
+deliberate difference: inside libc (locale/loadarchive.c) the lookup calls
+glibc's internal hidden alias __libc_secure_getenv instead of the public
+secure_getenv.  nixpkgs' call goes through a PLT slot of libc.so.6 (an
+R_X86_64_JUMP_SLOT secure_getenv@@GLIBC_2.17 that Rocky's libc does not
+have; glibc's check-localplt test forbids it), so a program defining its
+own secure_getenv would be called by libc while it opens the locale
+archive.  Measured by checks.nn-glibc-content/abi on M1 (milestone M1
+fixes, docs/research/nix-native/experiments/m1.md).  The programs
+(locale.c, locarchive.c) keep the public secure_getenv, as nixpkgs.
 
 --- a/locale/loadarchive.c
 +++ b/locale/loadarchive.c
@@ -18,8 +27,8 @@ onto Rocky glibc-2.39-142.el10_2 after %prep; same changes, no others.
 +open_locale_archive (void)
 +{
 +  int fd = -1;
-+  char *versioned_path = secure_getenv ("LOCALE_ARCHIVE_2_27");
-+  char *path = secure_getenv ("LOCALE_ARCHIVE");
++  char *versioned_path = __libc_secure_getenv ("LOCALE_ARCHIVE_2_27");
++  char *path = __libc_secure_getenv ("LOCALE_ARCHIVE");
 +  if (versioned_path)
 +    fd = __open_nocancel (versioned_path, O_RDONLY|O_LARGEFILE|O_CLOEXEC);
 +  if (path && fd < 0)

@@ -60,6 +60,19 @@
 #                             ("#!/usr/bin/sh" = "<reason>"), merged under the
 #                             package's own; bootstrap stages only (an error
 #                             with buildPure), design §1.4.3 / decision 11
+#     lateBindFor ? srpm: false   whether this stage applies a package's
+#                             `lateBind` (design §2.9, §11.1, §11.3): true =
+#                             pkgs.<srpm> is lateBind.wrap of the raw build
+#                             (bound copies of the late outputs and their
+#                             referrers); false = the raw build (bootstrap
+#                             stages without Rocky interpreters/libs to bind
+#                             to: S1; the package then names its FHS shebangs
+#                             and unresolved NEEDED as exceptions)
+#     lateBindPkgs ? { }      SRPM name -> package for lateBind `libs` not in
+#                             pkgs (default: pkgs.<srpm>)
+#     interpreterPkgs ? { }   shebang basename -> package for lateBind
+#                             `interpreters` (default: pkgs.<SRPM of it>,
+#                             lateBind.interpreterSrpm)
 #     packages                SRPM names built by mkRpmPackage in this stage
 #     variants ? { }          { <attr> = <srpm>; }: further mkRpmPackage builds of
 #                             an SRPM under another name, with the override file
@@ -138,6 +151,9 @@
 , transparent ? [ ]
 , extraAllowedSources ? [ ]
 , fhsAllowlist ? { }
+, lateBindFor ? (srpm: false)
+, lateBindPkgs ? { }
+, interpreterPkgs ? { }
 , packages
 , variants ? { }
 , extraPkgs ? (self: { })
@@ -175,7 +191,7 @@ let
     "stage ${name}: fhsAllowlist is a bootstrap-only exception (design §1.4.3), not allowed with buildPure"; {
     inherit name stdenv buildPure fhsPath defines rpmBin rpmLibDir rpmConfig toolShim patchelf
       python3 bsdtar fhsBins ccFor libcFor libcSrpm exceptionsFor purity fallback packages prev
-      fhsAllowlist linkOutputs uniqPaths variants rpmConfigWith;
+      fhsAllowlist linkOutputs uniqPaths variants rpmConfigWith lateBindFor lateBindPkgs interpreterPkgs;
     stdenvNoCC = stdenv;
     rpmPkg = rpm;   # the rpm package (`rpm` is the RPM-name alias set)
     baseTools = baseTools ++ [ python3 bsdtar ];

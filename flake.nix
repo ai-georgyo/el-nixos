@@ -48,7 +48,9 @@
       hydraJobs = {
         packages.${system} = self.packages.${system};
         checks.${system} = self.checks.${system};
-        nixNative.${system} = rocky.rockyBoot;       # relocated packages per bootstrap stage
+        # relocated packages per bootstrap stage (rockyBoot.<stage>.<srpm>; the
+        # rpm.<name> aliases name the same derivations' outputs and are left out)
+        nixNative.${system} = nixpkgs.lib.mapAttrs (_: s: removeAttrs s [ "rpm" ]) rocky.rockyBoot;
         srpm.${system} = rocky.srpm;                 # rpmbuild results (out + logs)
         rpms.${system} = rocky.rpms;                 # payload trees of every glibc subpackage
         stage0.${system} = {
@@ -62,6 +64,9 @@
 
       apps.${system} = {
         update-lock = pyApp "update-lock" "Regenerate lock/rocky-<rel>/ from Rocky repodata";
+        # needs nix on PATH; refreshes lock/rocky-<rel>/subpackages.json (rpmspec -q
+        # per SRPM, nn.lockgen); then run update-lock --derived-only
+        lock-subpackages = pyApp "lock_subpackages" "Regenerate lock/rocky-<rel>/subpackages.json (rpmspec -q of every SRPM via nn.lockgen)";
         resolve-buildrequires = pyApp "resolve-buildrequires" "Resolve an SRPM's BuildRequires to a mock-like buildroot closure";
         # nix-eval-jobs over hydraJobs, build what is neither built nor cached
         build-jobs = {
