@@ -136,6 +136,55 @@ def materialise(ctx, br, copy):
     ctx.placed = placed
     rep.section("materialise")["stats"] = dict(stats)
     symlinks(ctx, links)
+    pull(ctx)
+
+
+def pull(ctx):
+    """pullToPrefix: regular files of a non-prefix output X at a rel the
+    prefix output's compiled-in defaults name, where no forwarding stub can
+    serve (X references the prefix output, so a stub $P/rel -> $X/rel would
+    close a cycle): the file moves into the prefix output and X/rel becomes
+    a symlink to it (X -> prefix: the edge X already has).  glibc:
+    share/locale/locale.alias (libc's LOCALE_ALIAS_PATH, glibc-common) and
+    lib/locale/C.utf8 (complocaledir, glibc-common).  Runs after the symlink
+    phase: links into rel already point at X/rel and keep resolving.  The
+    ownership index then names the prefix output for rel."""
+    pats = ctx.plan.pullToPrefix
+    if not pats:
+        return
+    rep, po = ctx.report, ctx.prefix_output
+    used, moved = set(), []
+    for (o, rel), e in sorted(ctx.placed.items(), key=lambda kv: (ctx.order[kv[0][0]], kv[0][1])):
+        if o in (po, ctx.debug_output):
+            continue
+        pat = rel_match(rel, list(pats))
+        if pat is None:
+            continue
+        used.add(pat)
+        src, dst = ctx.path_of(o, rel), ctx.path_of(po, rel)
+        if e.kind != "file" or os.path.islink(src) or not os.path.isfile(src):
+            rep.error("pull-to-prefix", "%s/%s: pullToPrefix %s moves regular files only" % (o, rel, pat),
+                      output=o, file=rel)
+            continue
+        if os.path.lexists(dst):
+            rep.error("pull-to-prefix", "%s/%s: pullToPrefix %s: %s/%s exists" % (o, rel, pat, po, rel),
+                      output=o, file=rel)
+            continue
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        os.rename(src, dst)
+        os.symlink(dst, src)
+        ents = ctx.owners[rel].pop(o, [e])
+        ctx.owners[rel].setdefault(po, []).extend(ents)
+        parts = rel.split("/")
+        for i in range(1, len(parts)):
+            ctx.implied["/".join(parts[:i])].add(po)
+        ctx.add_edge(o, po, "pullToPrefix %s" % rel)
+        moved.append([o, rel])
+        rep.info("pull-to-prefix", "%s/%s moved to %s, %s/%s -> it (%s)" % (o, rel, po, o, rel, pats[pat]),
+                 output=o, file=rel)
+    for pat in sorted(set(pats) - used):
+        rep.error("pull-to-prefix", "pullToPrefix %s matches no regular file of a non-prefix output" % pat)
+    rep.section("pullToPrefix", {"moved": moved})
 
 
 def _fhs_dir(e):

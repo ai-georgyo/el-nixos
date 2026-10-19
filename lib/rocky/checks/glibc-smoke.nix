@@ -340,7 +340,8 @@ pkgs.runCommand "nn-glibc-smoke" {
   check "locale via LOCPATH (langpack_de)" "[ \"\$(LOCPATH=$langpackDeOut/lib/locale LC_ALL=de_DE.UTF-8 $progs/bin/locale)\" = 'UTF-8 Sonntag' ]"
   check "P2: locale via LOCALE_ARCHIVE (all_langpacks' archive)" "[ \"\$(LOCALE_ARCHIVE=$allLangpacksOut/lib/locale/locale-archive LC_ALL=fr_FR.UTF-8 $progs/bin/locale)\" = 'UTF-8 dimanche' ]"
   check "P2: LOCALE_ARCHIVE_2_27 wins over LOCALE_ARCHIVE" "[ \"\$(LOCALE_ARCHIVE_2_27=$allLangpacksOut/lib/locale/locale-archive LOCALE_ARCHIVE=/nonexistent LC_ALL=fr_FR.UTF-8 $progs/bin/locale)\" = 'UTF-8 dimanche' ]"
-  check "langpack_de setup hook adds LOCPATH" "grep -qx \"addToSearchPath LOCPATH \\\"$langpackDeOut/lib/locale\\\"\" $langpackDeOut/nix-support/setup-hook"
+  # (guarded: LOCPATH yields to LOCALE_ARCHIVE, unions.nix; checks.nn-glibc-hooks)
+  check "langpack_de setup hook adds LOCPATH unless LOCALE_ARCHIVE is set" "grep -qxF '[ -n \"\''${LOCALE_ARCHIVE-}\" ] || addToSearchPath LOCPATH \"'$langpackDeOut'/lib/locale\"' $langpackDeOut/nix-support/setup-hook"
   check "-static hello runs" "$progs/bin/hello-static | grep -qx 'hello from rockyBoot.s1.glibc' && ! readelf -l $progs/bin/hello-static | grep -q INTERP"
   check "-m32 hello runs (32-bit loader in out/lib)" "$progs/bin/hello-m32 | grep -qx 'hello from rockyBoot.s1.glibc' && readelf -l $progs/bin/hello-m32 | grep -q \"interpreter: $G/lib/ld-linux.so.2\""
   check "C++ hello runs" "$progs/bin/hello-cxx | grep -qx 'hello c++'"
@@ -367,7 +368,11 @@ pkgs.runCommand "nn-glibc-smoke" {
   check "memusagestat: NEEDED libgd, no RUNPATH to build-only deps (S1)" "readelf -d $utilsOut/bin/memusagestat | grep -q 'libgd.so.3' && [ -z \"\$(rp $utilsOut/bin/memusagestat | grep -v \"^$G\" || true)\" ]"
 
   mkdir -p ''${outputs[out]}
-  cp $TMPDIR/result.txt $TMPDIR/scan.txt $TMPDIR/diag.txt ''${outputs[out]}/
+  # only the path.* lines of the diagnostics: the rest describes the build
+  # machine (x86.cpu_features...cpuid carries the APIC id of the core the
+  # check ran on, so the output differed between runs: M1 review, --rebuild)
+  grep -E '^path\.' $TMPDIR/diag.txt > $TMPDIR/diag-paths.txt
+  cp $TMPDIR/result.txt $TMPDIR/scan.txt $TMPDIR/diag-paths.txt ''${outputs[out]}/
   [ $fail = 0 ]
 '';
 }

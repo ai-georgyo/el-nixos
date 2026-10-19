@@ -37,12 +37,17 @@ locale_loop() {   # list file -> one item per locale
   done < "$1"
 }
 
+# alias names (locale.alias: libc's compiled-in LOCALE_ALIAS_PATH) tested
+# with directory locales too, in both roots (M1 review: they failed in the
+# relocated LOCPATH mode while locale.alias sat in glibc-common)
+ALIASES="deutsch german norwegian french"
 if [ "$PHASE" = locales ]; then
   if [ "$MODE" = relocated ]; then
-    { for d in $(echo "$LOCPATH_ALL" | $BB tr : ' '); do $BB ls "$d"; done; echo C; echo POSIX; } \
+    { for d in $(echo "$LOCPATH_ALL" | $BB tr : ' '); do $BB ls "$d"; done; echo C; echo POSIX
+      for a in $ALIASES; do echo $a; done; } \
       | $BB sort -u > "$o/locale-list.txt"
   else
-    locale -a | $BB sort -u > "$o/locale-list.txt"
+    { locale -a; for a in $ALIASES; do echo $a; done; } | $BB sort -u > "$o/locale-list.txt"
   fi
   locale_loop "$o/locale-list.txt" > "$o/locales.txt" 2>&1
   echo "driver: done ($MODE $PHASE)"

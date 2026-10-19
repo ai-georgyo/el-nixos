@@ -114,6 +114,12 @@
 # BuildRequires the lock could not resolve (builddeps.json `unresolved`, e.g.
 # zlib-ng's cmake(GTest)) must be named in inputs.drop or the fallback set
 # (with a reason), else evaluation fails too.
+# -devel propagation (§5.6; develClosure): a stage-built BuildRequire's
+# cross-SRPM -devel/-headers/-static Requires (lock develrequires.json,
+# e.g. glibc-devel -> kernel-headers, libxcrypt-devel; mpfr-devel ->
+# gmp-devel) are wanted too, transitively, and resolve like BuildRequires
+# (stage, fallback, else an evaluation error naming the requiring -devel);
+# inputs.drop applies to them as well.
 # plus inputs.add (host; runtime only if Rocky-built, i.e. it has
 # rockyRequisites; companions as above), inputs.addBuildOnly (host and view,
 # never runtime, even when Rocky-built: glibc's kernel-headers) and
@@ -163,6 +169,7 @@
 , overridesFor
 , partitionTool
 , builddeps ? readLock "builddeps.json"
+, develRequires ? readLock "develrequires.json"
 , subpackages ? names.subpackages
 }:
 let
@@ -231,14 +238,52 @@ let
       lib.optionals (!(lib.elem variants.${attr} packages))
         (map (n: lib.nameValuePair n attr) (self.variantBuilt attr))) (lib.attrNames variants));
 
+    # provider of an RPM name: builddeps.json's, else develrequires.json's
+    # (names reached only through a -devel package's Requires; lib-like by
+    # construction, see develClosure)
+    providerOf = r: builddeps.providers.${r}
+      or (if develRequires.providers ? ${r} then { srpm = develRequires.providers.${r}; tags = [ "lib" ]; }
+          else { srpm = null; tags = [ "other" ]; });
+    inStageFor = srpm: r: let p = self.providerOf r; in
+      p.srpm != null && (lib.elem p.srpm packages || self.variantOf ? ${r})
+      && p.srpm != srpm && usesStagePackage srpm p.srpm;
+
+    # §5.6 -devel propagation (mock installs a BuildRequire's Requires
+    # closure): from every stage-built BuildRequire, the -devel/-headers/
+    # -static names its develrequires.json entry lists (cross-SRPM Requires),
+    # transitively through those the stage builds too.  Only stage-built
+    # packages propagate: a fallback entry is a substitute with its own scope
+    # (glibc-devel in a stage-libc build is the toolchain's).  Tools and
+    # other non-library Requires (pkgconf-pkg-config, cmake-filesystem, bash)
+    # do not: a tool's runtime closure is its references.  The dev outputs'
+    # nix-support/propagated-build-inputs stay sibling-only (a file
+    # reference would put e.g. kernel-headers into glibc.dev's runtime
+    # closure, M1's closure check); this is the evaluation-time edge for
+    # mkRpmPackage builds.  -> [ { key = <rpm>; via = <requiring -devel>; } ]
+    # for the names not in `names` (and not in `drop`)
+    develClosure = srpm: { names, drop ? [ ] }:
+      let
+        libLike = n: builtins.match ".*-(devel|headers|static)" n != null;
+        inStage = self.inStageFor srpm;
+        c = builtins.genericClosure {
+          startSet = map (n: { key = n; via = null; }) names;
+          operator = x: lib.optionals (inStage x.key)
+            (map (n: { key = n; via = x.key; })
+              (lib.filter (n: libLike n && !(lib.elem n drop)) (develRequires.devel.${x.key} or [ ])));
+        };
+      in
+      lib.filter (x: !(lib.elem x.key names)) c;
+
     resolveBuildDeps = srpm: inputs:
       let
         b = builddeps.srpms.${srpm} or { inputs = [ ]; };
-        wanted = lib.subtractLists inputs.drop (lib.unique ((b.inputs or [ ]) ++ inputs.buildRequires or [ ]));
-        providerOf = r: builddeps.providers.${r} or { srpm = null; tags = [ "other" ]; };
-        inStage = r: let p = providerOf r; in
-          p.srpm != null && (lib.elem p.srpm packages || self.variantOf ? ${r})
-          && p.srpm != srpm && usesStagePackage srpm p.srpm;
+        direct = lib.subtractLists inputs.drop (lib.unique ((b.inputs or [ ]) ++ inputs.buildRequires or [ ]));
+        propagated = self.develClosure srpm { names = direct; drop = inputs.drop; };
+        wanted = direct ++ map (x: x.key) propagated;
+        viaOf = r: let x = lib.findFirst (y: y.key == r) null propagated; in
+          lib.optionalString (x != null) ", Requires of ${x.via}";
+        providerOf = self.providerOf;
+        inStage = self.inStageFor srpm;
         fromStage = lib.filter inStage wanted;
         rest = lib.filter (r: !(inStage r)) wanted;
         unmapped = lib.filter (r: !(fallback ? ${r})) rest;
@@ -268,7 +313,7 @@ let
       in
       if unmapped != [ ] then
         throw ("stage ${name}: ${srpm}: BuildRequires providers neither built by the stage nor in its fallback set: "
-          + lib.concatMapStringsSep ", " (r: "${r} (SRPM ${toString (providerOf r).srpm})") unmapped
+          + lib.concatMapStringsSep ", " (r: "${r} (SRPM ${toString (providerOf r).srpm}${viaOf r})") unmapped
           + "; add them to the stage's `packages`, its `fallback`, or the package's inputs.drop")
       else if unresolvedUnnamed != [ ] then
         throw ("stage ${name}: ${srpm}: BuildRequires the lock could not resolve (builddeps.json unresolved): "
@@ -288,6 +333,9 @@ let
         runtime = rockyHost;
         buildOnly = addOther;
         inherit dropped fromStage unresolved;
+        # names added by the -devel propagation (develClosure), with the
+        # -devel package that Requires each
+        propagated = map (x: { inherit (x) key via; }) propagated;
         fromFallback = lib.filter (r: fallback ? ${r} && !(fallback.${r} ? drop)) rest;
       };
 

@@ -21,7 +21,11 @@
 #     interpreters, then checks that no late output keeps an FHS shebang except
 #     #!/bin/sh and #!/usr/bin/env (runtime FHS) in an executable, and that no
 #     raw L* hash is left anywhere (referrers' shebangs are left as they are);
-#   * Nix enforces it too: outputChecks.<o>.disallowedRequisites = raw L*.
+#   * Nix enforces it too: outputChecks.<o>.disallowedRequisites = raw L*,
+#     and, when raw has outputChecks (mkRpmPackage), allowedReferences /
+#     allowedRequisites = raw's (L* siblings by name, the others as raw
+#     paths) + the binds' outputs / rockyRequisites (M1 review: a bound
+#     output must not reach a stage0/nixpkgs path a bind dependency brings).
 #
 # Interface (nn.lateBind):
 #   wrap raw { binds; referrers ? { }; systemLibDirs ? [ ]; skip ? [ "debug" "logs" ]; }
@@ -98,11 +102,13 @@ let
           # a package: lib.getLib first, then its other outputs (an SRPM's library may
           # sit in any subpackage: zlib-ng's libz.so.1 is in zlib-ng-compat); an
           # output passed directly: only that one
+          libCands = d:
+            if d.outputSpecified or false then [ d ]
+            else [ (lib.getLib d) ] ++ map (o: d.${o})
+              (lib.filter (o: !(lib.elem o [ "debug" "logs" ])) (d.outputs or [ "out" ]));
           libEntry = d:
             let
-              cands = if d.outputSpecified or false then [ d ]
-                else [ (lib.getLib d) ] ++ map (o: d.${o})
-                  (lib.filter (o: !(lib.elem o [ "debug" "logs" ])) (d.outputs or [ "out" ]));
+              cands = libCands d;
               b = baseNameOf "${lib.head cands}";
             in {
               name = builtins.substring 33 (builtins.stringLength b) b;
@@ -115,6 +121,43 @@ let
           # stdenv hooks need an `out` (reproducible-builds.sh, multiple-outputs.sh): when
           # L* has none, `out` is an extra output holding only the bind summary
           extraOut = !(lib.elem "out" lstar);
+
+          # Nix's checks of the bound outputs (design §7.1: allowedRequisites on
+          # every shipped output).  From raw's own outputChecks.<o> (mkRpmPackage:
+          # siblings by name + its runtime inputs / their closures), names mapped:
+          # an L* sibling stays a name (= the bound output), any other sibling
+          # becomes raw's path; plus
+          #   allowedReferences   the outputs a late output's binds may enter
+          #                       (interpreters: lib.getBin; libs: the
+          #                       candidate outputs of libEntry)
+          #   allowedRequisites   every bind package's rockyRequisites (its own
+          #                       closure bound; a referrer reaches them through
+          #                       the bound late output)
+          #   disallowedRequisites  raw L*
+          # A raw without outputChecks (unit fixtures) gets only the last.
+          rawChecks = (raw.drvAttrs or { }).outputChecks or { };
+          mapName = x: if builtins.isString x && lib.elem x outs
+            then (if lib.elem x lstar then x else raw.${x}) else x;
+          bindDeps = o: (binds.${o}.interpreters or [ ]) ++ (binds.${o}.libs or [ ]);
+          bindRefs = o: map lib.getBin (binds.${o}.interpreters or [ ])
+            ++ lib.concatMap libCands (binds.${o}.libs or [ ]);
+          allBindReqs = lib.concatMap (d: d.rockyRequisites or [ d ])
+            (lib.concatMap bindDeps late);
+          disallowed = map (o: raw.${o}) lstar;
+          checkOf = o:
+            let c = rawChecks.${o} or { }; in
+            { disallowedRequisites = disallowed; }
+            // lib.optionalAttrs (c ? allowedReferences) {
+              allowedReferences = map mapName c.allowedReferences
+                ++ lib.optionals (binds ? ${o}) (bindRefs o);
+            }
+            // lib.optionalAttrs (c ? allowedRequisites) {
+              allowedRequisites = map mapName c.allowedRequisites ++ allBindReqs;
+            };
+          boundChecks = lib.genAttrs lstar checkOf
+            // lib.optionalAttrs extraOut {
+              out = { allowedReferences = [ ]; disallowedRequisites = disallowed; };
+            };
 
           bound = checkBound (stdenvNoCC.mkDerivation {
             inherit (raw) name;
@@ -130,8 +173,7 @@ let
               summaryOutput = if extraOut then "out" else null;
             };
             exportReferencesGraph.rawGraph = map (o: raw.${o}) managed;
-            outputChecks = lib.genAttrs (lib.optional extraOut "out" ++ lstar)
-              (_: { disallowedRequisites = map (o: raw.${o}) lstar; });
+            outputChecks = boundChecks;
             buildCommand = ''
               python3 -I ${tool} bind --plan "$NIX_ATTRS_JSON_FILE" --elf-lib ${partitionTool} \
                 --patchelf "$(command -v patchelf)" --shebangs "$TMPDIR/shebangs" --state "$TMPDIR/state.json"

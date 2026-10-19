@@ -93,8 +93,10 @@ Unknown keys are an error (exit 2); every key but `subpackages` has a default.
 | `requires` | {subpkg: [subpkg]} / null | null (from headers) | D, E, F | sibling unique-provider Requires (design §2.1: resolved at eval time from `deps.json.gz`); null: computed from the transient headers with the same rule |
 | `mergeOutputs` | [[subpkg]] | `[]` | report | the merge groups the caller applied in `subpackages` (first = representative); the report lists references between members and flags groups without any (`merge-unneeded`) |
 | `layout` | {macro: output} | `{}` | A | informational: the caller compiles with it (`--define "_datadir $common/share"`); header paths below any output path are mapped anyway. References to such a path are not classified (§2.7: valid only when the whole dir belongs to X) |
-| `runtimeSearchPaths` | {rel pattern: VAR} | `{}` | D, F, I | a compiled-in default that dangles: references at/below rel are allowed to dangle (no stub, no error) and every output that has rel gets a setup hook for VAR (dir: `addToSearchPath VAR $o/rel`; file: `export VAR=${VAR:-$o/rel}`). Also acks union references |
+| `runtimeSearchPaths` | {rel pattern: VAR} | `{}` | D, F, I | a compiled-in default that dangles: references at/below rel are allowed to dangle (no stub, no error) and every output that has rel gets a setup hook for VAR (dir: `addToSearchPath VAR $o/rel`; file: `export VAR=${VAR:-$o/rel}`; both subject to `searchPathRules.VAR`). Also acks union references |
 | `searchPaths` | {rel: VAR} | `{}` | I | extra setup-hook entries (generic table, `lib/rocky/unions.nix`) |
+| `searchPathRules` | {VAR: {kind, provider, yieldsTo, hook}} | `{}` | I | the `lib/rocky/unions.nix` contract per variable (mkRpmPackage passes the whole table): `hook: false` = run time only, no hook line (GCONV_PATH); `provider` glob: a directory is an entry only if `<dir>/<glob>` matches (LOCPATH `*/LC_CTYPE`); a list line is guarded `[ -n "${Y-}" ] \|\| addToSearchPath ...` per `yieldsTo` Y; a file/single export is followed by `unset V` for every V yielding to it. A variable without a rule is a plain list |
+| `pullToPrefix` | {rel pattern: reason} | `{}` | B | regular files of a non-prefix output X that the prefix output names (a compiled-in default) where no forwarding stub can serve because X references the prefix output: moved into the prefix output, X keeps an absolute symlink (after the symlink phase, so links into rel keep resolving); the ownership index then names the prefix output. glibc: `share/locale/locale.alias`, `lib/locale/C.utf8`. An entry matching nothing, a symlink or an existing target -> `pull-to-prefix` error |
 | `unionDirs` | {rel pattern: reason} | `{}` | D | acks references to a directory several outputs fill (design case 3); the reason names the mechanism (search path, profile) |
 | `danglingOk` | [rel pattern] | `[]` | C, D | references / symlink targets allowed to exist nowhere (`share/zoneinfo`); also an ld.so token expansion not found in the output the reference points into (`lib/libmemusage.so`, see the classification below) |
 | `opaqueRefs` | [output pattern] | `[]` | G | acks store-by-pieces references to P in a non-prefix output (a behaviour test is expected). The reference is registered in `hidden-references` with or without ack |
@@ -182,7 +184,8 @@ samples), `runpath` (changes), `stubs`, `piecedRefs`, `nestedRefs`,
 | `union-unacked` | error | reference to a union dir (case 3) | `unionDirs` / `runtimeSearchPaths` |
 | `dangling` | error (info if acked) | reference to a path that exists nowhere (case 4; view leaks), or an ld.so token expansion owned by another output than the one the reference points into | `danglingOk` / `runtimeSearchPaths` / fix the build / `mergeOutputs` |
 | `not-required` | warning | text reference into an output the referrer does not Require (case 6): kept as `P/rel` | — |
-| `foreign-store-path` | error | store path not allowed (case 7), in a file or in the rpm header data written to `nix-support/rpm/*.json` | `allowedStorePaths` / fix the build |
+| `foreign-store-path` | error | store path not allowed (case 7), in a file or in the rpm header data written to `nix-support/rpm/*.json`; also a RUNPATH entry phase E dropped whose bytes are still in the file (phase E overwrites the string `patchelf --remove-rpath` leaves in `.dynstr` with X, as `--set-rpath` does) | `allowedStorePaths` / fix the build |
+| `pull-to-prefix` | error / info | a `pullToPrefix` entry that matches nothing, a symlink, or a target that exists (error); a moved file (info) | `pullToPrefix` |
 | `binary-ref` | error (info with runtimeSearchPaths) | compiled-in `P/rel` of X ≠ prefix that no stub can serve (not Required, Y == X, cycle, `forward.deny`) | `layout`, `mergeOutputs`, `runtimeSearchPaths` |
 | `stub` | info | forwarding stub `$out/rel -> $X/rel` created | — |
 | `unresolved-needed` | error (info if allowed/late) | DT_NEEDED found nowhere | `allowUnresolvedNeeded` / `lateBind` / inputs |
@@ -196,7 +199,7 @@ samples), `runpath` (changes), `stubs`, `piecedRefs`, `nestedRefs`,
 | `late-referrer-missing` | error | an output reaches a lateBind output but is not in `lateReferrers` | add it |
 | `late-elf-ref` | error | ELF content in L* references a late output (outside RUNPATH) | — |
 | `replay-remap-incomplete` | warning | the replayed tree's prefix survives (e.g. in a compressed ELF section) | — |
-| info codes | info | `union-self`, `pc-expanded`, `cmake-expanded`, `cmake-unrequired`, `integrity-file`, `integrity-rehashed`, `prefix-relative-out`, `nested-ref`, `pieced`, `runpath-changed`, `shared-file`, `setid-dropped`, `hardlink-split`, `build-id-dropped`, `other-absolute`, `fhs-shebang`, `fhs-literal`, `merge-unneeded`, `late-referrer-unused` | |
+| info codes | info | `union-self`, `pc-expanded`, `cmake-expanded`, `cmake-unrequired`, `integrity-file`, `integrity-rehashed`, `prefix-relative-out`, `nested-ref`, `pieced`, `runpath-changed`, `shared-file`, `pull-to-prefix`, `setid-dropped`, `hardlink-split`, `build-id-dropped`, `other-absolute`, `fhs-shebang`, `fhs-literal`, `merge-unneeded`, `late-referrer-unused` | |
 
 ## Reference classification (design §2.5, as implemented)
 
@@ -253,6 +256,23 @@ no anchor = dangling.
 
 Store-by-pieces windows: 8-byte windows of P holding at least 6 bytes of its
 hash, in loaded sections of ELF files, outside full occurrences.
+
+## Phase E: RUNPATH tags and dropped strings
+
+* mkRpmPackage links with `--disable-new-dtags` (Rocky's ld default: Rocky's
+  `-z now` stays DT_BIND_NOW, its `-rpath '$ORIGIN'` stays DT_RPATH), so the
+  cc wrapper's store `-rpath` entries land in a DT_RPATH. Phase E writes
+  every recomputed RUNPATH with `patchelf --set-rpath`, which makes it
+  DT_RUNPATH; a DT_RPATH whose recomputed value is unchanged but still holds
+  an input's store dir is rewritten too (DT_RUNPATH, Nix's convention). A
+  DT_RPATH of Rocky's own entries only (`$ORIGIN`, the package's dirs) keeps
+  its tag.
+* `patchelf --remove-rpath` drops the dynamic entry but leaves the old
+  string in `.dynstr` (`--set-rpath` overwrites it with X): phase E
+  overwrites every NUL-delimited copy of the removed string in `.dynstr`
+  with X, and `foreign-store-path` fires for a dropped entry whose hash is
+  still anywhere in the file (M1 review: sed and bzip2 against glibc¹ kept
+  the cc wrapper's gcc copy and the libc dev output as references).
 
 ## Phase E and FIPS integrity data
 

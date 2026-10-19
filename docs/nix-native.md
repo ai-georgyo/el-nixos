@@ -12,8 +12,10 @@ relocated glibc (WP7), the parity and runtime checks against the official
 RPMs (WP9), the attributes below (WP10) and late binding (WP11, wired into
 `mkRpmPackage`, inactive in S1) exist and are built. **M1 =
 `rockyBoot.s1.glibc`**: 225 outputs, built by the stage0 gcc, closure = its
-own outputs + `libgccForGlibc`, verified by `checks.nn-glibc-{files,abi,content,closure,runtime,smoke}`
-(results in §7 and `research/nix-native/experiments/m1.md`). Not done yet:
+own outputs + `libgccForGlibc`, verified by `checks.nn-glibc-{files,abi,content,closure,runtime,smoke,hooks}`
+(results in §7 and `research/nix-native/experiments/m1.md`). The S1
+packages after glibc¹ (`nn.stages.s1Glibc1`: which, xz, zlib-ng, gzip) are
+built and checked too (`checks.nn-s1-glibc1`). Not done yet:
 the rest of S1 (macro packages, gmp … gcc¹), S2, S3 (`rocky.*`, M2),
 profiles (§6), `keepBuildTree` (§5).
 
@@ -61,8 +63,8 @@ profiles (§6), `keepBuildTree` (§5).
 | `passthru.unshipped` | subpackages the spec builds but Rocky does not publish (glibc's `glibc32`, `sysroot-x86_64-el10-glibc`, `compat-libpthread-nonshared`); they are real outputs without an `rpm.*` alias |
 | `passthru.rockyStage`, `passthru.srpm`, `passthru.pname`, `passthru.overrides` | stage name, lock name, variant name, validated overrides |
 | `passthru.rockyRequisites`, `rockyOutputsByName`, `rockyCompanions`, `rockyPlan`, `rockyDeps` | closure bound for consumers, outputs by name, `-devel` companions, the partition plan, the resolved build inputs |
-| `nn.stages.s1` | the stage object: `pkgs`, `rpm`, `resolveBuildDeps`, `glibcBuildDeps`, `libgccForGlibc`, `ccGlibc1` (the S1 toolchain over the relocated glibc + kernel headers), `glibc1Libc`, … ; `nn.stages.s1Glibc1` = S1 with every package after glibc linked against it (evaluated, not built) |
-| `hydraJobs.nixNative.x86_64-linux.<stage>.<srpm>` | `rockyBoot` without the `rpm` aliases (they name the same derivations), for `tools/build-jobs.sh` |
+| `nn.stages.s1` | the stage object: `pkgs`, `rpm`, `resolveBuildDeps`, `glibcBuildDeps`, `libgccForGlibc`, `ccGlibc1` (the S1 toolchain over the relocated glibc + kernel headers), `glibc1Libc`, … ; `nn.stages.s1Glibc1` = S1 with every package after glibc linked against it (built by `checks.nn-s1-glibc1`); `develClosure srpm { names; drop; }` (the -devel propagation) |
+| `hydraJobs.nixNative.x86_64-linux.<stage>.<srpm>` | `rockyBoot` without the `rpm` aliases (they name the same derivations), for `tools/build-jobs.sh`; plus `<srpm>-bound` = the bind derivation of a late-bound package (`nn.nixNative.jobsFor`): such a package's own `drvPath` (and `nix build <pkg>^*`) is the raw build, so build `<pkg>.bound` (or a bound output such as `<pkg>.common`) to get what consumers reference |
 
 ```sh
 nix build -L .#rockyBoot.s1.glibc.dev                  # one output
@@ -80,6 +82,7 @@ The machinery is reachable as `legacyPackages.x86_64-linux.nn.<name>`
 | `nn.mkStage { … }` | a bootstrap stage as a lazy fixpoint (`lib/rocky/stage.nix`, parameters in its header) |
 | `nn.stages`, `nn.rockyBoot` | the stage objects and their packages |
 | `nn.lateBind` | `wrap raw { binds; referrers; … }`, `fromOverrides`, `mk` (§5.6) |
+| `nn.nixNative` | `jobsFor <stage pkgs>` (the CI job set: packages + `<srpm>-bound`), `jobs.<stage>` (= `hydraJobs.nixNative`) |
 | `nn.nnChecks` | `glibc { glibc; … }` parity/runtime check builder, `selftest`, `dev.replay` |
 | `nn.cc` | S1 cc-wrapper: `wrap { libc }`, `libcAdapter`, `stage0Libc`, `stage0`, `storescan`, `e1.*` |
 | `nn.toolShim` | the bwrap shim (`${nn.toolShim} [--no-prefix-view] -- cmd…`), `mk`, `mkview`, `e2.*` |
@@ -199,7 +202,11 @@ One derivation per SRPM does everything (design §0.1, §2):
    stage binds it (`mkStage { lateBindFor = srpm: …; lateBindPkgs;
    interpreterPkgs; }`, from S3); the result keeps `.raw`, and each output
    carries its own `rockyRequisites` (a consumer of `glibc.out` never sees
-   the bind derivation). S1 does not bind (no Rocky bash/perl/python3/gd
+   the bind derivation). Nix checks the bound outputs like any other:
+   `allowedReferences`/`allowedRequisites` are raw's (late siblings by name)
+   plus the binds' outputs and `rockyRequisites`, and the raw late outputs
+   are `disallowedRequisites`. CI builds the bind derivation through the
+   `<srpm>-bound` job (§2). S1 does not bind (no Rocky bash/perl/python3/gd
    yet): `rockyBoot.s1.glibc` is the raw build and names its FHS shebangs
    and unresolved `NEEDED` as S1 exceptions. `checks.nn-glibc-late-bind`
    binds the real S1 glibc to test stand-ins.
@@ -234,21 +241,40 @@ between packages become environment search paths (design §4.1), listed in
 * **Build time**: each output that has one of those directories gets a
   `nix-support/setup-hook` line (`addToSearchPath VAR "$o/rel"`, or `export
   VAR="${VAR:-$o/rel}"` for single-valued ones), so dependents see them like
-  nixpkgs packages.
+  nixpkgs packages. The partitioner applies the table's rules
+  (`searchPathRules` in the plan, for the generic dirs and for an override's
+  `runtimeSearchPaths` alike): a `provider` glob decides whether a
+  directory counts (`LOCPATH`: `*/LC_CTYPE`), `yieldsTo` guards the line
+  (`[ -n "${LOCALE_ARCHIVE-}" ] || addToSearchPath LOCPATH …`) and the
+  archive's export is followed by `unset LOCPATH`, so the result does not
+  depend on hook order. Run-time-only variables (`MANPATH`, `INFOPATH`,
+  `TERMINFO_DIRS`, `TZDIR`, `NIX_DEBUG_INFO_DIRS` and `GCONV_PATH`) get no
+  hook line. `GCONV_PATH` is run time only on purpose: in a build it also
+  reaches the foreign glibcs of the build tools (nixpkgs' `iconv`,
+  `msgfmt`), which then load Rocky's 2.39 modules (they import
+  `GLIBC_PRIVATE` symbols); a build that needs `gconv_extra`'s charsets
+  sets it itself. `checks.nn-glibc-hooks` builds against the real hooks.
 * **Run time**: a profile (`buildEnv` of outputs) exports the variables for
   its root; `nn.unions.profileScript root` is the sh fragment. **TODO:**
   `rocky.lib.mkProfile` (buildEnv + `etc/profile.d/rocky.sh` + trigger
   emulation such as `iconvconfig`) is not written.
 * **Locales**: glibc reads `LOCALE_ARCHIVE` only when `LOCPATH` is unset. So
-  `LOCPATH` is set only for directory-format locales (langpacks, `C.utf8` in
-  `common`) and never where an archive is provided; a profile containing
-  `all_langpacks` (the archive, every locale) unsets `LOCPATH`.
+  `LOCPATH` is set only for directory-format locales (langpacks) and never
+  where an archive is provided; `all_langpacks` (the archive, every locale)
+  exports `LOCALE_ARCHIVE` and unsets `LOCPATH`, in setup hooks and
+  profiles. Without `LOCPATH`, libc also looks in its compiled-in
+  `<glibc>/lib/locale`, which holds `C.utf8`, and reads its compiled-in
+  `<glibc>/share/locale/locale.alias`: both are glibc-common files in
+  Rocky, moved into `out` here (`pullToPrefix`; `common` keeps symlinks), so
+  `C.UTF-8` works with no variable and in archive mode, and alias names
+  (`deutsch`, `norwegian`, …) resolve with directory locales too.
 
 | want | compose |
 |---|---|
 | German messages and formats | `glibc.langpack_de` (sets `LOCPATH`) |
-| every locale | `glibc.all_langpacks` (sets `LOCALE_ARCHIVE`, read through the P2 patch) |
-| extra iconv charsets | `glibc.gconv_extra` (`GCONV_PATH`) |
+| every locale | `glibc.all_langpacks` (sets `LOCALE_ARCHIVE`, read through the P2 patch; unsets `LOCPATH`) |
+| `C.UTF-8` | nothing (`out`) |
+| extra iconv charsets | `glibc.gconv_extra` (`GCONV_PATH`, run time: profiles; set it yourself in a build) |
 | `localedef` with Rocky's sources | `glibc.locale_source` (`I18NPATH`) |
 | time zones | tzdata's output (`TZDIR`; glibc's compiled-in default dangles) |
 
@@ -262,13 +288,14 @@ Checks that exist (`nix build -L --cores 8 --max-jobs 2
 | `nn-cc-toolchain` | the S1 wrapper: C, C++, shared, `-m32`, `-static`, `-flto`; store loader, DT_RUNPATH only, `$out/lib64` self-rpath, no store path in DWARF, no `-frandom-seed` |
 | `nn-shim` | the tool shim: rpmbuild in the view, only declared inputs visible, overlay dirs read-only, `$out` alias and emptiness, nested and concurrent calls |
 | `nn-rpm-config` | 75 macros with exact values, macro load order (negative control), fold-usr/check-files/prep-hooks/instantiate unit tests, two relocated rpmbuilds |
-| `nn-partition-selftest` | 20 synthetic cases (split, cycles, search paths, dangling/foreign/union, pieced, prefix-relative, late binding, replay, layout, plan errors, FIPS, cmake export files, the shebang gate) |
+| `nn-partition-selftest` | 22 synthetic cases (split, cycles, search paths, dangling/foreign/union, pieced, prefix-relative, late binding, replay, layout, plan errors, FIPS, cmake export files, the shebang gate, setup-hook rules sourced in both orders, `pullToPrefix`; a removed RUNPATH leaves no bytes) |
 | `nn-partition-replay` | the relocated glibc tree replayed into 224 outputs: 0 errors, no cycles, no old prefix left (~20 min, big-parallel) |
 | `nn-glibc-prep` | glibc P1–P3 apply with `--fuzz=0` after Rocky's `%prep` and have their effects |
 | `nn-libgcc-for-glibc` | `libgccForGlibc` references nothing, no RUNPATH, right ELF classes |
 | `nn-order` | `order.json` recomputed from `builddeps.json` |
 | `nn-purity` | 42 eval-time tests of the build-purity assertion (E6) |
 | `nn-names` | output names, override schema, unions table and hook/profile scripts |
+| `nn-stage-deps` | mkStage input resolution on the real S1: -devel propagation (`develClosure`: glibc-devel → kernel-headers, libxcrypt-devel; unprovidable → eval error; `inputs.drop`), no consumer-specific drop in the stage fallback |
 
 Stage and package checks (WP6–WP11):
 
@@ -282,15 +309,18 @@ Stage and package checks (WP6–WP11):
 | `nn-glibc-content` | bytes / text after the path map / ELF loaded sections classified (displacement-normalised disassembly, string pools, layout) for 7724 files |
 | `nn-glibc-closure` | every output's closure ⊆ siblings + `libgccForGlibc` |
 | `nn-glibc-runtime` | official RPM roots vs a `/usr`-free root of the relocated outputs: ~1460 report items, 503 LOCPATH locales, 884 archive locales, 1180 iconv charsets, NSS, getconf, tz, programs (dynamic, static, static-pie, `-m32`), plus assertions for P1, P2, P3, trusted dirs, LOCPATH-wins |
-| `nn-glibc-late-bind` | mkRpmPackage's late binding on the real glibc with test stand-ins: bound closures without raw late outputs, langpack symlinks into the bound common, ldd through the bound shebang, memusagestat's RUNPATH |
+| `nn-glibc-late-bind` | mkRpmPackage's late binding on the real glibc with self-contained test stand-ins: the bind derivation's outputChecks (allowedReferences/allowedRequisites, enforced by the real bind build), bound closures without raw late outputs, langpack symlinks into the bound common, ldd's bound shebang, memusagestat's RUNPATH, the `glibc-bound` CI job |
+| `nn-glibc-hooks` | the generated setup hooks in real stdenv builds: `all_langpacks` (alone, with `langpack_de`, either order) exports `LOCALE_ARCHIVE` and leaves `LOCPATH` unset; `langpack_de` + `common` set `LOCPATH`; no `GCONV_PATH`; `C.UTF-8` and the alias `deutsch` resolve |
+| `nn-s1-glibc1` | which, xz, zlib-ng, gzip against glibc¹ (`nn.stages.s1Glibc1`): 0 partition errors, closures = own + glibc¹, no byte of a build-only path (gcc copy, glibc dev, stage0 libc), RUNPATH/DT_BIND_NOW, programs run without `/usr` |
 | `nn-late-bind`, `nn-late-bind-unit` | the bind derivation on synthetic trees |
 | `nn-parity-selftest` | every `nn-parity.py` comparator on a synthetic package, faithful and broken |
 
 Every difference the parity checks accept is a rule in
 `tools/parity/nn-default.json` or `tools/parity/nn-glibc-<check>.json`
 with its `effect` (P1, P2, P3, trusted-dirs, store-by-pieces, stage0
-annobin, locale-search-path, libc-catalogs, locale-alias, late-bind,
-transient-payload) and reason; each check also has a `.report` attribute
+annobin, locale-search-path, libc-catalogs, late-bind, pull-to-prefix,
+transient-payload) and reason; the M1 review pinned the P2 rules to the
+exact changed values (section sizes, entry counts); each check also has a `.report` attribute
 that always builds (`$out/report.txt`). Results at M1:
 `research/nix-native/experiments/m1.md`.
 
@@ -323,16 +353,26 @@ Consequences of relocation:
 * **Dangling `TZDIR`**: glibc's compiled-in default
   `<glibc>/share/zoneinfo` does not exist (tzdata is another SRPM). Set
   `TZDIR` (profiles, NixOS); `/etc/localtime` is still read from `/etc`.
-* **Locale aliases**: libc reads `<glibc>/share/locale/locale.alias`
-  (compiled in), but the file belongs to `common`; alias names
-  (`no_NO.ISO-8859-1` → `nb_NO.ISO-8859-1`, `norwegian`, …) resolve only
-  where a profile composes `share/locale` (the only archive name affected is
-  `no_NO.ISO-8859-1`).
+* **`locale.alias` and `C.utf8` in `out`**: libc's compiled-in alias file
+  and complocaledir name files of glibc-common, which references `out`, so
+  no forwarding stub can serve them: they live in `out` and `common` has
+  symlinks to them (`files` parity: named differences `pull-to-prefix`).
+  Alias names and `C.UTF-8` behave as on Rocky.
+* **-devel propagation is evaluation-time**: a stage-built BuildRequire's
+  cross-SRPM -devel/-headers/-static Requires (lock `develrequires.json`:
+  glibc-devel → kernel-headers, libxcrypt-devel; mpfr-devel → gmp-devel)
+  are inputs of `mkRpmPackage` builds too (`mkStage` `develClosure`), as
+  mock installs them. A dev output's `nix-support/propagated-build-inputs`
+  names its own siblings only (a cross-SRPM entry there would be a
+  reference, part of its runtime closure): an ordinary nixpkgs-style
+  consumer with `buildInputs = [ glibc.dev ]` adds the others itself
+  (the S1 toolchain brings kernel-headers; `crypt.h` needs libxcrypt's dev).
 * **Untranslated libc messages**: glibc's own message catalogs live in
   `<glibc>/share/locale` only when composed; without a profile or
   `TEXTDOMAINDIR`, libc's messages are English (as in nixpkgs).
 * **Compiled-in defaults of other outputs** (`share/i18n`, `lib/locale`,
-  `lib64/gconv` of `gconv_extra`) need their search path (§6).
+  `lib64/gconv` of `gconv_extra`) need their search path (§6);
+  `GCONV_PATH` is not set by setup hooks (run time only, §6).
 * **Scriptlets and triggers are not run**: `%post`, `%posttrans`, file
   triggers, `ldconfig`, `gconv-modules.cache` generation (`iconvconfig`),
   `glib-compile-schemas`, … are recorded in `nix-support/rpm/*.json`, not
@@ -345,8 +385,11 @@ Consequences of relocation:
   for M1/M2).
 * **`/usr/lib/.build-id` links** of non-debug subpackages are dropped (Nix
   finds debug info through `debug/lib/debug/.build-id`).
-* **RUNPATH**: binaries carry store RUNPATHs (Rocky has none); the ELF
-  contents are otherwise Rocky's, compared semantically by the parity checks.
+* **RUNPATH**: binaries carry store RUNPATHs as DT_RUNPATH (Rocky has
+  none); Rocky's own `$ORIGIN` RPATHs stay DT_RPATH and `-z now` stays
+  `DT_BIND_NOW` (every spec links with `--disable-new-dtags`, Rocky's ld
+  default). The ELF contents are otherwise Rocky's, compared semantically by
+  the parity checks.
 * **Unshipped subpackages** (glibc32, sysroot, `-static`, `-tests`) are
   outputs of the derivation, without `rpm.*` aliases.
 
@@ -358,7 +401,12 @@ Consequences of relocation:
    fails, listing every name, for BuildRequires the stage neither builds nor
    has in its `fallback` set, and for BuildRequires the lock could not
    resolve: map each (stage package, fallback entry with a reason, or the
-   package's `inputs.drop`).
+   package's `inputs.drop`). A drop that stands for this package's own
+   substitute (glibc's `glibcBuildDeps`, which's unused readline) belongs in
+   its `inputs.drop`, never in the stage fallback, which applies to every
+   package of the stage and would hide the library from the others. The
+   -devel chain of stage-built BuildRequires is added (§8) and resolved the
+   same way.
 3. Build `rockyBoot.<stage>.<srpm>` with no override. Read the partitioner's
    findings (`$out/nix-support/rocky-report.json`, also in the `logs`
    output) and the shebang gate; fix with the smallest override (§4), each

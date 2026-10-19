@@ -59,6 +59,9 @@ builddeps.json  per SRPM the direct providers of every BuildRequire (published
                 else --allow-missing-filelists)
 order.json      SRPM build graph, edge classes, feedback-arc set, build order
                 (tools/lock_order.py; verified by checks.nn-order)
+develrequires.json  per shipped -devel package the cross-SRPM providers of
+                its Requires (deps.json.gz, offline; tools/lock_develrequires.py):
+                mkStage propagates the -devel chain from it at eval time
 subpackages.json  rpmspec -q results per SRPM.  These need nix builds and
                 are produced by tools/lock_subpackages.py (incremental); this
                 tool only drops entries whose SRPM EVR changed and re-derives
@@ -599,6 +602,8 @@ def write_derived(outdir, rel, cache, allow_missing=False):
     p = os.path.join(outdir, "order.json")
     write_text(p, dump_one_per_line(odoc))
     log("wrote %s: %s" % (p, json.dumps(odoc["stats"], sort_keys=True)))
+    import lock_develrequires  # noqa: E402 (helpers() put tools/ on sys.path)
+    lock_develrequires.write(outdir, log)
     if missing:
         log("subpackages.json: %d SRPMs without an rpmspec result: run "
             "python3 -I tools/lock_subpackages.py --stale" % missing)

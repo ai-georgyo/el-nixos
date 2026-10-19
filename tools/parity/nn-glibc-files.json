@@ -6,6 +6,28 @@
       "packages": "glibc-common.x86_64",
       "effect": "P2",
       "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): locale and localedef call secure_getenv (GLIBC_2.17) for $LOCALE_ARCHIVE_2_27 / $LOCALE_ARCHIVE, so rpm's ELF dependency generator adds this version Requires to glibc-common's transient header; glibc-common already requires libc.so.6 with later versions from the same glibc, so the dependency closure is unchanged"
+    },
+    {
+      "id": [
+        "files.type:/usr/share/locale/locale.alias",
+        "files.type:/usr/lib/locale/C.utf8/*"
+      ],
+      "packages": "glibc-common.x86_64",
+      "effect": "pull-to-prefix",
+      "ours": "^\"lnk\"$",
+      "official": "^\"reg\"$",
+      "reason": "pullToPrefix (packages/glibc/default.nix, rocky-partition PLAN.md): libc's compiled-in LOCALE_ALIAS_PATH ($out/share/locale/locale.alias) and complocaledir ($out/lib/locale, Rocky's C.utf8) name these glibc-common files; common references out, so no forwarding stub out -> common can serve them (a cycle). The files live in out and glibc-common's entries are absolute symlinks to them: same paths, same contents, a symlink instead of the file (the next rule is the other half)"
+    },
+    {
+      "id": [
+        "files.only-ours:/usr/share/locale/locale.alias",
+        "files.only-ours:/usr/lib/locale/C.utf8/*"
+      ],
+      "packages": "output:out",
+      "effect": "pull-to-prefix",
+      "ours": "^\"reg\"$",
+      "official": "^null$",
+      "reason": "pullToPrefix: the glibc-common files moved into out (see the previous rule), so out holds files no subpackage mapped to it claims"
     }
   ]
 }

@@ -54,16 +54,30 @@ class Refs:
         ctx, rep = self.ctx, self.ctx.report
         for (y, rel), hs in sorted(self.rpath_foreign.items()):
             with open(ctx.path_of(y, rel), "rb") as f:
-                ef = E.parse(f.read())
+                data = f.read()
+            ef = E.parse(data)
             final = ((ef.runpath if ef.runpath is not None else ef.rpath) or "") if ef is not None else ""
+            in_final = set()
             for m in self.srx.finditer(final.encode()):
                 h = m.group(1).decode()
                 if h in self.own:
                     continue
+                in_final.add(h)
                 self.foreign[h].add("%s:%s" % (y, rel))
                 if ctx.allowed is not None and h not in ctx.allowed:
                     rep.error("foreign-store-path", "%s/%s: RUNPATH entry %s is not an allowed store path"
                               % (y, rel, m.group(0).decode()), output=y, file=rel)
+            # a dropped entry must be gone from the whole file, not only from
+            # DT_RUNPATH: the bytes of an old RUNPATH string left in .dynstr
+            # are a reference for Nix's scanner all the same (patchelf
+            # --remove-rpath, M1 review)
+            for h in sorted(hs - in_final - self.own):
+                if h.encode() in data:
+                    self.foreign[h].add("%s:%s" % (y, rel))
+                    if ctx.allowed is not None and h not in ctx.allowed:
+                        rep.error("foreign-store-path", "%s/%s: %s... is no longer in the RUNPATH but its bytes are"
+                                  " left in the file (a stale string of the old RUNPATH), not an allowed store path"
+                                  % (y, rel, h[:8]), output=y, file=rel)
         if self.foreign:
             rep.section("foreignStorePaths", {h[:8] + "...": sorted(v)[:10] for h, v in sorted(self.foreign.items())})
 

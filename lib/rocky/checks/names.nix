@@ -245,8 +245,8 @@ let
 
   overrideTests = [
     (test "no override file -> defaults"
-      (overrides.fileFor "which" == null
-        && overrides.overridesFor { stage = s1; } "which" == overrides.defaults) "")
+      (overrides.fileFor "xz" == null
+        && overrides.overridesFor { stage = s1; } "xz" == overrides.defaults) "")
     (test "glibc example (§11.5) validates; records filled"
       (gx.mergeOutputs == glibcMerge && gx.bconds == { "with" = [ ]; without = [ ]; }
         && gx.lateBind.nss_db == { interpreters = [ ]; libs = [ "libselinux" ]; }

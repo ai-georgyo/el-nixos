@@ -27,6 +27,8 @@ SCHEMA = {
     "layout": (dict, {}),
     "runtimeSearchPaths": (dict, {}),
     "searchPaths": (dict, {}),
+    "searchPathRules": (dict, {}),
+    "pullToPrefix": (dict, {}),
     "unionDirs": (dict, {}),
     "danglingOk": (list, []),
     "opaqueRefs": (list, []),
@@ -84,6 +86,9 @@ def _check(d):
     for o, spec in d.get("lateBind", {}).items():
         if not isinstance(spec, dict) or set(spec) - {"interpreters", "libs", "sonames"}:
             raise PlanError("lateBind.%s: expected {interpreters, libs, sonames}" % o)
+    for v, r in d.get("searchPathRules", {}).items():
+        if not isinstance(r, dict) or set(r) - {"kind", "provider", "yieldsTo", "hook"}:
+            raise PlanError("searchPathRules.%s: expected {kind, provider, yieldsTo, hook}" % v)
     for g in d.get("mergeOutputs", []):
         if not (isinstance(g, list) and g and all(isinstance(x, str) for x in g)):
             raise PlanError("mergeOutputs: expected a list of non-empty subpackage lists")

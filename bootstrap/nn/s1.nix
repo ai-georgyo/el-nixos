@@ -156,18 +156,13 @@ let
     libabigail = drop "%check only (abicheck.sh)";
     valgrind = drop "%check only";
     dejagnu = drop "%check only";
-    # which: Rocky's which NEEDs only libc.so.6 (official which-2.21-44.el10_0)
-    "readline-devel" = drop "which links no readline (official binary NEEDs libc.so.6 only)";
-    # glibc¹: its -devel deps come from glibcBuildDeps / kernel-headers (inputs.add)
-    "audit-libs-devel" = drop "glibc: glibcBuildDeps";
-    "gd-devel" = drop "glibc: glibcBuildDeps";
-    "libpng-devel" = drop "glibc: glibcBuildDeps";
-    "libselinux-devel" = drop "glibc: glibcBuildDeps";
-    "libcap-devel" = drop "glibc: glibcBuildDeps";
-    "zlib-ng-compat-devel" = drop "glibc: glibcBuildDeps (S1's zlib-ng links the stage0 libc)";
-    "systemtap-sdt-devel" = drop "glibc: glibcBuildDeps (sdt.h)";
-    "kernel-headers" = drop "glibc: inputs.add (stage.pkgs.kernel-headers)";
-    libidn2 = drop "glibc: dlopen'ed at run time only";
+    # Drops that stand for ONE consumer's substitute (glibc's glibcBuildDeps
+    # and kernel-headers, which's unused readline) are that package's
+    # inputs.drop (packages/glibc, packages/which), never entries here: a
+    # fallback entry applies to every S1 package and would drop the library
+    # silently for the others (M1 review: sed lost libselinux-devel, pcre2
+    # readline-devel, gcc would lose systemtap-sdt-devel); unmapped, they
+    # stop evaluation instead, as mkStage intends.
     "python3-devel" = drop "baseTools (python3)";
     # the rpmbuild machinery itself
     "redhat-rpm-config" = drop "the stage rpm config (nn.rpmConfig: stage0's redhat-rpm-config)";

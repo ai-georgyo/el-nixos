@@ -49,8 +49,10 @@
         packages.${system} = self.packages.${system};
         checks.${system} = self.checks.${system};
         # relocated packages per bootstrap stage (rockyBoot.<stage>.<srpm>; the
-        # rpm.<name> aliases name the same derivations' outputs and are left out)
-        nixNative.${system} = nixpkgs.lib.mapAttrs (_: s: removeAttrs s [ "rpm" ]) rocky.rockyBoot;
+        # rpm.<name> aliases name the same derivations' outputs and are left
+        # out; <srpm>-bound = the bind derivation of a late-bound package,
+        # whose own drvPath is the raw build: lib/rocky/parts/nixNative.nix)
+        nixNative.${system} = rocky.nn.nixNative.jobs;
         srpm.${system} = rocky.srpm;                 # rpmbuild results (out + logs)
         rpms.${system} = rocky.rpms;                 # payload trees of every glibc subpackage
         stage0.${system} = {

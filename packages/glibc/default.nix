@@ -33,18 +33,11 @@ in
     # derivation attributes, read by the cc/ld wrappers
     NIX_NO_SELF_RPATH = "1";
     NIX_DONT_SET_RPATH = "1";
-    # the S1 ld wrapper puts --enable-new-dtags before every link (so its
-    # store -rpath entries become DT_RUNPATH, lib/rocky/cc/wrap.nix); glibc
-    # gets no store rpath at all (NIX_DONT_SET_RPATH), and with new dtags ld
-    # writes `-z now` as DT_FLAGS/DF_BIND_NOW instead of Rocky's DT_BIND_NOW
-    # and the gconv modules' -rpath '$ORIGIN' as DT_RUNPATH instead of
-    # DT_RPATH (RUNPATH yields to LD_LIBRARY_PATH): 705 abi.dynamic and 279
-    # content differences in checks.nn-glibc-{abi,content} (M1, m1.md).
-    # NIX_LDFLAGS_BEFORE follows the wrapper's own flags and precedes the
-    # link's arguments, so this restores Rocky's ld default and still lets
-    # glibc's own -Wl,--enable-new-dtags (rt/Makefile, librt.so.1) win; as
-    # NIX_LDFLAGS_AFTER it overrode that one too (librt lost its DT_FLAGS)
-    NIX_LDFLAGS_BEFORE = "--disable-new-dtags";
+    # (Rocky's ld dtags -- `-z now` as DT_BIND_NOW, the gconv modules'
+    # -rpath '$ORIGIN' as DT_RPATH -- are every package's default now:
+    # mkRpmPackage's env.NIX_LDFLAGS_BEFORE = "--disable-new-dtags", which
+    # still lets glibc's own -Wl,--enable-new-dtags win for librt.so.1; M1
+    # found it here first: 705 abi.dynamic + 279 content differences, m1.md)
     # glibc dlopens libgcc_s.so.1 (pthread_cancel, backtrace) from its system
     # dirs only; a make variable from the environment (E5: reaches every
     # sub-make through rpmbuild and the spec's `env ... make -r`).  NOT a
@@ -73,6 +66,16 @@ in
   # from any glibc output to kernel-headers fails the partition
   # (foreign-store-path) and outputChecks.
   inputs.addBuildOnly = [ stage.pkgs.kernel-headers stage.glibcBuildDeps ];
+  # the BuildRequires these build-only inputs stand for; named here, not in
+  # the stage fallback, so no other package loses them silently (M1 review:
+  # sed lost libselinux-devel, pcre2 readline-devel that way)
+  inputs.drop = [
+    "audit-libs-devel" "gd-devel" "libpng-devel" "libselinux-devel" "libcap-devel"
+    "systemtap-sdt-devel"     # glibcBuildDeps (sdt.h)
+    "zlib-ng-compat-devel"    # glibcBuildDeps (S1's zlib-ng links the stage0 libc)
+    "kernel-headers"          # addBuildOnly stage.pkgs.kernel-headers
+    "libidn2"                 # dlopen'ed at run time only (getaddrinfo AI_IDN)
+  ];
   # --with-headers=%{_prefix}/include: resolved by the prefixView alias (E2,
   # through the view's include/ = kernel-headers'); only if E2 says otherwise:
   # specSubstitutions = [ { from = "--with-headers=%{_prefix}/include";
@@ -86,7 +89,8 @@ in
     "lib/locale/locale-archive" = "LOCALE_ARCHIVE"; # all_langpacks; P2
     "lib/locale" = "LOCPATH";                       # langpacks, common's C.utf8
     "share/i18n" = "I18NPATH";                      # locale_source
-    "lib64/gconv" = "GCONV_PATH";                   # gconv_extra
+    "lib64/gconv" = "GCONV_PATH";                   # gconv_extra; run time only
+                                                    # (unions.nix: no hook line)
   };
   unionDirs = {
     "lib64" = "rtld system dir; other outputs via RUNPATH";
@@ -125,6 +129,18 @@ in
     "benchtests"                  # support_paths.c table (above)
     "sysroot_x86_64_el10_glibc"   # ld-linux-x86-64.so.2, libc.a: $out/lib64/
   ];
+  # libc's compiled-in LOCALE_ALIAS_PATH ($out/share/locale/locale.alias) and
+  # complocaledir ($out/lib/locale, where Rocky has C.utf8) name files of
+  # glibc-common, which references out, so no forwarding stub can serve them
+  # (a cycle): the files move into out and common keeps symlinks.  Without
+  # this, alias names (deutsch, german, norwegian, ...) fail with directory
+  # locales (LOCPATH; the archive stores them itself), and C.UTF-8 needs
+  # LOCPATH, so archive mode (LOCALE_ARCHIVE, LOCPATH unset) never has it
+  # (M1 review); Rocky has both through /usr
+  pullToPrefix = {
+    "share/locale/locale.alias" = "libc's LOCALE_ALIAS_PATH (glibc-common)";
+    "lib/locale/C.utf8" = "complocaledir/C.utf8 (glibc-common): C.UTF-8 without LOCPATH";
+  };
   noPatchelf = [
     "lib64/ld-linux-x86-64.so.2" "lib/ld-linux.so.2" "lib64/lib*.so*" "lib/lib*.so*"
     "x86_64-redhat-linux/sys-root/**"

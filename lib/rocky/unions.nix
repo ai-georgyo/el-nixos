@@ -22,8 +22,11 @@
 # }
 #
 # Consumers:
-#   * the partitioner's hook generator (tools/rocky-partition hooks.py) reads
-#     `json` from plan.json and, per output o and VAR with "build" in `when`, for
+#   * the partitioner's hook generator (tools/rocky-partition metadata.py
+#     write_hooks) reads the table from plan.json (mkRpmPackage: searchPaths =
+#     the build dirs, searchPathRules = kind/provider/yieldsTo/hook per VAR;
+#     an override's runtimeSearchPaths follow the same rules) and, per output
+#     o and VAR with "build" in `when`, for
 #     each `rel` in `dirs` that exists in o (and, with a provider, has a match for
 #     "o/rel/<provider>"), in order, writes to $o/nix-support/setup-hook
 #       list:   addToSearchPath VAR "$o/rel"
@@ -76,8 +79,13 @@ let
       "info pages";
     TERMINFO_DIRS = list [ "share/terminfo" ] [ "run" ]
       "terminfo database (ncurses-base, ncurses-term)";
-    GCONV_PATH = list [ "lib64/gconv" ] both
-      "glibc iconv modules (glibc-gconv-extra; glibc's own dir is compiled in)";
+    # run time only: a build-time GCONV_PATH also reaches the foreign glibcs
+    # of the build (nixpkgs/stage0 tools: gettext, iconv), which then
+    # dlopen Rocky's 2.39 modules (they import GLIBC_PRIVATE symbols) and
+    # skip their own gconv-modules.cache (M1 review); glibc's own lib64/gconv
+    # is compiled in anyway
+    GCONV_PATH = list [ "lib64/gconv" ] [ "run" ]
+      "glibc iconv modules (glibc-gconv-extra; glibc's own dir is compiled in); run time only (profiles)";
     LOCPATH = list [ "lib/locale" ] both
       "glibc directory-format locales (langpacks, minimal-langpack, C.utf8 in common); never set where an archive is provided, since glibc then ignores LOCALE_ARCHIVE"
       // { provider = "*/LC_CTYPE"; yieldsTo = [ "LOCALE_ARCHIVE" ]; };

@@ -73,7 +73,9 @@
 #                 result is nn.lateBind.wrap of the raw derivation (§11.1:
 #                 bound copies of the late outputs + their lateReferrers,
 #                 interpreters/libs resolved by lateBind.fromOverrides from
-#                 the stage; per-output rockyRequisites); else the raw one
+#                 the stage; per-output rockyRequisites; the bind
+#                 derivation's outputChecks derived from raw's + the binds');
+#                 else the raw one
 #                 (S1: inactive, the late outputs ship raw with the package's
 #                 named exceptions)
 #   logs          rocky-report.json, plan.json, view collisions (store hashes
@@ -166,15 +168,22 @@ let
     if lib.hasInfix ":" r || lib.length parts < 2 || !(lib.elem o outs.outputs) then r
     else "${o}:${lib.concatStringsSep "/" (lib.tail parts)}";
 
-  # generic build-time search paths for the generated setup hooks: the list
-  # variables of lib/rocky/unions.nix without provider/yieldsTo (the
-  # partitioner writes plain addToSearchPath lines), minus XDG_DATA_DIRS
-  # (every output with share/ would get one)
+  # generic build-time search paths for the generated setup hooks: the dirs
+  # of the lib/rocky/unions.nix variables with "build" in `when`, minus
+  # XDG_DATA_DIRS (every output with share/ would get one); the partitioner
+  # applies the table's contract per variable (searchPathRules: provider,
+  # yieldsTo, run-time-only), to these and to the override's
+  # runtimeSearchPaths alike -- so glibc's all_langpacks exports
+  # LOCALE_ARCHIVE and unsets LOCPATH, its lib/locale (no */LC_CTYPE) is no
+  # LOCPATH entry, and GCONV_PATH (run time only) gets no hook line
   searchPaths = lib.foldl' (acc: v:
     let t = unions.table.${v}; in
-    if t.kind == "list" && t.provider == null && t.yieldsTo == [ ] && lib.elem "build" t.when
-       && v != "XDG_DATA_DIRS"
+    if lib.elem "build" t.when && v != "XDG_DATA_DIRS"
     then acc // lib.genAttrs t.dirs (_: v) else acc) { } unions.vars;
+  searchPathRules = lib.mapAttrs (_: t: {
+    inherit (t) kind provider yieldsTo;
+    hook = lib.elem "build" t.when;
+  }) unions.table;
 
   rockyPlan = {
     version = 1;
@@ -188,7 +197,8 @@ let
     inherit (ov) mergeOutputs layout runtimeSearchPaths unionDirs danglingOk lateReferrers
       noPatchelf strictFhs allowUnresolvedNeeded prefixRelativeOk integrityOk;
     inherit fhsAllowlist;
-    inherit searchPaths;
+    inherit searchPaths searchPathRules;
+    inherit (ov) pullToPrefix;
     opaqueRefs = map opaqueRef ov.opaqueRefs;
     forward = ov.forward;
     lateBind = ov.lateBind;
@@ -268,6 +278,18 @@ let
       # brp check-rpaths: every store RUNPATH is "invalid" (0x0002) to it
       # (E2/E3 finding; design §5.5 corrected)
       QA_RPATHS = "0x0002";
+      # Rocky's ld default (DT_RPATH dtags) for every spec link: the S1 ld
+      # wrapper puts --enable-new-dtags before each link (its store -rpath
+      # entries become DT_RUNPATH for ordinary consumers, lib/rocky/cc/wrap.nix),
+      # which turns Rocky's `-z now` into DT_FLAGS/DF_BIND_NOW instead of
+      # DT_BIND_NOW and its -rpath '$ORIGIN' into DT_RUNPATH (M1: 705
+      # abi.dynamic + 279 content differences in glibc alone; xz's liblzma
+      # the same).  NIX_LDFLAGS_BEFORE follows the wrapper's own flags and
+      # precedes the link's arguments, so a spec's own -Wl,--enable-new-dtags
+      # still wins (glibc's librt.so.1).  Store dirs still end up DT_RUNPATH:
+      # rocky-partition phase E writes them with patchelf (PLAN.md).  An
+      # override's env.NIX_LDFLAGS_BEFORE replaces this.
+      NIX_LDFLAGS_BEFORE = "--disable-new-dtags";
     } // lib.mapAttrs (_: v: if v == null then "" else toString v) identEnv;
 
     # §5.3 fixup settings (rocky-partition did the moving; rpm stripped)
@@ -398,7 +420,11 @@ let
       # §5.6: a -devel output propagates the sibling outputs its subpackage
       # Requires (unique provider, from the transient headers: the report's
       # outputRequires), as nixpkgs' dev propagates lib: `buildInputs = [ xz.dev ]`
-      # then links and runs against xz.lib
+      # then links and runs against xz.lib.  Cross-SRPM Requires (glibc-devel
+      # -> kernel-headers, libxcrypt-devel) are NOT written here: that would
+      # be a reference, i.e. part of the dev output's runtime closure; mkStage
+      # propagates them at evaluation time for mkRpmPackage builds
+      # (develClosure, lock develrequires.json)
       python3 -I - "$NIX_ATTRS_JSON_FILE" "$out/nix-support/rocky-report.json" <<'EOF'
       import json, os, sys
       attrs = json.load(open(sys.argv[1]))

@@ -8,6 +8,7 @@
   $out/nix-support/rocky-stubs        forwarding stubs ("rel target")
   $out/nix-support/rocky-late.json    L* (if lateBind)"""
 import collections
+import glob
 import json
 import os
 import stat
@@ -98,24 +99,59 @@ def write_metadata(ctx):
                 f.write("".join(n + "\n" for n in sorted(names[o])))
 
 
+def _provides(p, provider):
+    """does directory p provide its variable (a provider glob needs a match
+    that exists, symlinks followed: lib/locale/*/LC_CTYPE)"""
+    if not provider:
+        return True
+    return any(os.path.exists(x) for x in glob.glob(os.path.join(glob.escape(p), provider)))
+
+
 def write_hooks(ctx):
-    """setup hooks for search paths: a directory -> addToSearchPath, a file ->
-    export if unset (runtimeSearchPaths and searchPaths of the plan)"""
+    """setup hooks for search paths (runtimeSearchPaths and searchPaths of the
+    plan), by the contract of lib/rocky/unions.nix (plan.searchPathRules,
+    keyed by variable; a variable without a rule is a plain list):
+      hook false     no line (a run-time-only variable: profiles set it)
+      provider glob  a directory is an entry only if <dir>/<glob> matches
+                     (LOCPATH: */LC_CTYPE; a lib/locale holding only the
+                     locale-archive is not a LOCPATH entry)
+      list           [ -n "${Y-}" ] || ... per Y in yieldsTo, then
+                     addToSearchPath VAR "<dir>"
+      single / file  export VAR="${VAR:-<path>}", then `unset V` for every V
+                     whose yieldsTo names VAR
+    so whichever order the hooks are sourced in, a provided LOCALE_ARCHIVE
+    leaves LOCPATH unset (glibc ignores the archive whenever LOCPATH is set)"""
+    rules = ctx.plan.searchPathRules
     table = dict(ctx.plan.searchPaths)
     table.update(ctx.plan.runtimeSearchPaths)
-    hooks = {}
+    yielders = {}
+    for v, r in sorted(rules.items()):
+        for y in r.get("yieldsTo") or []:
+            yielders.setdefault(y, []).append(v)
+    hooks, skipped = {}, {}
     for o in ctx.managed:
         if o == ctx.debug_output:
             continue
         lines = []
         for rel, var in sorted(table.items()):
+            r = rules.get(var, {})
             p = ctx.path_of(o, rel.strip("/"))
             if os.path.islink(p):
                 continue                         # a stub forwards to the real owner
-            if os.path.isdir(p):
-                lines.append('addToSearchPath %s "%s"' % (var, p))
-            elif os.path.isfile(p):
+            if not (os.path.isdir(p) or os.path.isfile(p)):
+                continue
+            if r.get("hook") is False:
+                skipped.setdefault(o, []).append("%s %s (run time only)" % (var, rel))
+                continue
+            if os.path.isdir(p) and r.get("kind", "list") == "list":
+                if not _provides(p, r.get("provider")):
+                    skipped.setdefault(o, []).append("%s %s (no %s)" % (var, rel, r.get("provider")))
+                    continue
+                guard = "".join('[ -n "${%s-}" ] || ' % y for y in r.get("yieldsTo") or [])
+                lines.append('%saddToSearchPath %s "%s"' % (guard, var, p))
+            else:
                 lines.append('export %s="${%s:-%s}"' % (var, var, p))
+                lines.extend("unset %s" % v for v in yielders.get(var, []))
         if lines:
             hook = os.path.join(ctx.out[o], "nix-support", "setup-hook")
             os.makedirs(os.path.dirname(hook), exist_ok=True)
@@ -124,6 +160,8 @@ def write_hooks(ctx):
                 f.write("".join(l + "\n" for l in lines))
             hooks[o] = lines
     ctx.report.section("setupHooks", hooks)
+    if skipped:
+        ctx.report.section("setupHooksSkipped", skipped)
 
 
 def write_hidden(ctx):

@@ -1,5 +1,5 @@
 {
-  "description": "nn-parity runtime: behaviour report of the relocated glibc (bwrap root without /usr, /lib64, /bin; packages/glibc-nn-runtime) vs the official-RPM roots, after normalisation (output paths -> /usr, libgccForGlibc -> <libgcc>, usrmerge spellings, addresses). ours/official of an item difference are its changed lines; every rule pins them. Effects: P1 = ld.so.cache at $out/etc (no cache on Nix), system-dirs = rtld system dirs are $out/lib64 + the libgccForGlibc trusted dirs (design §4.2, §4.5), locale-search-path = locales come through LOCPATH / LOCALE_ARCHIVE, not the compiled-in complocaledir (§4.2), libc-catalogs = libc's own message catalogs live in the langpack outputs, its text domain dir is $out/share/locale (decision §0.4 #6), late-bind = FHS shebang until the S3 bind (§4.6), locale-alias = locale.alias is in glibc-common, not at libc's compiled-in $out/share/locale.",
+  "description": "nn-parity runtime: behaviour report of the relocated glibc (bwrap root without /usr, /lib64, /bin; packages/glibc-nn-runtime) vs the official-RPM roots, after normalisation (output paths -> /usr, libgccForGlibc -> <libgcc>, usrmerge spellings, addresses). ours/official of an item difference are its changed lines; every rule pins them. Effects: P1 = ld.so.cache at $out/etc (no cache on Nix), system-dirs = rtld system dirs are $out/lib64 + the libgccForGlibc trusted dirs (design §4.2, §4.5), locale-search-path = locales come through LOCPATH / LOCALE_ARCHIVE, not the compiled-in complocaledir (§4.2), libc-catalogs = libc's own message catalogs live in the langpack outputs, its text domain dir is $out/share/locale (decision §0.4 #6), late-bind = FHS shebang until the S3 bind (§4.6). (M1 review: the former locale-alias and archive-mode C.utf8 rules are gone: pullToPrefix put locale.alias and C.utf8 into out, so both behave as on Rocky; alias names are compared in both modes.)",
   "allow": [
     {
       "id": "runtime.item:ldso.help",
@@ -52,19 +52,6 @@
       "ours": "^\\[\"strerror=No such file or directory\"\\]$",
       "official": "^\\[\"strerror=[^\"]*\"\\]$",
       "reason": "only libc's translated messages differ: its catalogs (share/locale/<lang>/LC_MESSAGES/libc.mo) are in the langpack outputs while its text domain dir is $out/share/locale, so they stay untranslated unless composed (design decision §0.4 #6). Every locale datum (locale -k of all 12 categories, strftime, collation, ctype) is equal"
-    },
-    {
-      "id": "runtime.only-official:loc.C.utf8",
-      "packages": "locales-archive.txt",
-      "effect": "locale-search-path",
-      "reason": "C.utf8 is a directory of glibc-common (common/lib/locale/C.utf8, reached through LOCPATH; compared in locales.txt), not part of the all_langpacks archive; archive mode has no LOCPATH"
-    },
-    {
-      "id": "runtime.item:loc.no_NO.ISO-8859-1",
-      "packages": "locales-archive.txt",
-      "effect": "locale-alias",
-      "ours": "^\\[\"locale: Cannot set LC_CTYPE to default locale: No such file or directory\", \"locale: Cannot set LC_MESSAGES to default locale: No such file or directory\", \"locale: Cannot set LC_ALL to default locale: No such file or directory\", ",
-      "reason": "libc expands locale aliases from LOCALE_ALIAS_PATH = its localedir, $out/share/locale/locale.alias (compiled in, no environment override), but locale.alias is a file of glibc-common, i.e. $common/share/locale (share/locale is a union dir of out, common and the langpacks; a stub out -> common would close the cycle common -> out). The archive stores this one name with a non-normalised codeset (no_NO.ISO-8859-1), which setlocale finds only through the alias no_NO.ISO-8859-1 -> nb_NO.ISO-8859-1; it is the only one of the 884 archive names that needs the alias file (all others equal). Same root cause as libc-catalogs (libc's share/locale content lives in other outputs; composed by profiles, decision §0.4 #6)"
     }
   ]
 }

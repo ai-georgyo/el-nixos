@@ -144,23 +144,135 @@
       "reason": "user-defined-trusted-dirs (libgccForGlibc lib64 and lib) extend the static loader's system dirs table"
     },
     {
+      "id": "elf.alloc:/usr/bin/locale:.dynstr",
+      "packages": "glibc-common.x86_64",
+      "effect": "P2",
+      "ours": "^\"1075 [0-9a-f]{16}\"$",
+      "official": "^\"1057 [0-9a-f]{16}\"$",
+      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): the secure_getenv@GLIBC_2.17 call adds the names secure_getenv and GLIBC_2.17 to .dynstr (1057 -> 1075 bytes; ours/official pin the sizes; the added symbol and version need are pinned by the elf.dynsym / elf.verneed rule)"
+    },
+    {
+      "id": "elf.alloc:/usr/bin/locale:.dynsym",
+      "packages": "glibc-common.x86_64",
+      "effect": "P2",
+      "ours": "^\"2088 [0-9a-f]{16}\"$",
+      "official": "^\"2064 [0-9a-f]{16}\"$",
+      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): the secure_getenv@GLIBC_2.17 call adds one Elf64_Sym (24 bytes) to .dynsym (2064 -> 2088 bytes; ours/official pin the sizes; the added symbol and version need are pinned by the elf.dynsym / elf.verneed rule)"
+    },
+    {
+      "id": "elf.alloc:/usr/bin/locale:.gnu.version",
+      "packages": "glibc-common.x86_64",
+      "effect": "P2",
+      "ours": "^\"174 [0-9a-f]{16}\"$",
+      "official": "^\"172 [0-9a-f]{16}\"$",
+      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): the secure_getenv@GLIBC_2.17 call adds one version index (2 bytes) to .gnu.version (172 -> 174 bytes; ours/official pin the sizes; the added symbol and version need are pinned by the elf.dynsym / elf.verneed rule)"
+    },
+    {
+      "id": "elf.alloc:/usr/bin/locale:.gnu.version_r",
+      "packages": "glibc-common.x86_64",
+      "effect": "P2",
+      "ours": "^\"208 [0-9a-f]{16}\"$",
+      "official": "^\"192 [0-9a-f]{16}\"$",
+      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): the secure_getenv@GLIBC_2.17 call adds one Elf64_Vernaux (16 bytes) to .gnu.version_r (192 -> 208 bytes; ours/official pin the sizes; the added symbol and version need are pinned by the elf.dynsym / elf.verneed rule)"
+    },
+    {
+      "id": "elf.alloc:/usr/bin/locale:.got",
+      "packages": "glibc-common.x86_64",
+      "effect": "P2",
+      "ours": "^\"696 [0-9a-f]{16}\"$",
+      "official": "^\"688 [0-9a-f]{16}\"$",
+      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): the secure_getenv@GLIBC_2.17 call adds one GOT slot (8 bytes) to .got (688 -> 696 bytes; ours/official pin the sizes; the added symbol and version need are pinned by the elf.dynsym / elf.verneed rule)"
+    },
+    {
+      "id": "elf.alloc:/usr/bin/locale:.plt",
+      "packages": "glibc-common.x86_64",
+      "effect": "P2",
+      "ours": "^\"1216 [0-9a-f]{16}\"$",
+      "official": "^\"1200 [0-9a-f]{16}\"$",
+      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): the secure_getenv@GLIBC_2.17 call adds one PLT entry (16 bytes) to .plt (1200 -> 1216 bytes; ours/official pin the sizes; the added symbol and version need are pinned by the elf.dynsym / elf.verneed rule)"
+    },
+    {
+      "id": "elf.alloc:/usr/bin/locale:.plt.sec",
+      "packages": "glibc-common.x86_64",
+      "effect": "P2",
+      "ours": "^\"1200 [0-9a-f]{16}\"$",
+      "official": "^\"1184 [0-9a-f]{16}\"$",
+      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): the secure_getenv@GLIBC_2.17 call adds one PLT entry (16 bytes) to .plt.sec (1184 -> 1200 bytes; ours/official pin the sizes; the added symbol and version need are pinned by the elf.dynsym / elf.verneed rule)"
+    },
+    {
+      "id": "elf.alloc:/usr/bin/locale:.rela.plt",
+      "packages": "glibc-common.x86_64",
+      "effect": "P2",
+      "ours": "^\"1800 [0-9a-f]{16}\"$",
+      "official": "^\"1776 [0-9a-f]{16}\"$",
+      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): the secure_getenv@GLIBC_2.17 call adds one JUMP_SLOT Elf64_Rela (24 bytes) to .rela.plt (1776 -> 1800 bytes; ours/official pin the sizes; the added symbol and version need are pinned by the elf.dynsym / elf.verneed rule)"
+    },
+    {
+      "id": "elf.alloc:/usr/bin/localedef:.dynstr",
+      "packages": "glibc-common.x86_64",
+      "effect": "P2",
+      "ours": "^\"1558 [0-9a-f]{16}\"$",
+      "official": "^\"1540 [0-9a-f]{16}\"$",
+      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): the secure_getenv@GLIBC_2.17 call adds the names secure_getenv and GLIBC_2.17 to .dynstr (1540 -> 1558 bytes; ours/official pin the sizes; the added symbol and version need are pinned by the elf.dynsym / elf.verneed rule)"
+    },
+    {
+      "id": "elf.alloc:/usr/bin/localedef:.dynsym",
+      "packages": "glibc-common.x86_64",
+      "effect": "P2",
+      "ours": "^\"3168 [0-9a-f]{16}\"$",
+      "official": "^\"3144 [0-9a-f]{16}\"$",
+      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): the secure_getenv@GLIBC_2.17 call adds one Elf64_Sym (24 bytes) to .dynsym (3144 -> 3168 bytes; ours/official pin the sizes; the added symbol and version need are pinned by the elf.dynsym / elf.verneed rule)"
+    },
+    {
+      "id": "elf.alloc:/usr/bin/localedef:.gnu.version",
+      "packages": "glibc-common.x86_64",
+      "effect": "P2",
+      "ours": "^\"264 [0-9a-f]{16}\"$",
+      "official": "^\"262 [0-9a-f]{16}\"$",
+      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): the secure_getenv@GLIBC_2.17 call adds one version index (2 bytes) to .gnu.version (262 -> 264 bytes; ours/official pin the sizes; the added symbol and version need are pinned by the elf.dynsym / elf.verneed rule)"
+    },
+    {
+      "id": "elf.alloc:/usr/bin/localedef:.gnu.version_r",
+      "packages": "glibc-common.x86_64",
+      "effect": "P2",
+      "ours": "^\"224 [0-9a-f]{16}\"$",
+      "official": "^\"208 [0-9a-f]{16}\"$",
+      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): the secure_getenv@GLIBC_2.17 call adds one Elf64_Vernaux (16 bytes) to .gnu.version_r (208 -> 224 bytes; ours/official pin the sizes; the added symbol and version need are pinned by the elf.dynsym / elf.verneed rule)"
+    },
+    {
+      "id": "elf.alloc:/usr/bin/localedef:.got",
+      "packages": "glibc-common.x86_64",
+      "effect": "P2",
+      "ours": "^\"1016 [0-9a-f]{16}\"$",
+      "official": "^\"1008 [0-9a-f]{16}\"$",
+      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): the secure_getenv@GLIBC_2.17 call adds one GOT slot (8 bytes) to .got (1008 -> 1016 bytes; ours/official pin the sizes; the added symbol and version need are pinned by the elf.dynsym / elf.verneed rule)"
+    },
+    {
+      "id": "elf.alloc:/usr/bin/localedef:.plt",
+      "packages": "glibc-common.x86_64",
+      "effect": "P2",
+      "ours": "^\"1872 [0-9a-f]{16}\"$",
+      "official": "^\"1856 [0-9a-f]{16}\"$",
+      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): the secure_getenv@GLIBC_2.17 call adds one PLT entry (16 bytes) to .plt (1856 -> 1872 bytes; ours/official pin the sizes; the added symbol and version need are pinned by the elf.dynsym / elf.verneed rule)"
+    },
+    {
+      "id": "elf.alloc:/usr/bin/localedef:.plt.sec",
+      "packages": "glibc-common.x86_64",
+      "effect": "P2",
+      "ours": "^\"1856 [0-9a-f]{16}\"$",
+      "official": "^\"1840 [0-9a-f]{16}\"$",
+      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): the secure_getenv@GLIBC_2.17 call adds one PLT entry (16 bytes) to .plt.sec (1840 -> 1856 bytes; ours/official pin the sizes; the added symbol and version need are pinned by the elf.dynsym / elf.verneed rule)"
+    },
+    {
+      "id": "elf.alloc:/usr/bin/localedef:.rela.plt",
+      "packages": "glibc-common.x86_64",
+      "effect": "P2",
+      "ours": "^\"2784 [0-9a-f]{16}\"$",
+      "official": "^\"2760 [0-9a-f]{16}\"$",
+      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): the secure_getenv@GLIBC_2.17 call adds one JUMP_SLOT Elf64_Rela (24 bytes) to .rela.plt (2760 -> 2784 bytes; ours/official pin the sizes; the added symbol and version need are pinned by the elf.dynsym / elf.verneed rule)"
+    },
+    {
       "id": [
-        "elf.alloc:/usr/bin/locale:.dynstr",
-        "elf.alloc:/usr/bin/locale:.dynsym",
-        "elf.alloc:/usr/bin/locale:.gnu.version",
-        "elf.alloc:/usr/bin/locale:.gnu.version_r",
-        "elf.alloc:/usr/bin/locale:.got",
-        "elf.alloc:/usr/bin/locale:.plt",
-        "elf.alloc:/usr/bin/locale:.plt.sec",
-        "elf.alloc:/usr/bin/locale:.rela.plt",
-        "elf.alloc:/usr/bin/localedef:.dynstr",
-        "elf.alloc:/usr/bin/localedef:.dynsym",
-        "elf.alloc:/usr/bin/localedef:.gnu.version",
-        "elf.alloc:/usr/bin/localedef:.gnu.version_r",
-        "elf.alloc:/usr/bin/localedef:.got",
-        "elf.alloc:/usr/bin/localedef:.plt",
-        "elf.alloc:/usr/bin/localedef:.plt.sec",
-        "elf.alloc:/usr/bin/localedef:.rela.plt",
         "elf.dynsym:/usr/bin/locale:+secure_getenv@GLIBC_2.17 FUNC GLOBAL DEFAULT UND 0",
         "elf.dynsym:/usr/bin/localedef:+secure_getenv@GLIBC_2.17 FUNC GLOBAL DEFAULT UND 0",
         "elf.verneed:/usr/bin/locale:+libc.so.6:GLIBC_2.17",
@@ -168,7 +280,9 @@
       ],
       "packages": "glibc-common.x86_64",
       "effect": "P2",
-      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): locale.c and locarchive.c call secure_getenv (as nixpkgs): one more undefined dynamic symbol, version need GLIBC_2.17, PLT/GOT slot and JUMP_SLOT relocation, so these dynamic-linking sections grow by one entry each (their code and data are classified by the rules above)"
+      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): locale.c and locarchive.c call secure_getenv (as nixpkgs): exactly one more undefined dynamic symbol and one version need GLIBC_2.17 (ours/official pin them); the dynamic-linking sections that grow by one entry each have one size-pinned rule apiece above",
+      "ours": "^\"(secure_getenv@GLIBC_2\\.17 FUNC GLOBAL DEFAULT UND 0|libc\\.so\\.6:GLIBC_2\\.17)\"$",
+      "official": "^null$"
     }
   ]
 }

@@ -21,14 +21,20 @@
       "official": "^\\[\\]$"
     },
     {
-      "id": [
-        "abi.versions:/usr/bin/locale",
-        "abi.versions:/usr/bin/localedef"
-      ],
+      "id": "abi.versions:/usr/bin/locale",
       "packages": "glibc-common.x86_64",
       "effect": "P2",
-      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): the secure_getenv@GLIBC_2.17 reference adds a GLIBC_2.17 version need, so the .gnu.version table gains one entry and its version indices shift (the dynamic symbols themselves are compared by abi.dynsym)",
-      "ours": "GLIBC_2\\.17"
+      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): the secure_getenv@GLIBC_2.17 reference adds a GLIBC_2.17 version need, so the .gnu.version table gains one entry and its version indices shift (the dynamic symbols themselves are compared by abi.dynsym); ours/official pin the entry count (86 -> 87) and exactly one GLIBC_2.17 index in ours, none in official (the readelf table is positional, so the shifted rows themselves cannot be compared)",
+      "ours": "^\\[\"Version symbols section '\\.gnu\\.version' contains 87 entries:\"(?!.*\\(GLIBC_2\\.17\\).*\\(GLIBC_2\\.17\\)).*\\(GLIBC_2\\.17\\)",
+      "official": "^\\[\"Version symbols section '\\.gnu\\.version' contains 86 entries:\"(?!.*GLIBC_2\\.17)"
+    },
+    {
+      "id": "abi.versions:/usr/bin/localedef",
+      "packages": "glibc-common.x86_64",
+      "effect": "P2",
+      "reason": "P2 (packages/glibc/nix-patches/locale-archive.patch, design §4.3): the secure_getenv@GLIBC_2.17 reference adds a GLIBC_2.17 version need, so the .gnu.version table gains one entry and its version indices shift (the dynamic symbols themselves are compared by abi.dynsym); ours/official pin the entry count (131 -> 132) and exactly one GLIBC_2.17 index in ours, none in official (the readelf table is positional, so the shifted rows themselves cannot be compared)",
+      "ours": "^\\[\"Version symbols section '\\.gnu\\.version' contains 132 entries:\"(?!.*\\(GLIBC_2\\.17\\).*\\(GLIBC_2\\.17\\)).*\\(GLIBC_2\\.17\\)",
+      "official": "^\\[\"Version symbols section '\\.gnu\\.version' contains 131 entries:\"(?!.*GLIBC_2\\.17)"
     },
     {
       "id": "abi.symbols:/usr/lib64/libc.a",

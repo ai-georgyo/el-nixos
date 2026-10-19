@@ -54,7 +54,8 @@ let
     { name = "no rpm alias for kernel subpackages not built (kernel-core)"; got = null;
       ok = !(s1.rpm ? "kernel-core") && !(s1.rpm ? "kernel"); }
     { name = "a BuildRequire kernel-headers resolves to the variant's out"; got = null;
-      ok = map toString (s1.resolveBuildDeps "which" (noDrop // { buildRequires = [ "kernel-headers" ]; })).host
+      # (which's own drop: packages/which, readline-devel)
+      ok = map toString (s1.resolveBuildDeps "which" (noDrop // { buildRequires = [ "kernel-headers" ]; drop = [ "readline-devel" ]; })).host
         == [ "${kh.out}" ]; }
     { name = "inputs.buildRequires rsync, python3-rpm-macros -> fallback (tool, macro trees)"; got = null;
       ok = lib.elem "rsync" kh.rockyDeps.fromFallback && lib.elem "python3-rpm-macros" kh.rockyDeps.fromFallback

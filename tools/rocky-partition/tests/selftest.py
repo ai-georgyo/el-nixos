@@ -724,6 +724,10 @@ def t_rpath_foreign():
     c.no_errors()
     eq(c.runpath("out", "bin/foo"), None, "RUNPATH of bin/foo after phase E")
     c.has("runpath-changed", "info", "bin/foo")
+    # patchelf --remove-rpath leaves the old string in .dynstr; phase E wipes
+    # it, so the dropped dir is no reference (M1 review: sed, bzip2)
+    with open(c.p("out", "bin/foo"), "rb") as f:
+        true(fhash("gcc").encode() not in f.read(), "the dropped RUNPATH string is gone from bin/foo")
     # a NEEDED found only in a foreign dir: kept, so it must be allowed
     d = Case("rpathforeign2")
     lib = os.path.join(STORE, "%s-bar-1" % fhash("bar"), "lib64")
@@ -743,9 +747,65 @@ def t_rpath_foreign():
     d.no_errors()
 
 
+def t_search_path_rules():
+    """setup hooks by the unions contract (plan.searchPathRules): LOCPATH only
+    for a lib/locale with */LC_CTYPE and guarded by LOCALE_ARCHIVE; the
+    archive's hook unsets LOCPATH; a run-time-only variable gets no line.
+    Sourced in both orders, LOCPATH ends up unset (M1 review)"""
+    c = Case("hookrules")
+    c.sub("foo").sub("foo-lang").sub("foo-arch").sub("foo-gconv")
+    c.text("foo", "bin/x", "#!/bin/sh\n")
+    c.text("foo-lang", "lib/locale/de_DE.utf8/LC_CTYPE", "c\n")
+    c.text("foo-arch", "lib/locale/locale-archive", "a\n")
+    c.text("foo-gconv", "lib64/gconv/X.so", "g\n")
+    m = {"foo": "out", "foo-lang": "lang", "foo-arch": "arch", "foo-gconv": "gconv"}
+    rules = {"LOCPATH": {"kind": "list", "provider": "*/LC_CTYPE", "yieldsTo": ["LOCALE_ARCHIVE"], "hook": True},
+             "LOCALE_ARCHIVE": {"kind": "single", "provider": None, "yieldsTo": [], "hook": True},
+             "GCONV_PATH": {"kind": "list", "provider": None, "yieldsTo": [], "hook": False}}
+    c.run(m, {"searchPaths": {"lib/locale": "LOCPATH", "lib/locale/locale-archive": "LOCALE_ARCHIVE",
+                              "lib64/gconv": "GCONV_PATH"}, "searchPathRules": rules,
+              "unionDirs": {"lib/locale": "LOCPATH"}}, expect_rc=0)
+    c.no_errors()
+    eq(c.read("lang", "nix-support/setup-hook").splitlines()[1:],
+       ['[ -n "${LOCALE_ARCHIVE-}" ] || addToSearchPath LOCPATH "%s/lib/locale"' % c.p("lang")], "lang hook")
+    eq(c.read("arch", "nix-support/setup-hook").splitlines()[1:],
+       ['export LOCALE_ARCHIVE="${LOCALE_ARCHIVE:-%s/lib/locale/locale-archive}"' % c.p("arch"), "unset LOCPATH"],
+       "arch hook (no LOCPATH: no */LC_CTYPE)")
+    true(not os.path.exists(c.p("gconv", "nix-support/setup-hook")), "no hook for a run-time-only variable")
+    for order in (("lang", "arch"), ("arch", "lang")):
+        sh = 'addToSearchPath() { export $1="$2${!1:+:${!1}}"; }\n' + "".join(
+            ". %s\n" % c.p(o, "nix-support/setup-hook") for o in order) + 'echo "${LOCPATH-unset} ${LOCALE_ARCHIVE-unset}"\n'
+        r = subprocess.run([shutil.which("bash"), "-euc", sh], capture_output=True, text=True, env={})
+        eq(r.stdout.strip(), "unset %s/lib/locale/locale-archive" % c.p("arch"), "hooks sourced %s, %s" % order)
+
+
+def t_pull_to_prefix():
+    """pullToPrefix: a file of foo-common (which references out) named by a
+    compiled-in default of out moves into out, common keeps a symlink (no
+    stub: it would close a cycle); a pattern matching nothing is an error"""
+    c = Case("pull")
+    c.sub("foo").sub("foo-common", ["foo"])
+    c.cc("foo", "bin/foo", '#include <stdio.h>\nint main(void) { puts("@P@/share/foo/alias"); return 0; }\n')
+    c.text("foo-common", "share/foo/alias", "a b\n")
+    c.text("foo-common", "bin/tool", "#!/bin/sh\nexec @P@/bin/foo\n", mode=0o755)
+    m = {"foo": "out", "foo-common": "common"}
+    c.run(m, expect_rc=1)
+    c.has("binary-ref", "error", "share/foo/alias")
+    c.run(m, {"pullToPrefix": {"share/foo/alias": "test", "share/nothing": "unused"}}, expect_rc=1)
+    c.has("pull-to-prefix", "error", "share/nothing matches no regular file")
+    c.run(m, {"pullToPrefix": {"share/foo/alias": "test"}}, expect_rc=0)
+    c.no_errors()
+    true(os.path.isfile(c.p("out", "share/foo/alias")) and not os.path.islink(c.p("out", "share/foo/alias")),
+         "the file is in out")
+    eq(os.readlink(c.p("common", "share/foo/alias")), c.p("out", "share/foo/alias"), "common keeps a link to it")
+    eq(c.read("common", "share/foo/alias"), "a b\n", "the link resolves")
+    c.has("pull-to-prefix", "info", "common/share/foo/alias moved to out")
+
+
 CASES = [t_split, t_libs_self_cycle, t_nested_stubs, t_integrity, t_pc_derived, t_token_split, t_search_path, t_text_cycle, t_dangling_foreign_union, t_pieced,
          t_prefix_relative, t_late, t_subpackages_unclaimed, t_replay, t_layout_and_docs, t_plan_errors,
-         t_cmake_export, t_rpath_foreign, t_cmake_unrequired, t_shebang_gate]
+         t_cmake_export, t_rpath_foreign, t_cmake_unrequired, t_shebang_gate, t_search_path_rules,
+         t_pull_to_prefix]
 
 
 def main():

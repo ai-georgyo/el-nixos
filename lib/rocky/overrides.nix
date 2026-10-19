@@ -176,6 +176,12 @@ let
       deny = field (listOf relGlob) [ ];
     }) { deny = [ ]; };
     noPatchelf = field (listOf relGlob) [ ];
+    # { "<rel pattern>" = "<reason>"; }: regular files of a non-prefix output
+    # that the prefix output names where no forwarding stub can serve (the
+    # owner references the prefix output): moved into the prefix output, the
+    # owner keeps a symlink (rocky-partition PLAN.md; glibc's locale.alias,
+    # C.utf8)
+    pullToPrefix = field (attrsOf str) { };
     # rocky-partition keys beyond §8.1 (tools/rocky-partition/PLAN.md)
     prefixRelativeOk = field (listOf outputPattern) [ ];
     integrityOk = field (listOf outputPattern) [ ];
@@ -211,7 +217,7 @@ let
     ++ map (k: "`lateBind.${k}`: `${k}` is not an output name")
       (lib.filter (k: !(isOutputName k)) lateKeys)
     ++ lib.concatMap (f: map (k: "`${f}.${k}`: `${k}` is not an output-relative path")
-      (lib.filter (k: !(isRelPath k)) (lib.attrNames v.${f}))) [ "runtimeSearchPaths" "unionDirs" ]
+      (lib.filter (k: !(isRelPath k)) (lib.attrNames v.${f}))) [ "runtimeSearchPaths" "unionDirs" "pullToPrefix" ]
     ++ lib.concatLists (lib.mapAttrsToList (k: _:
       lib.optional (builtins.match "[A-Za-z_][A-Za-z0-9_]*" k == null)
         "`defines.${k}`: not a macro name") v.defines)

@@ -102,7 +102,17 @@ class Runpath:
                                   % (y, rel, so), output=y, file=rel, soname=so)
             new_s = ":".join(new)
             old_cmp = (old or "").replace(P, out_p) if ctx.replay_old else (old or "")
-            if new_s == old_cmp:
+            # a DT_RPATH holding an input's store dir (Rocky's ld writes
+            # DT_RPATH, so mkRpmPackage links with --disable-new-dtags; the cc
+            # wrapper's -rpath entries land there): rewritten as DT_RUNPATH
+            # even when the entries stay, as Nix's convention has it (a
+            # DT_RPATH also applies to the dependencies' lookups and wins over
+            # LD_LIBRARY_PATH).  Rocky's own entries ($ORIGIN, the package's
+            # dirs) keep their tag
+            foreign_rpath = ef.runpath is None and any(
+                x.startswith("/") and not any(x == ctx.out[o] or x.startswith(ctx.out[o] + "/") for o in ctx.out)
+                and not (x == P or x.startswith(P + "/")) for x in new)
+            if new_s == old_cmp and not foreign_rpath:
                 continue                    # unchanged (an existing DT_RPATH is left as it is)
             if ctx.integrity is not None and ctx.integrity.hold(y, rel, path, old, new_s):
                 continue                    # FIPS integrity data would break (error reported)
@@ -122,3 +132,37 @@ class Runpath:
         p = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         if p.returncode != 0:
             raise RuntimeError("%s failed: %s" % (" ".join(args), p.stdout.decode("utf-8", "replace")))
+        if old and not new:
+            wipe_string(path, old)
+
+
+def wipe_string(path, old):
+    """patchelf --remove-rpath drops the DT_RUNPATH/DT_RPATH entry but leaves
+    its string in .dynstr (--set-rpath overwrites the old one with X): every
+    NUL-delimited copy of `old` in .dynstr is overwritten with X the same way,
+    so the dropped dirs (the cc wrapper's -rpath of the libc dev output and
+    the gcc copy) are no reference (M1 review: sed, bzip2 in s1Glibc1).
+    Returns the number of copies wiped."""
+    with open(path, "rb") as f:
+        data = bytearray(f.read())
+    ef = E.parse(bytes(data))
+    if ef is None:
+        return 0
+    ob = old.encode("utf-8", "surrogateescape")
+    n = 0
+    for name, _t, _f, off, size in ef.sections:
+        if name != ".dynstr":
+            continue
+        i = off
+        while True:
+            i = data.find(ob + b"\0", i, off + size)
+            if i < 0:
+                break
+            if i == off or data[i - 1] == 0:
+                data[i:i + len(ob)] = b"X" * len(ob)
+                n += 1
+            i += len(ob)
+    if n:
+        with open(path, "wb") as f:
+            f.write(bytes(data))
+    return n

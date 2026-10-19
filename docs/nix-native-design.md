@@ -1966,10 +1966,48 @@ profiles (`mkProfile`); `keepBuildTree`; `tools/layout-suggest.py`,
 
 ## 14. Changelog
 
+**M1 review fixes (branch `nn/m1`, `experiments/m1.md` "Review fixes";
+they supersede the integration notes below where they differ):**
+
+* §5.1: `--disable-new-dtags` is every mkRpmPackage build's default
+  (`env.NIX_LDFLAGS_BEFORE`), not glibc's: the wrapper's new dtags changed
+  `DT_BIND_NOW` and `$ORIGIN` DT_RPATH in every package (xz's liblzma too).
+  The wrapper keeps `--enable-new-dtags` for ordinary consumers; phase E
+  writes store dirs as DT_RUNPATH (also an unchanged DT_RPATH holding an
+  input dir), Rocky's own `$ORIGIN`/package-dir RPATHs keep their tag.
+* §2.6: `patchelf --remove-rpath` leaves the old string in `.dynstr`
+  (the cc wrapper's gcc copy and libc dev output stayed references of every
+  package after glibc¹); phase E overwrites it, and a dropped RUNPATH hash
+  left anywhere in the file is a `foreign-store-path` error.
+* §4.1: the generated setup hooks implement the `unions.nix` contract
+  (`provider`, `yieldsTo`, run-time-only variables) for the generic table
+  and for override `runtimeSearchPaths` alike (`searchPathRules` in the
+  plan): `all_langpacks` exports `LOCALE_ARCHIVE` and unsets `LOCPATH`.
+  `GCONV_PATH` is run time only: at build time it reached the foreign
+  glibcs of the build, which loaded Rocky's 2.39 modules.
+* §4.1/§4.2: the "locale aliases / composed by profiles" note below was
+  wrong (libc reads its compiled-in `$out/...`, which no profile changes).
+  New plan key `pullToPrefix`: glibc-common's `share/locale/locale.alias`
+  and `lib/locale/C.utf8` move into `out` (common keeps symlinks; the other
+  direction would close a cycle), so alias names resolve with directory
+  locales and `C.UTF-8` needs no `LOCPATH`, also in archive mode.
+* §5.6: -devel propagation is evaluation-time (`mkStage` `develClosure`,
+  lock `develrequires.json` generated from `deps.json.gz`): a stage-built
+  BuildRequire's cross-SRPM -devel/-headers/-static Requires are inputs too.
+  The dev outputs' `propagated-build-inputs` stay sibling-only (a file
+  reference would add e.g. kernel-headers to glibc.dev's closure).
+* §11.1/§11.3: the bind derivation's outputs get `allowedReferences` /
+  `allowedRequisites` (raw's, L* by name, + the binds' outputs /
+  `rockyRequisites`), not only `disallowedRequisites`; `hydraJobs.nixNative`
+  adds `<srpm>-bound` (a bound package's own drvPath is the raw build).
+* §6 (S1): consumer-specific BuildRequire drops are the consumer's
+  `inputs.drop` (glibc, which), never stage fallback entries.
+
 **M1 integration notes (branch `nn/m1`, `experiments/m1.md`), measured on
 the real `rockyBoot.s1.glibc`:**
 
-* §5.1: the S1 ld wrapper's `--enable-new-dtags` changes Rocky's dynamic
+* §5.1 (superseded: now every package's default, see the review fixes):
+  the S1 ld wrapper's `--enable-new-dtags` changes Rocky's dynamic
   sections where no store rpath is wanted (`DT_BIND_NOW` → `DT_FLAGS`,
   gconv modules' `$ORIGIN` DT_RPATH → DT_RUNPATH); glibc's override restores
   the ld default with `NIX_LDFLAGS_BEFORE = --disable-new-dtags` (before the
@@ -1977,10 +2015,11 @@ the real `rockyBoot.s1.glibc`:**
 * §4.3: P2 inside libc calls `__libc_secure_getenv` (nixpkgs' public call
   added an interposable PLT slot to libc.so.6); the only deviation from
   nixpkgs' patch text.
-* §4.1/§4.2: libc's locale aliases (`$out/share/locale/locale.alias`,
-  compiled in) are in glibc-common; one archive name (`no_NO.ISO-8859-1`)
-  depends on them: named parity difference `locale-alias`, composed by
-  profiles like the libc catalogs (§0.4 #6).
+* §4.1/§4.2 (superseded by the review fixes above: `pullToPrefix`):
+  libc's locale aliases (`$out/share/locale/locale.alias`, compiled in) are
+  in glibc-common; one archive name (`no_NO.ISO-8859-1`) depends on them:
+  named parity difference `locale-alias`, composed by profiles like the
+  libc catalogs (§0.4 #6).
 * §11.1: late binding is applied only where the stage binds
   (`lateBindFor`); per-output `rockyRequisites` avoid an evaluation cycle
   between a bound package and the packages it binds to.

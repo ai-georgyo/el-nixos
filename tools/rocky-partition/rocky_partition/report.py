@@ -19,6 +19,8 @@ CODES = {
     "hardlink-split": "a hard link group spans outputs and was split into copies",
     "setid-dropped": "setuid/setgid bit dropped (recorded in nix-support/rpm/*.json)",
     "shared-file": "a file owned by several outputs is copied into each",
+    "pull-to-prefix": "a pullToPrefix file moved into the prefix output (its owner keeps a symlink),"
+                      " or a pullToPrefix entry that cannot apply",
     # phase C
     "symlink-dangling": "a symlink target exists in no output",
     "symlink-union": "a symlink target is owned by several outputs, none of them the link's",

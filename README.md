@@ -65,8 +65,10 @@ outputs plus one RUNPATH-free `libgcc_s` copy, and
 `checks.nn-glibc-{files,abi,content,closure,runtime}` pass against the 221
 official RPMs (every remaining difference is a named allowlist rule: the
 three Nix-side glibc patches, store-by-pieces code, the stage0 annobin gap,
-locale aliases). Stage S1 also has which, xz, zlib-ng, gzip and the kernel
-headers. Attributes: `rockyBoot.s1.<srpm>`, `rockyBoot.s1.rpm."<rpm-name>"`,
+libc's message catalogs, glibc-common's `locale.alias` and `C.utf8` moved
+into `out` so libc's compiled-in paths find them). Stage S1 also has which, xz, zlib-ng, gzip and
+the kernel headers, built on the stage0 libc and, after glibc¹, against the
+relocated glibc (`checks.nn-s1-glibc1`). Attributes: `rockyBoot.s1.<srpm>`, `rockyBoot.s1.rpm."<rpm-name>"`,
 `hydraJobs.nixNative`; machinery under `legacyPackages.x86_64-linux.nn`.
 
 ```sh
