@@ -96,7 +96,7 @@ set the first build of the final derivation passed.
 | shebang gate | 0 unbound, 10 allowed (ldd sotruss tzselect memusage xtrace glibc-bench-compare `#!/usr/bin/bash`, mtrace `#!/usr/bin/sh`, 3 benchtests `#!/usr/bin/python3`) |
 | outputChecks | pass (allowedReferences = allowedRequisites = siblings + libgccForGlibc for every managed output) |
 | `checks.nn-glibc-smoke` | **passes**: 17 eval + 29 build assertions, `/nix/store/xai04630mkzg2wzykxiappjcvxnfgwv6-nn-glibc-smoke` (below) |
-| `nix build --rebuild` | see the reproducibility line at the end |
+| `nix build --rebuild` (all outputs) | **passes**: exit 0, all 225 outputs (logs and debug included) bit-identical to the first build |
 
 ### Closures (from `nn-glibc-smoke`, exportReferencesGraph)
 
