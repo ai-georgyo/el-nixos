@@ -1,0 +1,63 @@
+{
+  "description": "nn-parity runtime: behaviour report of the relocated glibc (bwrap root without /usr, /lib64, /bin; packages/glibc-nn-runtime) vs the official-RPM roots, after normalisation (output paths -> /usr, libgccForGlibc -> <libgcc>, usrmerge spellings, addresses). ours/official of an item difference are its changed lines; every rule pins them. Effects: P1 = ld.so.cache at $out/etc (no cache on Nix), system-dirs = rtld system dirs are $out/lib64 + the libgccForGlibc trusted dirs (design §4.2, §4.5), locale-search-path = locales come through LOCPATH / LOCALE_ARCHIVE, not the compiled-in complocaledir (§4.2), libc-catalogs = libc's own message catalogs live in the langpack outputs, its text domain dir is $out/share/locale (decision §0.4 #6), late-bind = FHS shebang until the S3 bind (§4.6).",
+  "allow": [
+    {
+      "id": "runtime.item:ldso.help",
+      "effect": "P1+system-dirs",
+      "ours": "^\\[(\"[^\"]*(/usr/etc/ld\\.so\\.cache|<libgcc>/lib(64)? \\(system search path\\))[^\"]*\"(, )?)*\\]$",
+      "official": "^\\[(\"[^\"]*(/etc/ld\\.so\\.cache|/usr/lib64 \\(system search path\\))[^\"]*\"(, )?)*\\]$",
+      "reason": "ld.so --help names the cache file (P1: $out/etc/ld.so.cache) and the system search path: official /lib64 and /usr/lib64 (the same directory after usrmerge), relocated $out/lib64 plus the trusted dirs of libgccForGlibc"
+    },
+    {
+      "id": "runtime.item:ldso.diagnostics",
+      "effect": "P1+system-dirs",
+      "ours": "^\\[(\"path\\.(system_dirs\\[N\\]|[a-z_.]+)=\\\\\"(<libgcc>/lib(64)?/|/usr/etc/ld\\.so\\.[a-z]+)\\\\\"\"(, )?)*\\]$",
+      "official": "^\\[(\"path\\.(system_dirs\\[N\\]|[a-z_.]+)=\\\\\"(/usr/lib64/|/etc/ld\\.so\\.[a-z]+)\\\\\"\"(, )?)*\\]$",
+      "reason": "ld.so --list-diagnostics: path.system_dirs (official /lib64/ and /usr/lib64/, relocated $out/lib64/ + libgccForGlibc's lib64/ and lib/) and, with P1, the cache path"
+    },
+    {
+      "id": "runtime.item:ldconfig.p",
+      "effect": "P1",
+      "ours": "Can't open cache file /usr/etc/ld\\.so\\.cache",
+      "official": "libs found in cache `/etc/ld\\.so\\.cache'",
+      "reason": "P1: the relocated ldconfig reads $out/etc/ld.so.cache, which does not exist on Nix (the official root's cache comes from glibc's %post); the host's /etc/ld.so.cache is deliberately not used"
+    },
+    {
+      "id": "runtime.item:prog.dl-debug",
+      "effect": "P1+system-dirs",
+      "ours": "search cache=/usr/etc/ld\\.so\\.cache",
+      "official": "search cache=/etc/ld\\.so\\.cache",
+      "reason": "LD_DEBUG=libs: the loader consults $out/etc/ld.so.cache (P1, missing) and then searches its system dirs instead of finding libc/libm through /etc/ld.so.cache; the libraries found are the same (prog.dl itself is compared and equal)"
+    },
+    {
+      "id": [
+        "runtime.item:locale.a",
+        "runtime.item:localedef.list-archive"
+      ],
+      "effect": "locale-search-path",
+      "official": "^\\[\"[0-9]+\"\\]$",
+      "ours": "^\\[\"[0-9]+\"\\]$",
+      "reason": "locale -a / localedef --list-archive read the compiled-in complocaledir ($out/lib/locale: empty, locales live in the langpack outputs) and the archive; the relocated profile reaches locales through LOCPATH, so they list only C and POSIX. With LOCALE_ARCHIVE (archive mode, locales-archive.txt) the archive's locales are listed and compared one by one"
+    },
+    {
+      "id": "runtime.item:ldd.hello",
+      "effect": "late-bind",
+      "ours": "ldd: not found",
+      "reason": "ldd is a #!/usr/bin/bash script (common); there is no /usr/bin/bash in the relocated root. S1 allowlists the FHS shebang (fhsAllowlist), S3 binds it to Rocky's bash (lateBind.common.interpreters). ld.so --list (ldso.list) is the same listing and is compared"
+    },
+    {
+      "id": "runtime.item:loc.*",
+      "packages": "locales*.txt",
+      "effect": "libc-catalogs",
+      "ours": "^\\[\"strerror=No such file or directory\"\\]$",
+      "official": "^\\[\"strerror=[^\"]*\"\\]$",
+      "reason": "only libc's translated messages differ: its catalogs (share/locale/<lang>/LC_MESSAGES/libc.mo) are in the langpack outputs while its text domain dir is $out/share/locale, so they stay untranslated unless composed (design decision §0.4 #6). Every locale datum (locale -k of all 12 categories, strftime, collation, ctype) is equal"
+    },
+    {
+      "id": "runtime.only-official:loc.C.utf8",
+      "packages": "locales-archive.txt",
+      "effect": "locale-search-path",
+      "reason": "C.utf8 is a directory of glibc-common (common/lib/locale/C.utf8, reached through LOCPATH; compared in locales.txt), not part of the all_langpacks archive; archive mode has no LOCPATH"
+    }
+  ]
+}

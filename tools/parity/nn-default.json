@@ -1,0 +1,10 @@
+{
+  "description": "Differences expected between ANY relocated (Nix-native) build and the official RPMs, for every check of tools/nn-parity.py (always loaded, rules optional). Package-specific effects go to tools/parity/nn-<srpm>-<check>.json. Every rule names its cause in 'effect'.",
+  "allow": [
+    {
+      "id": "meta.requires:-rpmlib(PayloadIsZstd) <= 5.4.18-1",
+      "effect": "transient-payload",
+      "reason": "the transient RPMs that the partitioner reads are written with %_binary_payload w0.ufdio (lib/rocky/rpm/macros.nix-reloc, design §1.2): rpm adds the rpmlib(PayloadIsZstd) dependency only for zstd payloads. The payload is never shipped (the BUILDROOT has the bytes)"
+    }
+  ]
+}
