@@ -144,14 +144,24 @@ let
     doCheck = field bool false;
     prefixView = field bool true;
     strictFhs = field bool false;
-    inputs = field (record "{ add; addNative; drop; }" {
+    inputs = field (record "{ add; addNative; drop; buildRequires; }" {
       add = field (listOf pathish) [ ];
       addNative = field (listOf pathish) [ ];
       drop = field (listOf str) [ ];
-    }) { add = [ ]; addNative = [ ]; drop = [ ]; };
+      # extra BuildRequires (RPM names), resolved like builddeps.json's
+      # (stage package, stage fallback, else an eval error)
+      buildRequires = field (listOf nonEmptyStr) [ ];
+    }) { add = [ ]; addNative = [ ]; drop = [ ]; buildRequires = [ ]; };
     stage = field (nullOr str) null;
+    # false: the stage libc is build-only (outputs without programs or
+    # libraries, e.g. kernel-headers): not a runtime input, not allowed in
+    # any output
+    runtimeLibc = field bool true;
     # outputs
     prefixSubpackage = field (nullOr str) null;
+    # null: every subpackage of subpackages.json; else exactly the
+    # subpackages this build produces (bconds switch the rest off)
+    builtSubpackages = field (nullOr (listOf nonEmptyStr)) null;
     mergeOutputs = field (listOf (listOf str)) [ ];
     layout = field (attrsOf outputName) { };
     runtimeSearchPaths = field (attrsOf identifier) { };

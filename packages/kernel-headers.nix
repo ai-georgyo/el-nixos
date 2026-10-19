@@ -47,14 +47,14 @@ let
     '';
   };
 
+  # the headers-only recipe, shared with the relocated build
+  # (packages/kernel-headers/default.nix): switches, leaked paths
+  recipe = import ./kernel-headers/headers-only.nix;
+
   # kernel.spec switches (all `%define with_X %{?_without_X: 0} ...`).
   # Everything that would build a kernel, tools, perf, selftests, docs, UKIs or
   # extra packages is off; `headers` stays on.  docs/research/kernel-headers.md §1.1.
-  withouts = [
-    "debug" "up" "realtime" "perf" "libperf" "tools" "ynl" "selftests"
-    "debuginfo" "kmap" "cross_headers" "doc" "efiuki" "kabichk" "kabidwchk"
-    "vdso_install"
-  ] ++ lib.optional (!configchecks) "configchecks";
+  withouts = recipe.withouts ++ lib.optional (!configchecks) "configchecks";
 
   build = lib'.buildSrpm {
     srpm = "kernel";
@@ -68,34 +68,9 @@ let
   e = build.lockEntry;
   nevr = "kernel-headers-${e.version}-${e.release}";
 
-  # The official RPM is produced by the full kernel build, in which libperf's
-  # `install_headers` and cpupower's `install` write into the same buildroot
-  # and `%files headers` is `/usr/include/*`: these 21 paths leak into it
-  # (they are owned by libperf-devel / kernel-tools-libs-devel too).  A
-  # headers-only build cannot produce them; we do not fake them.
-  leakedPaths = [
-    "/usr/include/cpuidle.h"
-    "/usr/include/internal"
-    "/usr/include/internal/cpumap.h"
-    "/usr/include/internal/evlist.h"
-    "/usr/include/internal/evsel.h"
-    "/usr/include/internal/lib.h"
-    "/usr/include/internal/mmap.h"
-    "/usr/include/internal/rc_check.h"
-    "/usr/include/internal/threadmap.h"
-    "/usr/include/internal/xyarray.h"
-    "/usr/include/perf"
-    "/usr/include/perf/bpf_perf.h"
-    "/usr/include/perf/core.h"
-    "/usr/include/perf/cpumap.h"
-    "/usr/include/perf/event.h"
-    "/usr/include/perf/evlist.h"
-    "/usr/include/perf/evsel.h"
-    "/usr/include/perf/mmap.h"
-    "/usr/include/perf/perf_dlfilter.h"
-    "/usr/include/perf/threadmap.h"
-    "/usr/include/powercap.h"
-  ];
+  # the 21 tools headers the official RPM has and a headers-only build cannot
+  # produce (packages/kernel-headers/headers-only.nix)
+  inherit (recipe) leakedPaths;
 
   # Comparison against the official RPM.  Output: report.txt (+ the raw
   # query outputs).  Fails on any unexpected difference.

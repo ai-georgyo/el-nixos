@@ -3,7 +3,14 @@
 # $out inside the tool shim; rocky-partition then moves the BUILDROOT into
 # one Nix output per subpackage.
 #
-#   mkRpmPackage stage { srpm, overrides ? <packages/<srpm>/default.nix> }
+#   mkRpmPackage stage { srpm, pname ? srpm, overrides ? <packages/<pname>/default.nix> }
+#
+# `pname` names a VARIANT of an SRPM (mkStage `variants`): a build of the
+# same spec with its own override file packages/<pname>/default.nix, its own
+# store name <pname>-<v>-<r>[-<o>] and, through `builtSubpackages`, only part
+# of the spec's subpackages (rockyBoot.s1.kernel-headers = the kernel SRPM,
+# headers only).  Stage functions keyed by SRPM (ccFor, libcFor,
+# exceptionsFor, resolveBuildDeps, ...) still get `srpm`.
 #
 # `stage` is a mkStage fixpoint (lib/rocky/stage.nix); this file reads
 #   name stdenv ccFor baseTools fhsBins rpmBin rpmLibDir rpmConfig toolShim
@@ -30,6 +37,9 @@
 #   unpack        bsdtar of the locked SRPM into rpmbuild/SOURCES (+ exact-count
 #                 specSubstitutions on the copy in rpmbuild/SPECS)
 #   rpm config    <stage.rpmConfig>/nix/instantiate per build: @PREFIX@ = $out,
+#                 (stage.rpmConfigWith deps.macroPkgs when the inputs bring
+#                 whole macro package trees: redhat/ scripts, fileattrs --
+#                 python-rpm-macros' pathfix.py, kernel-rpm-macros)
 #                 %distcore = lib/srpm.nix distOf (never %dist, lock.md),
 #                 appended to redhat/macros (never macros.d, E2/rpmconfig.md);
 #                 macro inputs via NIX_RPM_MACRO_DIRS
@@ -69,12 +79,28 @@
 { lib, names, overridesLib, unions, partitionTool, srpmLib, lock }:
 stage:
 { srpm
-, overrides ? stage.overridesFor srpm
+, pname ? srpm
+, overrides ? stage.overridesFor pname
 }:
 let
   e = srpmLib.entry srpm;
-  sub = names.subpackagesFor srpm;
-  ov = overridesLib.checkOutputs "packages/${srpm}/default.nix" overrides outs;
+  file = "packages/${pname}/default.nix";
+  # builtSubpackages: the subpackages this build produces (debug ones
+  # included when built), a subset of the lock's; the partitioner errors on
+  # any built-but-undeclared or declared-but-unbuilt subpackage
+  lockSub = names.subpackagesFor srpm;
+  lockNames = lockSub.names ++ (if lib.isList (lockSub.debug or null) then lockSub.debug else [ ]);
+  built = overrides.builtSubpackages;
+  notInLock = lib.filter (n: !(lib.elem n lockNames)) built;
+  sub =
+    if built == null then lockSub
+    else if notInLock != [ ] then
+      throw "mkRpmPackage ${pname}: ${file}: builtSubpackages ${toString notInLock} not subpackages of ${srpm} (subpackages.json)"
+    else lockSub // {
+      names = lib.filter (n: lib.elem n built) lockSub.names;
+      debug = lib.filter (n: lib.elem n built) (if lib.isList (lockSub.debug or null) then lockSub.debug else [ ]);
+    };
+  ov = overridesLib.checkOutputs file overrides outs;
   outs = names.outputsFor {
     inherit srpm sub;
     inherit (overrides) mergeOutputs prefixSubpackage;
@@ -86,7 +112,9 @@ let
   cc = stage.ccFor srpm;
   # the libc programs of this package run against (null for the libc itself,
   # whose programs find it in their own system dir)
-  libc = stage.runtimeLibcFor srpm;
+  # (and null when the override says the outputs hold nothing that runs:
+  # runtimeLibc = false, e.g. kernel-headers -- then the libc is build-only)
+  libc = if ov.runtimeLibc then stage.runtimeLibcFor srpm else null;
 
   # ---- runtime closure (inductive, §7.1) ----------------------------------
   # runtime inputs: the outputs actually used -- the stage libc's out and the
@@ -184,12 +212,16 @@ let
     ++ lib.concatMap (w: [ "--without" w ]) ov.bconds.without;
   substitutions = map (s: { inherit (s) from to count; }) ov.specSubstitutions;
 
-  configSites = [ "${stage.rpmConfig.configSite}" ]
+  configSites = [ "${rpmConfig.configSite}" ]
     ++ lib.optional (ov.configSite != null) "${ov.configSite}";
 
   macroDirs = lib.concatMap (m: [ "${m}/lib/rpm/macros.d" ]) deps.macro ++ deps.macroDirs;
 
-  name = names.storeName { inherit srpm; inherit (e) version release; };
+  name = names.storeName { srpm = pname; inherit (e) version release; };
+
+  # whole macro package trees (fallback `macroPkgs`) -> an rpm config of
+  # their own; else the stage's (shared by every package)
+  rpmConfig = if deps.macroPkgs == [ ] then stage.rpmConfig else stage.rpmConfigWith deps.macroPkgs;
 
   raw = stage.stdenv.mkDerivation {
     inherit name;
@@ -208,7 +240,7 @@ let
     # (E2 library hazard); tools are PATH-only
     rockyViewInputs = map toString (lib.unique (deps.view ++ [ (stage.libcDevFor srpm) ]));
     rockyFhsBins = stage.fhsBins;
-    rockyRpmConfig = "${stage.rpmConfig}";
+    rockyRpmConfig = "${rpmConfig}";
     rockyDist = srpmLib.distOf srpm;
     rockyRpmbuildArgs = defineArgs ++ bcondArgs;
     rockyRpmbuildEnv = lib.mapAttrs (_: toString) cmdEnv;
@@ -405,7 +437,7 @@ let
 
     passthru = {
       rockyStage = stage.name;
-      inherit srpm;
+      inherit srpm pname;
       inherit (outs) rpmOutputs shippedRpmOutputs unshipped;
       overrides = ov;
       # what a consumer's closure may contain because of an output of this

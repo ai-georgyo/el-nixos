@@ -12,8 +12,8 @@
 #       - glibc¹ (rockyBoot.s1.glibc, WP7) does not exist yet, and the design's
 #         "then glibc¹" step needs it verified first (M1);
 #       - `glibc1 = true` switches every S1 package except glibc and
-#         kernel-headers to wrap { libc = rockyBoot.s1.glibc } (the design's
-#         order: kernel-headers, glibc¹, then the rest);
+#         kernel-headers (SRPM kernel) to wrap { libc = rockyBoot.s1.glibc }
+#         (the design's order: kernel-headers, glibc¹, then the rest);
 #       - consequence while it is false: the outputs reference the stage0 libc
 #         tree (PT_INTERP, RUNPATH): the named S1 exception `stage0LibcTree`.
 #         Its loader has the FHS system dirs compiled in, so libc.so.6 is found
@@ -26,6 +26,13 @@
 # glibc uses no S1 package (only kernel-headers through its inputs.add):
 # every other S1 package links the stage0 libc, and glibc¹'s closure must not
 # contain it.
+#
+# kernel-headers (WP8) is a variant of the kernel SRPM: the same spec built
+# headers-only (bconds + builtSubpackages in packages/kernel-headers/default.nix,
+# the recipe of the FHS twin packages/kernel-headers.nix, docs/kernel-headers.md).
+# Its outputs hold headers only (runtimeLibc = false): the stage0 libc and cc
+# build its host tools (kconfig, fixdep, unifdef) and reach no output.  Like
+# glibc it uses no S1 package (its which/xz BuildRequires are baseTools).
 #
 # Exposed (lib/rocky/parts/rockyBoot.nix): rockyBoot.s1.<srpm> (packages),
 # nn.stages.s1 (the stage: pkgs, rpm.<rpm-name>, glibcBuildDeps,
@@ -42,7 +49,7 @@ let
 
   # glibc¹ in the shape the wrapper wants (lib/rocky/cc/wrap.nix libcAdapter)
   glibc1Libc = nn.cc.libcAdapter { out = self.pkgs.glibc.out; dev = self.pkgs.glibc.dev; };
-  usesStage0Libc = srpm: !glibc1 || lib.elem srpm [ "glibc" "kernel-headers" ];
+  usesStage0Libc = srpm: !glibc1 || lib.elem srpm [ "glibc" "kernel" ];
   libcFor = srpm: if usesStage0Libc srpm then stage0Libc else glibc1Libc;
   ccStage0 = nn.cc.stage0;
   ccGlibc1 = nn.cc.wrap { libc = glibc1Libc; name = "rocky-s1-glibc1"; };
@@ -86,16 +93,6 @@ let
     for d in include lib64 lib bin; do
       if [ -e ${s0.glibcBuildDeps}/usr/$d ]; then mkdir -p $out/$d; cp -rs ${s0.glibcBuildDeps}/usr/$d/. $out/$d/; fi
     done
-  '';
-
-  # Rocky's kernel headers in the store layout ($out/include), INTERIM until
-  # WP8's rockyBoot.s1.kernel-headers (from the kernel SRPM, headers-only
-  # recipe) replaces this entry
-  kernelHeadersInterim = pkgs.runCommand "kernel-headers-interim-${lock.srpms.kernel.version}-${lock.srpms.kernel.release}" {
-    passthru = { rockyStage = "s0"; interim = true; };
-  } ''
-    mkdir -p $out
-    cp -a ${s0.rpms.kernel-headers}/usr/include $out/
   '';
 
   drop = reason: { drop = reason; };
@@ -165,6 +162,22 @@ let
     "kernel-headers" = drop "glibc: inputs.add (stage.pkgs.kernel-headers)";
     libidn2 = drop "glibc: dlopen'ed at run time only";
     "python3-devel" = drop "baseTools (python3)";
+    # the rpmbuild machinery itself
+    "redhat-rpm-config" = drop "the stage rpm config (nn.rpmConfig: stage0's redhat-rpm-config)";
+    "rpm-build" = drop "the stage rpm (stage0 rpm 4.19.1.1, fhsBins)";
+    elfutils = drop "baseTools (elfutils)";
+    # kernel-headers (the kernel SRPM headers-only, WP8)
+    openssl = tool [ (lib.getBin openssl) ] "nixpkgs openssl (kernel %prep: x509 conversion of the sb-certs)";
+    rsync = tool [ rsync ] "nixpkgs rsync (kernel `make headers_install`)";
+    "rocky-sb-certs" = { view = [ s0.rpms.rocky-sb-certs ];
+      reason = "stage0's rocky-sb-certs tree (kernel %prep reads %{_datadir}/pki/sb-certs through the $out alias)"; };
+    # whole macro package trees: macros.d alone lacks python-rpm-macros'
+    # redhat/pathfix.py (%py3_shebang_fix) and kernel-rpm-macros' redhat/
+    # scripts and fileattrs (kabi, modalias, ksyms generators)
+    "kernel-rpm-macros" = { macroPkgs = [ s0.rpms.kernel-rpm-macros ];
+      reason = "stage0's kernel-rpm-macros (Rocky source, FHS)"; };
+    "python3-rpm-macros" = { macroPkgs = [ s0.rpms.python-rpm-macros s0.rpms.python3-rpm-macros ];
+      reason = "stage0's python3-rpm-macros + python-rpm-macros (Rocky source, FHS; %py3_shebang_fix)"; };
   };
 
   self = mkStage {
@@ -205,17 +218,22 @@ let
     fhsAllowlist = {
       "#!/usr/bin/sh" = "S1 bootstrap exception: no Rocky shell to bind /usr/bin/sh to (needs /usr/bin/sh at run time)";
     };
-    # glibc uses no S1 package (see the header)
-    usesStagePackage = srpm: _provider: srpm != "glibc";
+    # glibc and kernel-headers (SRPM kernel) use no S1 package (see the
+    # header): both come first in the design's order (kernel-headers, glibc¹,
+    # then the rest), and with glibc1 = true the S1 tools (which, xz) link
+    # glibc¹, which takes kernel-headers as input (a cycle)
+    usesStagePackage = srpm: _provider: !(lib.elem srpm [ "glibc" "kernel" ]);
     exceptionsFor = srpm:
       if srpm == "glibc" then [ libgccForGlibc ]
+      else if srpm == "kernel" then [ ]   # kernel-headers: headers only
       else if usesStage0Libc srpm then [ stage0LibcTree ]
       else [ ];
     # the design's S1 list is longer (macro packages, gmp, mpfr, libmpc, zstd,
     # binutils¹, gcc¹): each needs its fallback entries / overrides first
     # (docs/research/nix-native/experiments/wp6.md)
     packages = [ "glibc" "which" "xz" "zlib-ng" "gzip" ];
-    extraPkgs = _: { kernel-headers = kernelHeadersInterim; };
+    # the kernel SRPM headers-only (WP8): rockyBoot.s1.kernel-headers
+    variants = { kernel-headers = "kernel"; };
     extra = self': {
       inherit glibcBuildDeps libgccForGlibc stage0Libc stage0LibcTree cmakeRpmMacros glibc1;
       fallbackReasons = lib.mapAttrs (_: v: v.reason or v.drop) fallback;

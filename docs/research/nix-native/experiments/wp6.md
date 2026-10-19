@@ -364,6 +364,8 @@ integration owner of `lib/rocky/**`, `tools/rocky-partition/**`,
   overrides. The rpm config still uses stage0's macro RPM trees.
 * **kernel-headers** is an interim hoisted copy of stage0's Rocky
   kernel-headers RPM (`passthru.interim = true`), not mkRpmPackage (WP8).
+  *Superseded by WP8 (experiments/wp8.md): `rockyBoot.s1.kernel-headers` is
+  the kernel SRPM headers-only through mkRpmPackage.*
 * **FHS shebangs** `#!/usr/bin/sh` (brp-mangle-shebangs of `/bin/sh`) stay in
   S1 outputs (gzip 12, xz 4) as the named S1 exception (stage
   fhsAllowlist): those scripts do not run on NixOS. patchShebangs binds them

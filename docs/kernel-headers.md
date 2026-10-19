@@ -244,3 +244,24 @@ references nothing.
   but nothing on the glibc path needs it.
 * Stage1+: under real BuildRequires checking, the headers-only build still
   lists ~40 BRs. See research §6 for the options.
+
+## Relocated build (Nix-native, WP8): `rockyBoot.s1.kernel-headers`
+
+The same headers-only recipe also builds through `mkRpmPackage`
+(`docs/nix-native-design.md`). It is a *variant* of the kernel SRPM:
+`variants = { kernel-headers = "kernel"; }` in `bootstrap/nn/s1.nix`, with
+overrides in `packages/kernel-headers/default.nix`. The switches and the 21
+leaked paths live in `packages/kernel-headers/headers-only.nix`, and this FHS
+build imports them from there too.
+
+* Outputs: `out` (the kernel-headers subpackage, headers at `<out>/include`),
+  `modules_extra_matched` (the empty meta package, metadata only), `logs`.
+  Neither output references anything.
+* `checks.nn-kernel-headers` compares it with the official RPM:
+  * the file list is the official one minus the same 21 paths;
+  * the files are byte-identical and the content oracle is the same;
+  * NEVR, provides, requires and obsoletes match.
+* It replaces the interim stage0 copy that glibc¹ (`packages/glibc/default.nix`,
+  `stage.pkgs.kernel-headers`) used until now.
+
+Details: `docs/research/nix-native/experiments/wp8.md`.

@@ -4,7 +4,11 @@ Relocated, Nix-native packages (`docs/nix-native-design.md`) are built from the
 SRPM alone: `mkRpmPackage` takes the spec, the lock data and the generic
 machinery. A package that needs more gets an optional override file
 `packages/<srpm>/default.nix` (`<srpm>` = the lock name, e.g. `glibc`,
-`krb5`). Most SRPMs have none.
+`krb5`). Most SRPMs have none. A *variant* of an SRPM (mkStage
+`variants = { <name> = "<srpm>"; }`: the same spec built another way under
+another attribute name, e.g. `kernel-headers` = the kernel SRPM headers-only)
+has its own file `packages/<name>/default.nix` and store name
+`<name>-<version>-<release>[-<output>]`.
 
 ```nix
 # packages/<srpm>/default.nix
@@ -53,14 +57,16 @@ machinery. A package that needs more gets an optional override file
 | `doCheck` | bool (`false`) | run `%check` (omit `--nocheck`); give the reason in a comment when it stays off in S3 |
 | `prefixView` | bool (`true`) | bind the declared-input `/usr` view at `$out` while rpmbuild runs (self-prefix alias, §1.5); `false` = the `$out` directory is empty during the build and the package needs `specSubstitutions` instead |
 | `strictFhs` | bool (`false`) | FHS literals found in outputs (`/usr/…`, `/lib64/…` not on the runtime allowlist) are errors instead of report entries |
-| `inputs` | `{ add = [ ]; addNative = [ ]; drop = [ str ]; }` | `add` / `addNative`: extra host / build inputs (derivations, store paths) beyond `builddeps.json`; `drop`: BuildRequires names not to map to inputs (provider RPM names from `builddeps.json` `inputs`, or entries of its `unresolved` list, which must be named here or in the stage fallback, else evaluation fails) |
+| `inputs` | `{ add = [ ]; addNative = [ ]; drop = [ str ]; buildRequires = [ str ]; }` | `add` / `addNative`: extra host / build inputs (derivations, store paths) beyond `builddeps.json`; `drop`: BuildRequires names not to map to inputs (provider RPM names from `builddeps.json` `inputs`, or entries of its `unresolved` list, which must be named here or in the stage fallback, else evaluation fails); `buildRequires`: extra BuildRequires (RPM names) resolved exactly like the lock's (a stage package or variant, the stage fallback, else an evaluation error): what the spec gets in Rocky's buildroot that `builddeps.json` misses (a BuildRequire's own Requires, e.g. kernel's `python3-rpm-macros` via `python3-devel`; a conditional BuildRequire of a non-default bcond, e.g. `rsync` under `with_headers`) |
 | `stage` | null or string (`null`) | bootstrap placement of a low-level package (which `rockyBoot` stage first builds it) |
+| `runtimeLibc` | bool (`true`) | `false`: the stage libc is build-only for this package (its outputs hold no programs or libraries, e.g. `kernel-headers`): no runtime input, no allowed reference to it, no input lib dirs; an ELF in an output then fails the partition (unresolved `DT_NEEDED`) |
 
 ## Output fields
 
 | field | type (default) | meaning |
 |---|---|---|
 | `prefixSubpackage` | null or string (`null`) | the subpackage that gets `%_prefix = $out` and is named `out`; default from `subpackages.json` (eponymous > `<srpm>-libs` > most `/usr` files in the official filelists) |
+| `builtSubpackages` | null or list of subpackage names (`null`) | `null`: the build produces every subpackage of `subpackages.json` (computed with default bconds). A list: exactly the subpackages this build produces (debuginfo ones included when built) when `bconds`/`defines` switch the rest off; each must be in `subpackages.json`, and outputs, `rpmOutputs` and the stage's `rpm.*` aliases cover only these (the partitioner still fails on a built-but-unlisted or listed-but-unbuilt subpackage). `kernel-headers`: `[ "kernel-headers" "kernel-modules-extra-matched" ]` with `prefixSubpackage = "kernel-headers"` |
 | `mergeOutputs` | list of lists of subpackage names (`[ ]`) | subpackages sharing one output (reference cycles, functional or prefix-relative merges, §3.3); the first member is the representative, a group containing the prefix subpackage is `out`; groups have ≥ 2 members, a subpackage is in at most one group. RPM-name attributes of merged members alias the representative |
 | `layout` | set of macro name → output name (`{ }`) | compile a directory macro as another output's path: `{ _datadir = "common"; }` → `--define "_datadir $common/share"`; only when that output owns the whole directory in the official filelists (`tools/layout-suggest.py`) |
 | `runtimeSearchPaths` | set of output-relative path → union variable (`{ }`) | compiled-in defaults that may dangle because a search path serves them: `{ "lib/locale" = "LOCPATH"; }`; the variable must be in `lib/rocky/unions.nix` (which also says when a variable is set: `LOCPATH` only for directory-format locales and never next to a `LOCALE_ARCHIVE`, since glibc then ignores the archive) |
