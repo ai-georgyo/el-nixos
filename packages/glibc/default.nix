@@ -1,19 +1,21 @@
 # Per-package overrides for the relocated glibc (docs/nix-native-design.md
-# §8.1 field names, §11.5 S1 form).  DRAFT: lib/rocky/overrides.nix (WP6)
-# owns the schema and validation; this file only uses §8.1 fields.  The FHS
-# twin build (packages/glibc.nix) is unrelated and stays.
+# §8.1 field names, §11.5 S1 form; schema: lib/rocky/overrides.nix,
+# packages/README-overrides.md).  rockyBoot.s1.glibc = milestone M1
+# (docs/research/nix-native/experiments/wp7.md).  The FHS twin build
+# (packages/glibc.nix) is unrelated and stays.
 #
 #   stage: the bootstrap stage building it (stage.name, stage.pkgs.<srpm>,
 #          stage.libgccForGlibc, stage.glibcBuildDeps)
 #   rocky: the final package set (unused in S1)
 #
 # Evidence: experiments/E4.md (opaqueRefs, lateReferrers),
-# experiments/E5.md (trusted dirs), checks.nn-glibc-prep (nixPatches).
+# experiments/E5.md (trusted dirs), checks.nn-glibc-prep (nixPatches),
+# tools/rocky-partition/tests/glibc-overrides.nix (the partition replay:
+# danglingOk, prefixRelativeOk, opaqueRefs), experiments/wp7.md (the build).
 { lib, stage, rocky }:
 let
   # per late-bound output, the sibling outputs referencing it (transitive), from E4
   lateReferrers = import ./late-referrers.nix;
-  sysroot = "sysroot_x86_64_el10_glibc/x86_64-redhat-linux/sys-root/el10/usr";
 in
 {
   # ---- recipe ---------------------------------------------------------------
@@ -52,9 +54,15 @@ in
   # stage0 ones, hoisted.  What S3a's stage provides here (gd, libpng and
   # libselinux are not Rocky-built before S3d, and S3 inputs must be S2/S3
   # builds, §7.3) is mkStage's decision (WP6/WP11), not this file's.
-  inputs.add = [ stage.pkgs.kernel-headers stage.glibcBuildDeps ];
-  # --with-headers=%{_prefix}/include: resolved by the prefixView alias (E2);
-  # only if E2 says otherwise:
+  # Both are build-only (host + view, never runtime inputs): glibc-devel
+  # Requires kernel-headers in Rocky, but M1's closure is the siblings +
+  # libgccForGlibc; consumers get the kernel headers from the toolchain
+  # (nn.cc.libcAdapter `headers`, nn.stages.s1.glibc1Libc), and a reference
+  # from any glibc output to kernel-headers fails the partition
+  # (foreign-store-path) and outputChecks.
+  inputs.addBuildOnly = [ stage.pkgs.kernel-headers stage.glibcBuildDeps ];
+  # --with-headers=%{_prefix}/include: resolved by the prefixView alias (E2,
+  # through the view's include/ = kernel-headers'); only if E2 says otherwise:
   # specSubstitutions = [ { from = "--with-headers=%{_prefix}/include";
   #   to = "--with-headers=%{rocky_kernel_headers}/include"; count = 1; } ];
   doCheck = false;
@@ -73,20 +81,37 @@ in
     "lib/locale" = "LOCPATH";
     "share/locale" = "TEXTDOMAINDIR/profile";
   };
-  # TZDIR default; profiles/NixOS set TZDIR (tzdata is another SRPM)
-  danglingOk = [ "share/zoneinfo" ];
-  # E4: copies of the prefix truncated after "-glibc-2.39-142.el10_" (gcc
-  # stores the string by pieces: a 64-byte .rodata chunk + immediates), in
-  # outputs other than out.  The full hash is inside the chunk, so Nix's
+  danglingOk = [
+    # TZDIR default; profiles/NixOS set TZDIR (tzdata is another SRPM)
+    "share/zoneinfo"
+    # partition replay (tools/rocky-partition/tests/glibc-overrides.nix):
+    "libx32"              # ldd's RTLDLIST names the x32 loader, never built
+    "lib/gconv"           # the 32-bit libc (glibc32, merged into out) names its
+                          # gconv dir; Rocky ships no 32-bit gconv modules
+    "lib/libmemusage.so"  # memusage preloads $utils/$LIB/libmemusage.so: the
+                          # lib64 expansion is utils', the lib one (32-bit) does
+                          # not exist (no 32-bit memusage in Rocky either)
+  ];
+  # partition replay: non-prefix outputs that name the bare prefix or a
+  # top-level dir several outputs fill, on purpose
+  prefixRelativeOk = [
+    "benchtests"          # glibc's test support (support/support_paths.c) is
+                          # linked in: bare $out, $out/bin, $out/sbin, ... in a
+                          # fixed-size table
+    "sysroot_x86_64_el10_glibc"  # the cross sysroot's copies (ld.so, libc.a): a
+                                 # sysroot for a cross gcc, never run from there
+  ];
+  # store-by-pieces references to $out in outputs other than out (design
+  # §2.8, E4 + the replay).  The truncated copies keep the full hash, so Nix's
   # scanner registers the edge (all are -> out, which these outputs reference
-  # anyway); only the path behind the piece is opaque to the partitioner.
-  # Tail decoded from the immediates; see E4.md.
+  # anyway; the partitioner adds nix-support/hidden-references as well); only
+  # the path behind the piece is opaque.  Format: PLAN.md output patterns.
   opaqueRefs = [
-    "common/bin/locale"                         # $out/lib/locale/... (LOCPATH)
-    "common/bin/localedef"                      # $out/share/i18n/{locales,charmaps} (I18NPATH)
-    "static/lib64/libc.a"                       # dl-load.o: $out/lib64/ (system dir)
-    "${sysroot}/lib64/ld-linux-x86-64.so.2"     # $out/lib64/ (system dir)
-    "${sysroot}/lib64/libc.a"                   # dl-load.o: $out/lib64/
+    "common:bin/locale"           # $out/lib/locale/... (LOCPATH)
+    "common:bin/localedef"        # $out/share/i18n/{locales,charmaps} (I18NPATH)
+    "static:lib64/libc.a"         # dl-load.o: $out/lib64/ (system dir)
+    "benchtests"                  # support_paths.c table (above)
+    "sysroot_x86_64_el10_glibc"   # ld-linux-x86-64.so.2, libc.a: $out/lib64/
   ];
   noPatchelf = [
     "lib64/ld-linux-x86-64.so.2" "lib/ld-linux.so.2" "lib64/lib*.so*" "lib/lib*.so*"

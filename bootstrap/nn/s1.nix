@@ -47,8 +47,15 @@ let
   stage0LibcTree = stage0Libc.out;
   libgccForGlibc = nn.libgccForGlibc;
 
-  # glibc¹ in the shape the wrapper wants (lib/rocky/cc/wrap.nix libcAdapter)
-  glibc1Libc = nn.cc.libcAdapter { out = self.pkgs.glibc.out; dev = self.pkgs.glibc.dev; };
+  # glibc¹ in the shape the wrapper wants (lib/rocky/cc/wrap.nix libcAdapter).
+  # kernel-headers: an include root of the toolchain after glibc's own (Rocky's
+  # /usr/include has both); glibc's outputs do not reference it (WP7: their
+  # closure is their siblings + libgccForGlibc), so the wrapper brings it
+  glibc1Libc = nn.cc.libcAdapter {
+    out = self.pkgs.glibc.out;
+    dev = self.pkgs.glibc.dev;
+    headers = [ self.pkgs.kernel-headers ];
+  };
   usesStage0Libc = srpm: !glibc1 || lib.elem srpm [ "glibc" "kernel" ];
   libcFor = srpm: if usesStage0Libc srpm then stage0Libc else glibc1Libc;
   ccStage0 = nn.cc.stage0;
@@ -236,6 +243,9 @@ let
     variants = { kernel-headers = "kernel"; };
     extra = self': {
       inherit glibcBuildDeps libgccForGlibc stage0Libc stage0LibcTree cmakeRpmMacros glibc1;
+      # the toolchain over glibc¹ (checks.nn-glibc-smoke; S1 packages after
+      # glibc¹ with glibc1 = true)
+      inherit glibc1Libc ccGlibc1;
       fallbackReasons = lib.mapAttrs (_: v: v.reason or v.drop) fallback;
     };
   };

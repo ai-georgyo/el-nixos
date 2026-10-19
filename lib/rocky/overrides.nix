@@ -144,14 +144,18 @@ let
     doCheck = field bool false;
     prefixView = field bool true;
     strictFhs = field bool false;
-    inputs = field (record "{ add; addNative; drop; buildRequires; }" {
+    inputs = field (record "{ add; addBuildOnly; addNative; drop; buildRequires; }" {
       add = field (listOf pathish) [ ];
+      # host inputs (cc-wrapper input, /usr view) the outputs must not
+      # reference even when Rocky-built: never runtime inputs (glibc:
+      # kernel-headers, M1 closure = siblings + libgccForGlibc)
+      addBuildOnly = field (listOf pathish) [ ];
       addNative = field (listOf pathish) [ ];
       drop = field (listOf str) [ ];
       # extra BuildRequires (RPM names), resolved like builddeps.json's
       # (stage package, stage fallback, else an eval error)
       buildRequires = field (listOf nonEmptyStr) [ ];
-    }) { add = [ ]; addNative = [ ]; drop = [ ]; buildRequires = [ ]; };
+    }) { add = [ ]; addBuildOnly = [ ]; addNative = [ ]; drop = [ ]; buildRequires = [ ]; };
     stage = field (nullOr str) null;
     # false: the stage libc is build-only (outputs without programs or
     # libraries, e.g. kernel-headers): not a runtime input, not allowed in

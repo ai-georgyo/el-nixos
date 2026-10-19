@@ -356,6 +356,8 @@ integration owner of `lib/rocky/**`, `tools/rocky-partition/**`,
   `tools/rocky-partition/tests/glibc-overrides.nix` (danglingOk `libx32`,
   `lib/gconv`, `lib/libmemusage.so`; prefixRelativeOk + opaqueRefs
   `benchtests`, `sysroot_x86_64_el10_glibc`); WP7 owns that file.
+  *Done by WP7 (experiments/wp7.md): rockyBoot.s1.glibc builds with the
+  committed overrides, checks.nn-glibc-smoke passes.*
 * **S1 after glibc¹**: `nn.stages.s1Glibc1` evaluates but was not built;
   flipping `glibc1` needs glibc¹ verified (M1).
 * **The rest of the design's S1 list** (macro packages built from SRPMs, gmp,

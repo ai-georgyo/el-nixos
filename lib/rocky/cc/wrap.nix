@@ -3,8 +3,10 @@
 # unmodified sources) around copies of the stage0 gcc 14.3.1 and binutils 2.41
 # (Rocky sources, FHS trees under usr/), with a relocated glibc as libc.
 #
-#   wrap { libc }   the wrapped compiler; libc = { out, dev } of a relocated
-#                   glibc (a multi-output derivation qualifies)
+#   wrap { libc }   the wrapped compiler; libc = { out, dev, headers ? [ ] } of
+#                   a relocated glibc (a multi-output derivation qualifies;
+#                   `headers`: more include roots after the libc's, e.g.
+#                   kernel-headers, which the split glibc's dev does not hold)
 #   stage0Libc      the stage0 glibc 2.39 + Rocky kernel-headers relocated into
 #                   one store path, already adapted: compiles glibc¹ and tests
 #                   the wrapper before any relocated glibc exists
@@ -33,7 +35,9 @@
 #     consumers of a split package (buildInputs = [ xz.dev ]) run (WP6);
 #   * dynamic-linker <out>/lib64/ld-linux-x86-64.so.2, -m32: <out>/lib/ld-linux.so.2;
 #     cc-wrapper-hook m32-libc.sh: -m32 takes crt files and libc.so from <libc>/lib
-#     (gcc never maps a -B dir to ../lib by itself);
+#     (gcc never maps a -B dir to ../lib by itself); with a split libc also
+#     -idirafter <out>/include (glibc32, merged into out, holds
+#     gnu/stubs-32.h and gnu/lib-names-32.h; WP7 found -m32 failing without);
 #   * the gcc copy's runtime libraries that NEED libgcc_s.so.1 get RUNPATH $ORIGIN.
 #
 # Known limits (stage0 gcc, no no-sys-dirs patch yet, §5.2): the default
@@ -117,12 +121,21 @@ let
     '';
   };
 
+  # libc = { out; dev; headers ? [ ]; } (or a multi-output glibc): `headers`
+  # are further include roots (<h>/include) searched after the libc's own, as
+  # Rocky's /usr/include holds glibc-devel and kernel-headers together.  The
+  # relocated glibc's dev has no linux/ or asm/ headers (WP7: glibc outputs
+  # reference only their siblings and libgccForGlibc, so dev neither links nor
+  # propagates kernel-headers), while glibc's own <errno.h>, <signal.h>,
+  # <sys/ioctl.h>, ... include <linux/...>/<asm/...>: the toolchain adds them.
   libcAdapter = libc:
     let
       out = libc.out or libc;
       dev = libc.dev or out;
+      headers = libc.headers or [ ];
     in
     out // {
+      rockyHeaders = headers;
       # out of a multi-output derivation has outputSpecified = true, which
       # makes lib.getDev / getLib return it unchanged
       outputSpecified = false;
@@ -157,6 +170,10 @@ let
         cat ${./no-purity.sh} >> $out/nix-support/utils.bash
       '';
       outIsNotDev = l.out.outPath != l.dev.outPath;
+      # libc headers roots after the libc's own include dir (libcAdapter);
+      # empty for a libc without them (the derivation stays unchanged)
+      headerCmds = lib.concatMapStrings (h:
+        "echo -idirafter ${h}/include >> $out/nix-support/libc-cflags\n        ") (l.rockyHeaders or [ ]);
       bintools = pkgs.wrapBintoolsWith {
         name = "${name}-binutils-wrapper";
         bintools = binutils;
@@ -180,12 +197,12 @@ let
       libc = l;
       extraBuildCommands = ''
         : > $out/nix-support/cc-cflags-before
-        ${noPurity}
+        ${headerCmds}${noPurity}
         cat ${./map-roots.sh} >> $out/nix-support/setup-hook
         substitute ${./add-prefix-map.sh} $out/nix-support/cc-wrapper-hook \
           --subst-var-by gcc ${gcc} --subst-var-by storeDir ${storeDir}
         substitute ${./m32-libc.sh} m32-libc.sh --subst-var-by libcDev ${l.dev} \
-          --subst-var-by libcOutB "${lib.optionalString outIsNotDev "-B${l.out}/lib/"}"
+          --subst-var-by libcOutB "${lib.optionalString outIsNotDev "-B${l.out}/lib/ -idirafter ${l.out}/include"}"
         cat m32-libc.sh >> $out/nix-support/cc-wrapper-hook
         ${lib.optionalString outIsNotDev ''
           # out != dev: crt files / libraries may also live in out's lib64

@@ -102,7 +102,9 @@
 # zlib-ng's cmake(GTest)) must be named in inputs.drop or the fallback set
 # (with a reason), else evaluation fails too.
 # plus inputs.add (host; runtime only if Rocky-built, i.e. it has
-# rockyRequisites; companions as above) and inputs.addNative (native).
+# rockyRequisites; companions as above), inputs.addBuildOnly (host and view,
+# never runtime, even when Rocky-built: glibc's kernel-headers) and
+# inputs.addNative (native).
 # inputs.buildRequires are extra BuildRequires (RPM names) resolved exactly
 # like the lock's: what a spec gets in Rocky's buildroot that builddeps.json
 # does not list (a BuildRequire's own Requires, a conditional the lock's
@@ -246,7 +248,7 @@ let
           ++ lib.concatMap linkOutputs (lib.filter isRocky inputs.add));
         stageMacro = map stageOut macroR;
         stageNative = map stageOut toolR;
-        addOther = lib.filter (d: !(isRocky d)) inputs.add;
+        addOther = lib.filter (d: !(isRocky d)) inputs.add ++ inputs.addBuildOnly or [ ];
       in
       if unmapped != [ ] then
         throw ("stage ${name}: ${srpm}: BuildRequires providers neither built by the stage nor in its fallback set: "
